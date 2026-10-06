@@ -101,6 +101,17 @@ function laneTitles (listPayload) {
   return arr(listPayload && listPayload.lanes).map(function (l) { return l.title })
 }
 
+// The status menu: the lanes that hold the typed text, and whether the text
+// names a lane that does not exist yet, so Enter can create it.
+function statusMatches (titles, query) {
+  var q = String(query || '').trim().toLowerCase()
+  var all = arr(titles)
+  return {
+    matches: all.filter(function (t) { return q === '' || t.toLowerCase().indexOf(q) >= 0 }),
+    canCreate: q !== '' && !all.some(function (t) { return t.toLowerCase() === q })
+  }
+}
+
 // The lane before (step -1) or after (step 1) a lane, in file order.
 function neighbour (listPayload, title, step) {
   var titles = arr(listPayload && listPayload.lanes).map(function (l) { return l.title })
@@ -115,6 +126,7 @@ if (typeof module !== 'undefined') {
     lateCount: lateCount,
     openLanes: openLanes,
     laneTitles: laneTitles,
+    statusMatches: statusMatches,
     neighbour: neighbour,
     shiftDay: shiftDay,
     nextMonday: nextMonday,

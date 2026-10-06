@@ -282,6 +282,9 @@ hasnt "CardRow.qml" "Move to the lane before" "the card still shows arrows inste
 hasnt "CardRow.qml" "anchors.right: actions.left" "the hidden card buttons still take the width of the text"
 has "CardRow.qml" "label: qsTr\(\"Remove\"\); danger: true" "removing a card does not read as a delete"
 has "HoverActions.qml" "danger: true" "removing an item does not read as a delete"
+has "StatusMenu.qml" "Board.statusMatches" "the status menu cannot filter or create"
+has "BoardList.qml" "StatusMenu \\{" "the status menu does not float at the board level"
+hasnt "CardRow.qml" "StatusPanel" "the status still opens as a row under the card"
 
 # Syntax: qmllint, when the machine has it, parses every file. It refuses the
 # typed functions an IpcHandler needs, so files with one are left out.

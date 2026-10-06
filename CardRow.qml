@@ -28,6 +28,10 @@ Column {
 
   spacing: Style.space(4)
 
+  // The status menu floats at the board level; the card tells it where its
+  // button is, whether the menu opened from a click or from the s key.
+  onChoosingChanged: if (choosing && board) board.anchorStatus(statusButton)
+
   Item {
     width: parent.width
     implicitHeight: Math.max(label.implicitHeight, Style.space(22)) + Style.space(18)
@@ -178,20 +182,6 @@ Column {
       RowButton { visible: root.board !== null && root.board.datesOn; glyph: ""; label: qsTr("Date"); fontFamily: root.fontFamily; onClicked: root.board.toggleDate(root.key) }
       RowButton { glyph: ""; label: qsTr("Edit"); fontFamily: root.fontFamily; onClicked: root.board.editingKey = root.key }
       RowButton { glyph: ""; label: qsTr("Remove"); danger: true; fontFamily: root.fontFamily; onClicked: root.board.remove(root.key) }
-    }
-  }
-
-  Loader {
-    width: parent.width
-    active: root.choosing
-    visible: active
-    sourceComponent: StatusPanel {
-      lanes: Board.laneTitles(root.board.listPayload)
-      current: root.lane
-      fontFamily: root.fontFamily
-      onPicked: function (lane) { root.board.moveTo(root.key, lane) }
-      onCreated: function (lane) { root.board.addLaneAndMove(root.key, lane) }
-      onCancelled: root.board.statusKey = ""
     }
   }
 

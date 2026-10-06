@@ -80,3 +80,11 @@ test('laneTitles lists every lane a card can go to, Complete lanes too', () => {
   assert.deepEqual(Board.laneTitles(PAYLOAD), ['To do', 'In progress', 'Done'])
   assert.deepEqual(Board.laneTitles(null), [])
 })
+
+test('statusMatches filters the lanes and offers to create a name that is new', () => {
+  const lanes = ['To do', 'In progress', 'Done']
+  assert.deepEqual(Board.statusMatches(lanes, ''), { matches: lanes, canCreate: false })
+  assert.deepEqual(Board.statusMatches(lanes, ' prog '), { matches: ['In progress'], canCreate: true })
+  assert.deepEqual(Board.statusMatches(lanes, 'wait'), { matches: [], canCreate: true })
+  assert.deepEqual(Board.statusMatches(lanes, 'done'), { matches: ['Done'], canCreate: false })
+})

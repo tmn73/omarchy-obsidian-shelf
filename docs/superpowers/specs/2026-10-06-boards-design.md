@@ -90,10 +90,12 @@ Rules:
   - later: "Mon 20 Oct" plus the time.
   Done cards show no chip.
 - On hover or under the keyboard highlight a card shows: its status (the
-  lane name), date, edit and remove. The status opens a menu under the
-  card with every lane, the current one marked, and "+ New status", which
-  adds a `## ` lane before the Complete lane (or at the end) and moves the
-  card there. The date button opens a small panel under the
+  lane name), date, edit and remove. The status opens a menu that floats
+  under the button, over the cards below (above it when there is no room).
+  A "Move to…" field filters the lanes; a name that is not a lane yet
+  becomes "+ Create", which adds a `## ` lane before the Complete lane (or
+  at the end) and moves the card there. Enter takes the highlighted line,
+  Up and Down move the highlight, Escape closes, and a scroll closes it. The date button opens a small panel under the
   card: Today, Tomorrow, Next Monday, In a week, a date field, a time field
   and No date. It says that a card with a time rings at that time and a
   card with only a date rings in the morning summary.

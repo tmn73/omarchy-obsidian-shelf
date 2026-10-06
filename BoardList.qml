@@ -97,6 +97,16 @@ ListStateFrame {
   function toggleDate(key) { statusKey = ""; datingKey = datingKey === key ? "" : key }
   function toggleStatus(key) { datingKey = ""; statusKey = statusKey === key ? "" : key }
 
+  function anchorStatus(button) {
+    var top = button.mapToItem(root, 0, 0)
+    var gap = Style.space(4)
+    statusMenu.x = Math.max(0, top.x + button.width - statusMenu.width)
+    var below = top.y + button.height + gap
+    var room = below + statusMenu.implicitHeight <= root.height || top.y - statusMenu.implicitHeight - gap < 0
+    statusMenu.y = room ? below : top.y - statusMenu.implicitHeight - gap
+    statusMenu.open()
+  }
+
   function moveTo(key, lane) {
     statusKey = ""
     if (lane !== laneOf(key))
@@ -129,6 +139,8 @@ ListStateFrame {
   Flickable {
     anchors.fill: parent
     visible: root.showRows
+    // The menu sits over a card: a scroll would leave it pointing nowhere.
+    onContentYChanged: if (root.statusKey !== "") root.statusKey = ""
     contentHeight: body.implicitHeight
     clip: true
     boundsBehavior: Flickable.StopAtBounds
@@ -156,5 +168,20 @@ ListStateFrame {
         }
       }
     }
+  }
+
+  StatusMenu {
+    id: statusMenu
+
+    z: 10
+    visible: root.statusKey !== ""
+    lanes: Board.laneTitles(root.listPayload)
+    current: root.laneOf(root.statusKey)
+    accentLane: root.lanes.length > 0 && !root.lanes[0].complete ? root.lanes[0].title : ""
+    completeLanes: root.lanes.filter(function (l) { return l.complete }).map(function (l) { return l.title })
+    fontFamily: root.fontFamily
+    onPicked: function (lane) { root.moveTo(root.statusKey, lane) }
+    onCreated: function (lane) { root.addLaneAndMove(root.statusKey, lane) }
+    onCancelled: root.statusKey = ""
   }
 }
