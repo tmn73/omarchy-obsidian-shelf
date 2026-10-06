@@ -49,6 +49,10 @@ Panel {
     function toggle(): void { root.toggle() }
     function refresh(): string { shelf.refresh(); return "ok" }
     function badge(): string { return String(shelf.badge) }
+    // What the service holds, for scripts and for debugging a silent chip.
+    function status(): string {
+      return JSON.stringify({ configured: shelf.configured, loading: shelf.loading, error: shelf.error, syncHealthy: shelf.syncHealthy, badge: shelf.badge, readAt: shelf.payload ? shelf.payload.readAt : "" })
+    }
   }
 
   ShelfChip {
