@@ -26,9 +26,9 @@ Row {
   }
 
   RowButton {
-    glyph: ""
+    glyph: ""
     label: qsTr("Remove")
-    primary: true
+    danger: true
     fontFamily: root.fontFamily
     onClicked: root.removeClicked()
   }

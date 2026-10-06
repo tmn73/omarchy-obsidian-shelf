@@ -177,7 +177,7 @@ Column {
       }
       RowButton { visible: root.board !== null && root.board.datesOn; glyph: ""; label: qsTr("Date"); fontFamily: root.fontFamily; onClicked: root.board.toggleDate(root.key) }
       RowButton { glyph: ""; label: qsTr("Edit"); fontFamily: root.fontFamily; onClicked: root.board.editingKey = root.key }
-      RowButton { glyph: ""; label: qsTr("Remove"); primary: true; fontFamily: root.fontFamily; onClicked: root.board.remove(root.key) }
+      RowButton { glyph: ""; label: qsTr("Remove"); danger: true; fontFamily: root.fontFamily; onClicked: root.board.remove(root.key) }
     }
   }
 
