@@ -22,9 +22,9 @@ Item {
   property bool loading: false
   property string error: ""
   property var fresh: []
-  // What arrived since the popup was last open. The chip keeps its dot and
-  // the rows keep their NEW tag until the popup has been seen and closed.
-  property var unseen: []
+  // What arrived since the popup was last open, on any screen. The chip keeps
+  // its dot and the rows keep their NEW tag until the popup has been closed.
+  readonly property var unseen: seenState.unseen
   property bool syncHealthy: true
   property string syncMessage: ""
   property string notice: ""
@@ -93,8 +93,7 @@ Item {
       return
     }
     var added = Model.freshKeys(payload, data)
-    // Before the payload, so rows created for new items already know they are new.
-    unseen = Model.mergeUnseen(unseen, added, data)
+    seenState.update(data)
     payload = data
     error = ""
     if (Model.previewsPending(data, config) && !enrichProcess.running) {
@@ -164,7 +163,7 @@ Item {
   }
 
   function clearUnseen() {
-    unseen = []
+    seenState.markSeen()
   }
 
   function showNotice(text) {
@@ -173,6 +172,14 @@ Item {
   }
 
   onConfigChanged: Qt.callLater(refresh)
+
+  SeenState {
+    id: seenState
+
+    helper: root.helperPath()
+    lists: root.config.lists
+    payload: root.payload
+  }
 
   Timer {
     interval: root.config.refreshIntervalSec * 1000

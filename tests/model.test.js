@@ -176,14 +176,21 @@ test('syncStep names the next step and its button', () => {
 
 // ---- Unseen items (kept until the popup has been opened and closed)
 
-test('mergeUnseen adds new keys and keeps unseen keys that still exist', () => {
-  const p = payload(['n2', 'n1', 'a'], [], ['t'])
-  const merged = Model.mergeUnseen(['read-later\u0000n1', 'read-later\u0000gone'], ['read-later\u0000n2', 'read-later\u0000n1'], p)
-  assert.deepEqual(merged, ['read-later\u0000n1', 'read-later\u0000n2'])
+test('unseenKeys lists the items that are not in the seen state', () => {
+  const p = payload(['n1', 'a'], ['x'], ['t'])
+  const seen = { 'read-later': { path: 'Read Later', keys: ['a'] }, retro: { path: 'R.md', keys: ['Good\n- x'] }, todo: { path: 'Todo.md', keys: [] } }
+  assert.deepEqual(Model.unseenKeys(p, seen), ['read-later\u0000n1', 'todo\u0000- [ ] t'])
 })
 
-test('mergeUnseen starts empty', () => {
-  assert.deepEqual(Model.mergeUnseen(null, [], payload(['a'], [], [])), [])
+test('unseenKeys counts nothing for a list the seen state does not know yet', () => {
+  assert.deepEqual(Model.unseenKeys(payload(['a'], [], []), { todo: { path: 'Todo.md', keys: [] } }), [])
+  assert.deepEqual(Model.unseenKeys(payload(['a'], [], []), null), [])
+})
+
+test('seenFromPayload takes every item key of the lists that were read', () => {
+  const p = payload(['a'], ['x'], ['t'])
+  p.lists.push({ id: 'gone', state: 'missing' })
+  assert.deepEqual(Model.seenFromPayload(p), { 'read-later': ['a'], retro: ['Good\n- x'], todo: ['- [ ] t'] })
 })
 
 test('normalizeSettings keeps tweet previews off unless asked', () => {

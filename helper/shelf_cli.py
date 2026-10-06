@@ -14,6 +14,7 @@ from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
 import shelf_previews
+import shelf_seen
 import shelf_settings
 import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
@@ -40,6 +41,8 @@ def build_parser() -> Parser:
         if name == "enrich":
             sub.add_argument("--previews", default="", help="comma list: tweets, links")
     commands.add_parser("vaults", add_help=False)
+    seen = commands.add_parser("seen", add_help=False)
+    seen.add_argument("--lists", required=True)
     scan = commands.add_parser("scan", add_help=False)
     scan.add_argument("--vault", required=True)
     paths = commands.add_parser("paths", add_help=False)
@@ -73,6 +76,25 @@ def preview_cache() -> Path:
     return Path(os.environ.get("XDG_CACHE_HOME") or home / ".cache") / "obsidian-shelf" / "previews.json"
 
 
+def seen_file() -> Path:
+    return shelf_seen.state_file(os.environ, Path(os.environ.get("HOME", str(Path.home()))))
+
+
+def settle_seen(lists: list, payloads: list) -> tuple:
+    """The seen state for this read. Failing to store it never fails the read.
+
+    The file always exists after a read, so every screen has a file to watch.
+    """
+    path = seen_file()
+    seen, changed = shelf_seen.settle(shelf_seen.load(path), lists, payloads)
+    if changed or not path.exists():
+        try:
+            shelf_seen.save(path, seen)
+        except OSError:
+            pass
+    return seen, path
+
+
 def read_lists(vault: Path, lists: list) -> dict:
     previews = shelf_previews.load_cache(preview_cache())
     out = []
@@ -85,7 +107,8 @@ def read_lists(vault: Path, lists: list) -> dict:
         else:
             out.append(reader(vault, cfg))
     stamp = datetime.now().astimezone().isoformat(timespec="seconds")
-    return {"ok": True, "readAt": stamp, "lists": out}
+    seen, path = settle_seen(lists, out)
+    return {"ok": True, "readAt": stamp, "lists": out, "seen": seen, "seenPath": str(path)}
 
 
 def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
@@ -122,6 +145,17 @@ def run_sync(command: str, vault: Path) -> tuple:
     return 0, shelf_sync.install_service(ob, vault, config_home(), shelf_sync.run_quietly)
 
 
+def mark_seen(lists_json: str, keys_json: str) -> dict:
+    lists = json.loads(lists_json)
+    keys = json.loads(keys_json)
+    if not isinstance(lists, list) or not isinstance(keys, dict) or not all(isinstance(v, list) for v in keys.values()):
+        raise ArgumentError("seen needs --lists as a JSON array and stdin as {listId: [keys]}")
+    try:
+        return shelf_seen.mark(seen_file(), lists, keys)
+    except OSError as err:
+        return fail("io", str(err))
+
+
 def main(argv: list, stdin) -> tuple:
     try:
         args = build_parser().parse_args(argv)
@@ -129,6 +163,8 @@ def main(argv: list, stdin) -> tuple:
             raise ArgumentError("a command is required")
         if args.command == "vaults":
             return 0, {"ok": True, "vaults": shelf_settings.known_vaults(config_home() / "obsidian" / "obsidian.json")}
+        if args.command == "seen":
+            return 0, mark_seen(args.lists, stdin.read())
         vault = Path(args.vault).expanduser()
         if args.command == "scan":
             return 0, {"ok": True, "suggestions": shelf_settings.scan(vault)}

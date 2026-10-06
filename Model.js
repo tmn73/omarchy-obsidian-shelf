@@ -110,14 +110,21 @@ function badgeCount (payload, lists) {
   return total
 }
 
+// The item keys of one list, without its id.
+function listKeys (list) {
+  var sections = toArray(list.sections)
+  var groups = sections ? sections.map(function (s) { return toArray(s.items) || [] }) : [toArray(list.items) || []]
+  var keys = []
+  groups.forEach(function (items) {
+    items.forEach(function (item) { keys.push(item.key) })
+  })
+  return keys
+}
+
 function itemKeys (payload) {
   var keys = []
   ;(toArray(payload && payload.lists) || []).forEach(function (list) {
-    var sections = toArray(list.sections)
-    var groups = sections ? sections.map(function (s) { return toArray(s.items) || [] }) : [toArray(list.items) || []]
-    groups.forEach(function (items) {
-      items.forEach(function (item) { keys.push(list.id + KEY_SEPARATOR + item.key) })
-    })
+    listKeys(list).forEach(function (k) { keys.push(list.id + KEY_SEPARATOR + k) })
   })
   return keys
 }
@@ -146,18 +153,31 @@ function previewArgument (config) {
   return kinds.join(',')
 }
 
-// Unseen items: what arrived since the popup was last opened. Keys that left
-// the vault drop out, new arrivals join, nothing repeats.
-function mergeUnseen (unseen, added, payload) {
-  var present = {}
-  itemKeys(payload).forEach(function (k) { present[k] = true })
+// Unseen items: the keys of each list that are not in the seen state the
+// helper keeps for every screen. A list the state does not know yet counts
+// nothing, because the helper starts a new list with all its items seen.
+function unseenKeys (payload, seen) {
   var out = []
-  var seen = {}
-  ;(toArray(unseen) || []).concat(toArray(added) || []).forEach(function (k) {
-    if (present[k] && !seen[k]) {
-      seen[k] = true
-      out.push(k)
-    }
+  if (!seen) return out
+  ;(toArray(payload && payload.lists) || []).forEach(function (list) {
+    var entry = seen[list.id]
+    var keys = entry ? toArray(entry.keys) : null
+    if (!keys) return
+    var known = {}
+    keys.forEach(function (k) { known[k] = true })
+    listKeys(list).forEach(function (k) {
+      if (!known[k]) out.push(list.id + KEY_SEPARATOR + k)
+    })
+  })
+  return out
+}
+
+// What the user has seen when the popup closes: every item of every list
+// that was read, as {listId: [keys]} for the helper.
+function seenFromPayload (payload) {
+  var out = {}
+  ;(toArray(payload && payload.lists) || []).forEach(function (list) {
+    if (list.state === 'ok') out[list.id] = listKeys(list)
   })
   return out
 }
@@ -318,7 +338,8 @@ if (typeof module !== 'undefined') {
     itemKeys: itemKeys,
     freshKeys: freshKeys,
     freshInBadgeLists: freshInBadgeLists,
-    mergeUnseen: mergeUnseen,
+    unseenKeys: unseenKeys,
+    seenFromPayload: seenFromPayload,
     previewsPending: previewsPending,
     previewArgument: previewArgument,
     relativeAge: relativeAge,
