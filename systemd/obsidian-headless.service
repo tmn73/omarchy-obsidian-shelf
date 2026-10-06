@@ -1,0 +1,15 @@
+[Unit]
+Description=Obsidian Sync for the vault, without the desktop app (Obsidian Headless)
+Documentation=https://github.com/obsidianmd/obsidian-headless
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# `ob` starts with `#!/usr/bin/env node`; the user manager PATH holds node.
+ExecStart=%h/.cache/.bun/bin/ob sync --continuous --path %h/Documents/obsidian/tmn
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
