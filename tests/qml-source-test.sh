@@ -285,6 +285,7 @@ has "HoverActions.qml" "danger: true" "removing an item does not read as a delet
 has "StatusMenu.qml" "Board.statusMatches" "the status menu cannot filter or create"
 has "CardRow.qml" "id: textClip" "the text shows under the card buttons on hover"
 has "FolderRow.qml" "Util.alpha\(Color.popups.text, 0.03\)" "link rows run together without a card each"
+has "FolderRow.qml" "titleMetrics.advanceWidth" "the link title shrinks on each layout (elided implicitWidth)"
 has "ChecklistRow.qml" "Util.alpha\(Color.popups.text, 0.03\)" "checklist rows run together without a card each"
 hasnt "CardRow.qml" "Qt.tint" "the card paints a color that does not follow the theme"
 has "BoardList.qml" "StatusMenu \\{" "the status menu does not float at the board level"

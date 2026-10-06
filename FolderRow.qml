@@ -132,11 +132,21 @@ Item {
           fontFamily: root.fontFamily
         }
 
+        // The natural width of the title. A Text that elides reports the
+        // elided width as its implicitWidth, so binding to it shrinks the
+        // title a little more on each layout.
+        TextMetrics {
+          id: titleMetrics
+
+          font: titleText.font
+          text: root.title
+        }
+
         Text {
           id: titleText
 
           visible: !root.editing
-          width: Math.min(implicitWidth, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0) - (miniAvatar.visible ? miniAvatar.width + parent.spacing : 0))
+          width: Math.min(Math.ceil(titleMetrics.advanceWidth) + 1, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0) - (miniAvatar.visible ? miniAvatar.width + parent.spacing : 0))
           text: root.title
           textFormat: Text.PlainText
           wrapMode: Text.Wrap
