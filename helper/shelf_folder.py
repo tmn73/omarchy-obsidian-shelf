@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-from shelf_io import OutsideVault, read_text, resolve_in_vault
+from shelf_io import locate, read_text
 
 FRONT_MATTER_URL_KEYS = ("url", "source", "link")
 URL_RE = re.compile(r"https?://[^\s)>\]]+")
@@ -90,13 +90,10 @@ def folder_item(vault_root: Path, path: Path) -> dict:
 
 
 def read_folder(vault: Path, cfg: dict) -> dict:
-    list_id, rel = cfg["id"], cfg["path"]
-    try:
-        folder = resolve_in_vault(vault, rel)
-    except OutsideVault as err:
-        return {"id": list_id, "state": "error", "message": str(err)}
-    if not folder.is_dir():
-        return {"id": list_id, "state": "missing", "message": f"{rel} not found"}
+    list_id = cfg["id"]
+    folder, problem = locate(vault, cfg, want_dir=True)
+    if problem:
+        return problem
     root = Path(vault).resolve()
     try:
         notes = [p for p in folder.iterdir() if p.is_file() and p.suffix == ".md"]

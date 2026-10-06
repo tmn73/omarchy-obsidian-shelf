@@ -22,6 +22,19 @@ def resolve_in_vault(vault: Path, rel: str) -> Path:
     return target
 
 
+def locate(vault: Path, cfg: dict, want_dir: bool = False):
+    """Return (path, None), or (None, a list state dict) when it cannot be used."""
+    list_id, rel = cfg["id"], cfg["path"]
+    try:
+        path = resolve_in_vault(vault, rel)
+    except OutsideVault as err:
+        return None, {"id": list_id, "state": "error", "message": str(err)}
+    exists = path.is_dir() if want_dir else path.is_file()
+    if not exists:
+        return None, {"id": list_id, "state": "missing", "message": f"{rel} not found"}
+    return path, None
+
+
 def read_text(path: Path) -> str:
     return Path(path).read_text(encoding="utf-8")
 
