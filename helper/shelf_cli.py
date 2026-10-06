@@ -1,0 +1,91 @@
+"""Command line contract of the helper (spec section 6).
+
+main() never prints and never exits: it returns the exit code and the JSON
+object, so the tests drive it directly and bin/obsidian-shelf only prints.
+"""
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+
+from shelf_checklist import add_checklist, done_checklist, read_checklist
+from shelf_folder import done_folder, read_folder
+from shelf_io import fail
+from shelf_sections import add_sections, clear_sections, read_sections
+
+READERS = {"folder": read_folder, "checklist": read_checklist, "sections": read_sections}
+
+
+class ArgumentError(ValueError):
+    pass
+
+
+class Parser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ArgumentError(message)
+
+
+def build_parser() -> Parser:
+    parser = Parser(prog="obsidian-shelf", add_help=False)
+    commands = parser.add_subparsers(dest="command", parser_class=Parser)
+    read = commands.add_parser("read", add_help=False)
+    read.add_argument("--vault", required=True)
+    read.add_argument("--lists", required=True)
+    for name in ("add", "done", "clear"):
+        sub = commands.add_parser(name, add_help=False)
+        sub.add_argument("--vault", required=True)
+        sub.add_argument("--list", required=True)
+        if name == "add":
+            sub.add_argument("--section", default=None)
+        if name == "done":
+            sub.add_argument("--item", required=True)
+    return parser
+
+
+def read_lists(vault: Path, lists: list) -> dict:
+    out = []
+    for cfg in lists:
+        reader = READERS.get(cfg.get("type"))
+        if reader is None:
+            out.append({"id": cfg.get("id", ""), "state": "error", "message": "Unknown list type"})
+        else:
+            out.append(reader(vault, cfg))
+    stamp = datetime.now().astimezone().isoformat(timespec="seconds")
+    return {"ok": True, "readAt": stamp, "lists": out}
+
+
+def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
+    kind = (args.command, cfg.get("type"))
+    if kind == ("add", "checklist"):
+        return add_checklist(vault, cfg, stdin.read())
+    if kind == ("add", "sections"):
+        if not args.section:
+            raise ArgumentError("add on a sections list needs --section")
+        return add_sections(vault, cfg, args.section, stdin.read())
+    if kind == ("done", "folder"):
+        return done_folder(vault, cfg, args.item)
+    if kind == ("done", "checklist"):
+        return done_checklist(vault, cfg, args.item)
+    if kind == ("clear", "sections"):
+        return clear_sections(vault, cfg)
+    raise ArgumentError(f"{args.command} does not apply to a {cfg.get('type')} list")
+
+
+def main(argv: list, stdin) -> tuple:
+    try:
+        args = build_parser().parse_args(argv)
+        if args.command is None:
+            raise ArgumentError("a command is required")
+        vault = Path(args.vault).expanduser()
+        if args.command == "read":
+            lists = json.loads(args.lists)
+            if not isinstance(lists, list):
+                raise ArgumentError("--lists must be a JSON array")
+            return 0, read_lists(vault, lists)
+        cfg = json.loads(args.list)
+        if not isinstance(cfg, dict) or not cfg.get("path"):
+            raise ArgumentError("--list must be a JSON object with a path")
+        return 0, run_action(args, vault, cfg, stdin)
+    except (ArgumentError, json.JSONDecodeError) as err:
+        return 2, fail("invalid", str(err))
