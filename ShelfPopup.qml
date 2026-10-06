@@ -29,7 +29,13 @@ Item {
   readonly property bool configured: service ? service.configured : false
   readonly property var activeConfig: lists.length > 0 ? lists[Math.min(activeIndex, lists.length - 1)] : null
   readonly property var activePayload: activeConfig && service ? Model.findList(service.payload, activeConfig.id) : null
-  readonly property real maxListHeight: Style.space(470)
+  // The room the panel gives, set by Panel.qml. The list takes what the
+  // header, tabs, add bar and key hints leave, so nothing gets cut.
+  property real availableHeight: Style.space(716)
+  readonly property real chromeHeight: header.implicitHeight + (noticeText.visible ? noticeText.implicitHeight : 0)
+    + (syncCard.visible ? syncCard.implicitHeight : 0) + (tabBar.visible ? tabBar.implicitHeight : 0)
+    + (addBarItem.visible ? addBarItem.implicitHeight : 0) + 1 + (hints.visible ? hints.implicitHeight : 0) + content.spacing * 7
+  readonly property real maxListHeight: Math.max(Style.space(120), Math.min(Style.space(470), availableHeight - chromeHeight))
   readonly property var listSources: ({ folder: "FolderList.qml", checklist: "ChecklistList.qml", sections: "SectionsList.qml", board: "BoardList.qml" })
   readonly property bool canAdd: activeConfig !== null && activeConfig.type !== "folder" && !settingsOpen && !adding
   readonly property var sectionNames: Model.addTargets(activeConfig, activePayload)
@@ -64,32 +70,7 @@ Item {
     activeIndex = (activeIndex + direction + lists.length) % lists.length
   }
 
-  function moveHighlight(dy) {
-    if (listLoader.item && listLoader.item.moveHighlight)
-      listLoader.item.moveHighlight(dy)
-  }
-
-  function activateCurrent() {
-    if (listLoader.item && listLoader.item.activateCurrent)
-      listLoader.item.activateCurrent()
-  }
-
-  function doneCurrent() {
-    if (listLoader.item && listLoader.item.doneCurrent)
-      listLoader.item.doneCurrent()
-  }
-
-  function editCurrent() {
-    if (listLoader.item && listLoader.item.editCurrent)
-      listLoader.item.editCurrent()
-  }
-
-  function removeCurrent() {
-    if (listLoader.item && listLoader.item.removeCurrent)
-      listLoader.item.removeCurrent()
-  }
-
-  // A list action that only some list kinds have (a board moves cards).
+  // A key action for the active list (moveHighlight, doneCurrent, moveCard...).
   function forward(name, arg) {
     if (listLoader.item && listLoader.item[name])
       listLoader.item[name](arg)
@@ -136,6 +117,8 @@ Item {
     transform: Translate { id: dropShift }
 
     PopupHeader {
+      id: header
+
       width: parent.width
       syncText: root.syncText()
       failing: root.service ? root.service.error !== "" : false
@@ -145,6 +128,8 @@ Item {
     }
 
     Text {
+      id: noticeText
+
       width: parent.width
       visible: root.service && root.service.notice !== ""
       text: root.service ? root.service.notice : ""
@@ -202,6 +187,8 @@ Item {
     }
 
     SyncCard {
+      id: syncCard
+
       width: parent.width
       visible: !root.settingsOpen && root.syncGuide !== null && root.syncGuide.needsAction
       guide: root.syncGuide
@@ -219,6 +206,8 @@ Item {
     }
 
     TabBar {
+      id: tabBar
+
       width: parent.width
       visible: !root.settingsOpen && !root.adding && root.lists.length > 0
       tabs: root.tabModel()
@@ -282,6 +271,8 @@ Item {
     }
 
     KeyHints {
+      id: hints
+
       visible: !root.settingsOpen
       fontFamily: root.fontFamily
     }

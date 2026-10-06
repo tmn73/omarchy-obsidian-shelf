@@ -111,19 +111,19 @@ Panel {
 
       anchors.fill: parent
       blocked: popup.inputFocused
-      onMoveRequested: function (dx, dy) { if (dy !== 0) popup.moveHighlight(dy); else if (dx !== 0) popup.forward("moveCard", dx) }
-      onActivateRequested: popup.activateCurrent()
-      onDeleteRequested: popup.removeCurrent()
+      onMoveRequested: function (dx, dy) { if (dy !== 0) popup.forward("moveHighlight", dy); else if (dx !== 0) popup.forward("moveCard", dx) }
+      onActivateRequested: popup.forward("activateCurrent")
+      onDeleteRequested: popup.forward("removeCurrent")
       onCloseRequested: root.close()
       onTabRequested: function (direction) { popup.nextTab(direction) }
       onTextKey: function (character) {
         var key = String(character || "").toLowerCase()
         if (key === "d")
-          popup.doneCurrent()
+          popup.forward("doneCurrent")
         else if (key === "e")
-          Qt.callLater(popup.editCurrent)
+          Qt.callLater(popup.forward, "editCurrent")
         else if (key === "x")
-          popup.removeCurrent()
+          popup.forward("removeCurrent")
         else if (key === "a")
           Qt.callLater(popup.focusAdd)
         else if (key === "r")
@@ -141,6 +141,7 @@ Panel {
         service: shelf
         syncGuide: syncGuide
         settingsOpen: root.showSettings
+        availableHeight: panel.fittedContentHeight(100000, Style.space(716)) - panel.verticalContentInset
         fontFamily: root.fontFamily
         onSettingsToggled: root.showSettings = !root.showSettings
         onSettingChanged: function (name, value) { root.setSetting(name, value) }

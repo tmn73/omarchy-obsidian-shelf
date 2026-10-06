@@ -91,9 +91,15 @@ has "TabBar.qml" "Flickable \\{" "long tab names overflow instead of scrolling"
 has "TabBar.qml" "function ensureVisible\\(" "the active tab can stay out of view"
 has "TabBar.qml" "nameWidth: nameLabel.implicitWidth" "a tab width does not come from its name"
 hasnt "TabBar.qml" "width - inset \\* 2\\) / tabCount" "tabs still share the width equally and clip long names"
-for method in moveHighlight activateCurrent doneCurrent focusAdd nextTab; do
+for method in focusAdd nextTab forward; do
   has "ShelfPopup.qml" "function $method\(" "ShelfPopup.qml has no $method()"
 done
+# The keys reach the active list through ShelfPopup.forward.
+for method in moveHighlight activateCurrent doneCurrent editCurrent removeCurrent; do
+  has "Panel.qml" "\"$method\"" "no key reaches $method() of the active list"
+done
+has "ShelfPopup.qml" "maxListHeight: Math.max\(Style.space\(120\), Math.min\(Style.space\(470\), availableHeight - chromeHeight\)\)" "the list height ignores the room the panel gives"
+has "Panel.qml" "availableHeight: panel.fittedContentHeight" "the popup does not know the room it has"
 has "Panel.qml" "PanelKeyCatcher" "Panel.qml does not catch keys"
 has "Panel.qml" "ShelfPopup" "Panel.qml does not host ShelfPopup"
 
@@ -165,9 +171,6 @@ for file in FolderList.qml ChecklistList.qml SectionsList.qml; do
   for method in editCurrent removeCurrent; do
     has "$file" "function $method\(" "$file has no $method()"
   done
-done
-for method in editCurrent removeCurrent; do
-  has "ShelfPopup.qml" "function $method\(" "ShelfPopup.qml has no $method()"
 done
 has "Panel.qml" 'key === "e"' "the e key does not edit"
 has "Panel.qml" 'key === "x"' "the x key does not remove"
@@ -276,6 +279,7 @@ hasnt "BoardLane.qml" "required property string key" "a card delegate hides the 
 has "CardRow.qml" "root.board.toggleStatus" "a card has no status button"
 has "Service.qml" "action === \"lane\"" "the service cannot add a status"
 hasnt "CardRow.qml" "Move to the lane before" "the card still shows arrows instead of its status"
+hasnt "CardRow.qml" "anchors.right: actions.left" "the hidden card buttons still take the width of the text"
 
 # Syntax: qmllint, when the machine has it, parses every file. It refuses the
 # typed functions an IpcHandler needs, so files with one are left out.

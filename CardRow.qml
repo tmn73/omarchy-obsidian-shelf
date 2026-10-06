@@ -77,8 +77,8 @@ Column {
     Loader {
       anchors.left: box.right
       anchors.leftMargin: Style.space(12)
-      anchors.right: actions.left
-      anchors.rightMargin: Style.space(8)
+      anchors.right: parent.right
+      anchors.rightMargin: Style.space(10)
       anchors.verticalCenter: parent.verticalCenter
       active: root.editing
       visible: active
@@ -94,8 +94,8 @@ Column {
       visible: !root.editing
       anchors.left: box.right
       anchors.leftMargin: Style.space(12)
-      anchors.right: actions.left
-      anchors.rightMargin: Style.space(8)
+      anchors.right: parent.right
+      anchors.rightMargin: Style.space(10)
       anchors.verticalCenter: parent.verticalCenter
       spacing: Style.space(8)
 
@@ -122,6 +122,16 @@ Column {
         tone: root.label.tone
         fontFamily: root.fontFamily
       }
+    }
+
+    // The buttons show over the end of the text, on the hovered card color,
+    // so the text keeps the whole width when they hide.
+    Rectangle {
+      anchors.fill: actions
+      anchors.margins: -Style.space(4)
+      radius: Style.space(8)
+      color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.07))
+      opacity: actions.opacity
     }
 
     Row {
