@@ -97,7 +97,7 @@ Panel {
       id: keyCatcher
 
       anchors.fill: parent
-      blocked: popup.addBar ? popup.addBar.inputFocused : false
+      blocked: popup.inputFocused
       onMoveRequested: function (dx, dy) { if (dy !== 0) popup.moveHighlight(dy) }
       onActivateRequested: popup.activateCurrent()
       onDeleteRequested: popup.doneCurrent()
@@ -121,6 +121,7 @@ Panel {
         settingsOpen: root.showSettings
         fontFamily: root.fontFamily
         onSettingsToggled: root.showSettings = !root.showSettings
+        onSettingChanged: function (name, value) { root.setSetting(name, value) }
       }
     }
   }

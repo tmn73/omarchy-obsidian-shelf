@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Ui
 
 // What every list component shares: the contract ShelfPopup binds to, the
 // pane fade on a tab change, and the states shown instead of rows (empty,
@@ -64,6 +65,13 @@ Item {
       font.family: root.fontFamily
       font.pixelSize: Style.font.subtitle
       font.bold: true
+    }
+
+    Button {
+      anchors.horizontalCenter: parent.horizontalCenter
+      visible: root.listState === "missing" || root.listState === "error"
+      text: qsTr("Open settings")
+      onClicked: root.settingsRequested()
     }
 
     Text {

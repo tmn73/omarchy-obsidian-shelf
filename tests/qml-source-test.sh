@@ -137,6 +137,20 @@ has "SectionsList.qml" "ClearButton" "SectionsList.qml has no clear button"
 has "SectionsList.qml" "\"clear\"" "SectionsList.qml never asks the helper to clear"
 has "DashedBox.qml" "DashLine" "DashedBox.qml does not draw a dashed border"
 
+# ---- Settings view and error states (spec 4, 8.4, 10)
+has "SettingsView.qml" "obsidian/obsidian\.json" "SettingsView.qml does not propose the open vault"
+has "SettingsView.qml" "FileView" "SettingsView.qml does not read the vault registry with FileView"
+has "SettingsView.qml" "signal settingChanged" "SettingsView.qml does not report changes"
+has "SettingsView.qml" "Add list" "SettingsView.qml cannot add a list"
+has "SettingsView.qml" "config\.errors" "SettingsView.qml does not show settings errors"
+for field in name type path badge; do
+  has "ListEditorRow.qml" "\b$field\b" "ListEditorRow.qml does not edit $field"
+done
+has "ListEditorRow.qml" "signal removed" "ListEditorRow.qml cannot remove a list"
+has "ListStateFrame.qml" "Open settings" "a missing list does not offer the settings"
+has "ShelfPopup.qml" "SettingsView" "ShelfPopup.qml does not host the settings view"
+has "Panel.qml" "popup\.inputFocused" "the key catcher ignores focused fields"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

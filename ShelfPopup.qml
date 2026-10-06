@@ -18,6 +18,9 @@ Item {
   property string fontFamily: Style.font.family
 
   signal settingsToggled()
+  signal settingChanged(string name, var value)
+
+  readonly property bool inputFocused: addBarItem.inputFocused || settingsView.inputFocused
 
   readonly property var lists: service ? service.config.lists : []
   readonly property var activeConfig: lists.length > 0 ? lists[Math.min(activeIndex, lists.length - 1)] : null
@@ -111,6 +114,25 @@ Item {
       wrapMode: Text.Wrap
     }
 
+    Flickable {
+      width: parent.width
+      visible: root.settingsOpen
+      height: Math.min(settingsView.implicitHeight, Style.space(560))
+      contentHeight: settingsView.implicitHeight
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+      interactive: contentHeight > height
+
+      SettingsView {
+        id: settingsView
+
+        width: parent.width
+        config: root.service ? root.service.config : ({ vaultPath: "", refreshIntervalSec: 30, syncCheckCommand: "", lists: [], errors: [] })
+        fontFamily: root.fontFamily
+        onSettingChanged: function (name, value) { root.settingChanged(name, value) }
+      }
+    }
+
     TabBar {
       width: parent.width
       visible: !root.settingsOpen && root.lists.length > 0
@@ -137,6 +159,7 @@ Item {
           item.listConfig = Qt.binding(function () { return root.activeConfig })
           item.listPayload = Qt.binding(function () { return root.activePayload })
           item.fontFamily = Qt.binding(function () { return root.fontFamily })
+          item.settingsRequested.connect(root.settingsToggled)
         }
       }
 
@@ -172,6 +195,7 @@ Item {
     }
 
     KeyHints {
+      visible: !root.settingsOpen
       fontFamily: root.fontFamily
     }
   }
