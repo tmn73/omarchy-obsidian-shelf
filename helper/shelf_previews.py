@@ -15,6 +15,7 @@ import re
 import time
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlparse
 
 from shelf_io import atomic_write
 
@@ -43,18 +44,48 @@ def preview_key(url: str) -> str:
     return "og:" + url if re.match(r"^https?://", url or "") else ""
 
 
-def og_from_html(page: str) -> dict:
+def meta_tags(page: str) -> dict:
+    """Every <meta property|name=... content=...> of a page; the first one wins."""
     tags = {}
     for tag in META_RE.findall(page):
         attrs = {m.group(1).lower(): (m.group(2) if m.group(2) is not None else m.group(3)) for m in ATTR_RE.finditer(tag)}
         name = (attrs.get("property") or attrs.get("name") or "").lower()
         if name and "content" in attrs and name not in tags:
             tags[name] = " ".join(html.unescape(attrs["content"]).split())
+    return tags
+
+
+def og_from_html(page: str) -> dict:
+    tags = meta_tags(page)
     return {
         "title": tags.get("og:title", "")[:160],
         "description": tags.get("og:description", "")[:200],
         "image": tags.get("og:image") or tags.get("twitter:image", ""),
     }
+
+
+TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+SUBREDDIT_SUFFIX_RE = re.compile(r"\s*:\s*r/[A-Za-z0-9_]+\s*$")
+
+
+def page_preview(url: str, page: str) -> dict:
+    """OpenGraph tags, with fixes for sites whose tags say nothing.
+
+    Reddit gives crawlers a generic og:title and a brand card for every post;
+    the real title is in <title> and the real summary in the description.
+    """
+    preview = og_from_html(page)
+    host = (urlparse(url).hostname or "").lower()
+    if host == "reddit.com" or host.endswith(".reddit.com"):
+        title = TITLE_RE.search(page)
+        if title:
+            preview["title"] = SUBREDDIT_SUFFIX_RE.sub("", " ".join(html.unescape(title.group(1)).split()))[:160]
+        description = meta_tags(page).get("description", "")
+        if description:
+            preview["description"] = description[:200]
+        if "share.redd.it/" in preview["image"]:
+            preview["image"] = ""
+    return preview
 
 
 def fetch_html(url: str) -> str:
@@ -121,7 +152,7 @@ def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=Non
                 if kind == "tweet":
                     cache[key] = preview_from_fxtwitter(fetch(key))
                 else:
-                    cache[key] = og_from_html(fetch_page(item["url"]))
+                    cache[key] = page_preview(item["url"], fetch_page(item["url"]))
                 fetched += 1
             except (OSError, ValueError):
                 cache[key] = {"failedAt": now}

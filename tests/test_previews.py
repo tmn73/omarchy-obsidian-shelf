@@ -2,7 +2,7 @@ import json
 import unittest
 
 from shelf_folder import read_folder
-from shelf_previews import enrich, load_cache, og_from_html, preview_from_fxtwitter, preview_key, tweet_api_url
+from shelf_previews import enrich, load_cache, og_from_html, page_preview, preview_from_fxtwitter, preview_key, tweet_api_url
 from tests.vault_case import VaultCase
 
 CFG = {"id": "read-later", "type": "folder", "path": "Read Later"}
@@ -116,6 +116,26 @@ class OpenGraphTest(unittest.TestCase):
         self.assertEqual(preview_key("https://x.com/a/status/1"), "https://api.fxtwitter.com/a/status/1")
         self.assertEqual(preview_key("https://www.instagram.com/reel/X/"), "og:https://www.instagram.com/reel/X/")
         self.assertEqual(preview_key(""), "")
+
+
+REDDIT_HTML = """<html><head><title>Can someone explain how Omarchy is bloated or insecure? : r/omarchy</title>
+<meta name="description" content="18 votes, 73 comments. I&#x27;ve used Omarchy pretty regularly since 4.0">
+<meta property="og:title" content="From the omarchy community on Reddit">
+<meta property="og:description" content="Explore this post and more from the omarchy community">
+<meta property="og:image" content="https://share.redd.it/preview/post/1wyz0ar">
+</head></html>"""
+
+
+class SitePreviewTest(unittest.TestCase):
+    def test_reddit_uses_the_page_title_and_description_not_its_brand_card(self):
+        self.assertEqual(page_preview("https://www.reddit.com/r/omarchy/s/llwz8QfrQR", REDDIT_HTML), {
+            "title": "Can someone explain how Omarchy is bloated or insecure?",
+            "description": "18 votes, 73 comments. I've used Omarchy pretty regularly since 4.0",
+            "image": "",
+        })
+
+    def test_other_sites_keep_their_opengraph_tags(self):
+        self.assertEqual(page_preview("https://www.instagram.com/reel/X/", IG_HTML), og_from_html(IG_HTML))
 
 
 class LinkPreviewTest(VaultCase):
