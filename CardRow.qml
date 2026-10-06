@@ -94,65 +94,48 @@ Column {
       }
     }
 
-    Row {
+    // The text keeps the whole width, so the card never changes height on
+    // hover; while the buttons show, the text is cut just before them.
+    Item {
+      id: textClip
+
       visible: !root.editing
       anchors.left: box.right
       anchors.leftMargin: Style.space(12)
-      anchors.right: parent.right
-      anchors.rightMargin: Style.space(10)
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: Style.space(8)
-
-      Text {
-        id: label
-
-        width: Math.min(implicitWidth, parent.width - (chip.visible ? chip.width + parent.spacing : 0))
-        anchors.verticalCenter: parent.verticalCenter
-        text: root.text
-        textFormat: Text.PlainText
-        wrapMode: Text.Wrap
-        color: root.checked ? Util.alpha(Color.popups.text, 0.5) : Color.popups.text
-        font.family: root.fontFamily
-        font.pixelSize: Style.font.body
-        font.strikeout: root.checked
-      }
-
-      DateChip {
-        id: chip
-
-        anchors.verticalCenter: parent.verticalCenter
-        visible: root.label.text !== ""
-        text: root.label.text
-        tone: root.label.tone
-        fontFamily: root.fontFamily
-      }
-    }
-
-    // The buttons show over the end of the text, on a band of the hovered
-    // card color that takes the whole card height and fades in from the left,
-    // so the text never shows around them and keeps the whole width when
-    // they hide.
-    Item {
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      anchors.right: parent.right
-      width: actions.width + Style.space(40)
-      opacity: actions.opacity
+      width: actions.opacity > 0 ? Math.max(0, actions.x - x - Style.space(10)) : fullWidth
+      clip: true
 
-      Rectangle {
-        anchors.fill: parent
-        anchors.leftMargin: Style.space(28)
-        radius: Style.space(9)
-        color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.07))
-      }
+      readonly property real fullWidth: parent.width - x - Style.space(10)
 
-      Rectangle {
-        width: Style.space(28)
-        height: parent.height
-        gradient: Gradient {
-          orientation: Gradient.Horizontal
-          GradientStop { position: 0; color: "transparent" }
-          GradientStop { position: 1; color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.07)) }
+      Row {
+        width: textClip.fullWidth
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Style.space(8)
+
+        Text {
+          id: label
+
+          width: Math.min(implicitWidth, parent.width - (chip.visible ? chip.width + parent.spacing : 0))
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.text
+          textFormat: Text.PlainText
+          wrapMode: Text.Wrap
+          color: root.checked ? Util.alpha(Color.popups.text, 0.5) : Color.popups.text
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.body
+          font.strikeout: root.checked
+        }
+
+        DateChip {
+          id: chip
+
+          anchors.verticalCenter: parent.verticalCenter
+          visible: root.label.text !== ""
+          text: root.label.text
+          tone: root.label.tone
+          fontFamily: root.fontFamily
         }
       }
     }

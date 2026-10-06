@@ -283,7 +283,8 @@ hasnt "CardRow.qml" "anchors.right: actions.left" "the hidden card buttons still
 has "CardRow.qml" "label: qsTr\(\"Remove\"\); danger: true" "removing a card does not read as a delete"
 has "HoverActions.qml" "danger: true" "removing an item does not read as a delete"
 has "StatusMenu.qml" "Board.statusMatches" "the status menu cannot filter or create"
-has "CardRow.qml" "orientation: Gradient.Horizontal" "the text shows around the card buttons on hover"
+has "CardRow.qml" "id: textClip" "the text shows under the card buttons on hover"
+hasnt "CardRow.qml" "Qt.tint" "the card paints a color that does not follow the theme"
 has "BoardList.qml" "StatusMenu \\{" "the status menu does not float at the board level"
 hasnt "CardRow.qml" "StatusPanel" "the status still opens as a row under the card"
 
