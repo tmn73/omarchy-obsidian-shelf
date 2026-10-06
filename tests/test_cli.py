@@ -77,6 +77,18 @@ class CliTest(VaultCase):
         self.assertEqual(json.loads(result.stdout)["lists"][0]["items"][0]["text"], "a")
 
 
+class ScriptHygieneTest(VaultCase):
+    def test_script_does_not_write_bytecode_into_the_plugin(self):
+        import shutil
+        cache = ROOT / "helper" / "__pycache__"
+        shutil.rmtree(cache, ignore_errors=True)
+        subprocess.run(
+            [sys.executable, str(ROOT / "bin" / "obsidian-shelf"), "read", "--vault", str(self.vault), "--lists", "[]"],
+            capture_output=True, text=True, check=True,
+        )
+        self.assertFalse(cache.exists(), "the helper wrote __pycache__ next to its modules")
+
+
 class CliEditRemoveTest(VaultCase):
     def run_cli(self, *argv, stdin=""):
         return main(list(argv), io.StringIO(stdin))
