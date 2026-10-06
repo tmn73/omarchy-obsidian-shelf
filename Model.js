@@ -129,6 +129,16 @@ function freshKeys (previousPayload, nextPayload) {
   return itemKeys(nextPayload).filter(function (k) { return !before[k] })
 }
 
+// How many fresh keys belong to a list that counts in the bar badge. The chip
+// pings for these only: a retro topic arriving is not worth a ping.
+function freshInBadgeLists (fresh, lists) {
+  var badgeIds = {}
+  ;(toArray(lists) || []).forEach(function (cfg) { if (cfg.badge) badgeIds[cfg.id] = true })
+  return (toArray(fresh) || []).filter(function (k) {
+    return badgeIds[String(k).split(KEY_SEPARATOR)[0]]
+  }).length
+}
+
 function relativeAge (iso, nowMs) {
   var seconds = Math.floor((nowMs - Date.parse(iso)) / 1000)
   if (!isFinite(seconds) || seconds < 60) return 'now'
@@ -198,6 +208,7 @@ if (typeof module !== 'undefined') {
     badgeCount: badgeCount,
     itemKeys: itemKeys,
     freshKeys: freshKeys,
+    freshInBadgeLists: freshInBadgeLists,
     relativeAge: relativeAge,
     clockText: clockText,
     tooltipText: tooltipText,

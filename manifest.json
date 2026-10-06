@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "tmn73.obsidian",
+  "name": "Obsidian Shelf",
+  "version": "0.1.0",
+  "author": "tmn73",
+  "license": "MIT",
+  "description": "Lists from your Obsidian vault in the bar: links to read later, todos and retro topics, captured on your phone and handled from the desktop.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "activation": "on-demand",
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Obsidian Shelf",
+    "description": "Read later links, todos and retro topics from a Markdown vault. Open, tick, add and clear without opening Obsidian.",
+    "category": "Productivity",
+    "aliases": [
+      "obsidian",
+      "read later",
+      "reading list",
+      "todo",
+      "checklist",
+      "retro",
+      "retrospective",
+      "inbox",
+      "capture",
+      "markdown"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "vaultPath": "",
+      "refreshIntervalSec": 30,
+      "syncCheckCommand": ""
+    },
+    "schema": [
+      {
+        "key": "vaultPath",
+        "type": "path",
+        "label": "Vault folder",
+        "defaultValue": "",
+        "description": "The folder that holds your lists, usually your Obsidian vault."
+      },
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 10,
+        "max": 600,
+        "step": 10,
+        "defaultValue": 30
+      },
+      {
+        "key": "syncCheckCommand",
+        "type": "string",
+        "label": "Sync check command",
+        "defaultValue": "",
+        "description": "Optional. A shell command that exits 0 while your sync works. The chip shows a dot when it fails."
+      }
+    ]
+  }
+}

@@ -146,3 +146,12 @@ test('keyedSyncPlan reaches the target when kept keys change order', () => {
   const next = ['c', 'a', 'x']
   assert.deepEqual(apply(current, Model.keyedSyncPlan(current, next)), next)
 })
+
+// ---- fresh items in the bar
+
+test('freshInBadgeLists counts only fresh keys of badge lists', () => {
+  const lists = Model.normalizeSettings({}).lists
+  const fresh = ['read-later\u0000n', 'retro\u0000Good\n- y', 'todo\u0000- [ ] t']
+  assert.equal(Model.freshInBadgeLists(fresh, lists), 2)
+  assert.equal(Model.freshInBadgeLists([], lists), 0)
+})
