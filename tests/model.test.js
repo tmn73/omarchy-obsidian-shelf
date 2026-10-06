@@ -209,3 +209,44 @@ test('normalizeSettings turns link previews on unless asked not to', () => {
   assert.equal(Model.normalizeSettings({}).linkPreviews, true)
   assert.equal(Model.normalizeSettings({ linkPreviews: false }).linkPreviews, false)
 })
+
+// ---- Settings: list editing
+
+const THREE = Model.normalizeSettings({}).lists
+
+test('moveList swaps with the neighbour and ignores moves past an end', () => {
+  assert.deepEqual(Model.moveList(THREE, 0, 1).map(l => l.id), ['retro', 'read-later', 'todo'])
+  assert.deepEqual(Model.moveList(THREE, 0, -1).map(l => l.id), ['read-later', 'retro', 'todo'])
+  assert.deepEqual(Model.moveList(THREE, 2, 1).map(l => l.id), ['read-later', 'retro', 'todo'])
+})
+
+test('updateList changes one field of one list and leaves the input alone', () => {
+  const next = Model.updateList(THREE, 'todo', 'badge', false)
+  assert.equal(next[2].badge, false)
+  assert.equal(THREE[2].badge, true)
+})
+
+test('removeList and insertList round-trip for undo', () => {
+  const removed = Model.removeList(THREE, 'retro')
+  assert.deepEqual(removed.lists.map(l => l.id), ['read-later', 'todo'])
+  assert.equal(removed.index, 1)
+  assert.deepEqual(Model.insertList(removed.lists, removed.list, removed.index).map(l => l.id), ['read-later', 'retro', 'todo'])
+})
+
+test('newListId makes a unique id from the name', () => {
+  assert.equal(Model.newListId(THREE, 'Meeting agenda'), 'meeting-agenda')
+  assert.equal(Model.newListId(THREE, 'Todo'), 'todo-2')
+  assert.equal(Model.newListId(THREE, '!!!'), 'list')
+})
+
+test('listDetail describes a list for the settings row', () => {
+  const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a' }, { key: 'b' }] }, { id: 'todo', state: 'missing' }] }
+  assert.equal(Model.listDetail(THREE[0], p), 'Read Later/ · links · 2 notes')
+  assert.equal(Model.listDetail(THREE[2], p), 'Todo.md · checklist · file missing')
+  assert.equal(Model.listDetail(THREE[1], null), 'Retrospective.md · notes by section')
+})
+
+test('phoneHowTo names the right plugin for each kind', () => {
+  assert.match(Model.phoneHowTo(THREE[0]), /ReadItLater.*Read Later/)
+  assert.match(Model.phoneHowTo(THREE[2]), /QuickAdd.*Todo\.md/)
+})

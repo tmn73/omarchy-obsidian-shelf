@@ -246,6 +246,70 @@ function syncStep (state) {
   return SYNC_STEPS[state] || null
 }
 
+// ---- Settings: list editing. Every function returns a new array, so a
+// settings write is always a whole, valid list of lists.
+
+function copyLists (lists) {
+  return (toArray(lists) || []).map(function (l) { return Object.assign({}, l) })
+}
+
+function moveList (lists, index, delta) {
+  var out = copyLists(lists)
+  var target = index + delta
+  if (index < 0 || index >= out.length || target < 0 || target >= out.length) return out
+  var item = out[index]
+  out[index] = out[target]
+  out[target] = item
+  return out
+}
+
+function updateList (lists, id, field, value) {
+  return copyLists(lists).map(function (l) {
+    if (l.id === id) l[field] = value
+    return l
+  })
+}
+
+function removeList (lists, id) {
+  var out = copyLists(lists)
+  for (var i = 0; i < out.length; i++) {
+    if (out[i].id === id) return { lists: out.slice(0, i).concat(out.slice(i + 1)), list: out[i], index: i }
+  }
+  return { lists: out, list: null, index: -1 }
+}
+
+function insertList (lists, list, index) {
+  var out = copyLists(lists)
+  out.splice(Math.max(0, Math.min(index, out.length)), 0, Object.assign({}, list))
+  return out
+}
+
+function newListId (lists, name) {
+  var base = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28) || 'list'
+  var used = {}
+  copyLists(lists).forEach(function (l) { used[l.id] = true })
+  if (!used[base]) return base
+  for (var n = 2; ; n++) if (!used[base + '-' + n]) return base + '-' + n
+}
+
+var KIND_NAMES = { folder: 'links', checklist: 'checklist', sections: 'notes by section' }
+var COUNT_WORDS = { folder: 'notes', checklist: 'open', sections: 'topics' }
+
+function listDetail (cfg, payload) {
+  var path = cfg.type === 'folder' ? cfg.path.replace(/\/*$/, '/') : cfg.path
+  var parts = [path, KIND_NAMES[cfg.type] || cfg.type]
+  var listPayload = findList(payload, cfg.id)
+  if (listPayload && listPayload.state === 'missing') parts.push(cfg.type === 'folder' ? 'folder missing' : 'file missing')
+  else if (listPayload && listPayload.state === 'ok') parts.push(listItemCount(listPayload) + ' ' + COUNT_WORDS[cfg.type])
+  return parts.join(' · ')
+}
+
+function phoneHowTo (cfg) {
+  if (cfg.type === 'folder')
+    return 'In Obsidian on your phone, install ReadItLater and set its inbox folder to ' + cfg.path + '. Then share any link to Obsidian and pick ReadItLater.'
+  return 'In Obsidian on your phone, install QuickAdd and add a capture to ' + cfg.path + '. Pull down in Obsidian to add a line.'
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     DEFAULT_LISTS: DEFAULT_LISTS,
@@ -265,6 +329,13 @@ if (typeof module !== 'undefined') {
     clockText: clockText,
     tooltipText: tooltipText,
     keyedSyncPlan: keyedSyncPlan,
-    syncStep: syncStep
+    syncStep: syncStep,
+    moveList: moveList,
+    updateList: updateList,
+    removeList: removeList,
+    insertList: insertList,
+    newListId: newListId,
+    listDetail: listDetail,
+    phoneHowTo: phoneHowTo
   }
 }
