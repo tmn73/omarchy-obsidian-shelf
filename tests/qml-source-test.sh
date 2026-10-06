@@ -87,6 +87,9 @@ has "ShelfPopup.qml" "Style\.space\(440\)" "the popup width is not Style.space(4
 has "ShelfPopup.qml" "Style\.duration\(450\)" "the popup drop-in is not 450 ms"
 has "TabBar.qml" "Style\.duration\(380\)" "the tab indicator does not slide in 380 ms"
 has "TabBar.qml" "Easing\.OutBack" "the tab indicator has no spring"
+has "TabBar.qml" "Flickable \\{" "long tab names overflow instead of scrolling"
+has "TabBar.qml" "function ensureVisible\\(" "the active tab can stay out of view"
+hasnt "TabBar.qml" "width - inset \\* 2\\) / tabCount" "tabs still share the width equally and clip long names"
 for method in moveHighlight activateCurrent doneCurrent focusAdd nextTab; do
   has "ShelfPopup.qml" "function $method\(" "ShelfPopup.qml has no $method()"
 done

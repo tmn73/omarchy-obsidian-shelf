@@ -1,8 +1,10 @@
 import QtQuick
 import qs.Commons
 
-// Segmented tabs, one per list, each with its count. The accent indicator
-// springs to the active tab.
+// Tabs, one per list, each with its count. When the names fit, the tabs fill
+// the bar. When they do not, each tab keeps the width of its name and the bar
+// scrolls sideways, with the active tab always scrolled into view. The accent
+// indicator springs to the active tab.
 Item {
   id: root
 
@@ -12,11 +14,43 @@ Item {
 
   signal activated(int index)
 
-  readonly property int tabCount: Math.max(1, tabs.length)
   readonly property real inset: Style.space(3)
-  readonly property real tabWidth: (width - inset * 2) / tabCount
+  readonly property real viewWidth: width - inset * 2
+  readonly property Item activeTab: repeater.count > 0 ? repeater.itemAt(Math.min(currentIndex, repeater.count - 1)) : null
+  readonly property real namesWidth: {
+    var sum = 0
+    for (var i = 0; i < repeater.count; i++) {
+      var tab = repeater.itemAt(i)
+      if (tab)
+        sum += tab.nameWidth
+    }
+    return sum
+  }
+  // The room left when every name fits, shared by the tabs.
+  readonly property real spare: repeater.count > 0 && namesWidth < viewWidth ? (viewWidth - namesWidth) / repeater.count : 0
+  readonly property bool overflows: flick.contentWidth > flick.width + 1
 
   implicitHeight: Style.space(40)
+
+  function ensureVisible() {
+    if (!activeTab)
+      return
+    var margin = Style.space(28)
+    var target = flick.contentX
+    if (activeTab.x - margin < target)
+      target = activeTab.x - margin
+    else if (activeTab.x + activeTab.width + margin > target + flick.width)
+      target = activeTab.x + activeTab.width + margin - flick.width
+    target = Math.max(0, Math.min(target, flick.contentWidth - flick.width))
+    if (target === flick.contentX)
+      return
+    scroll.to = target
+    scroll.restart()
+  }
+
+  onCurrentIndexChanged: Qt.callLater(ensureVisible)
+  onActiveTabChanged: Qt.callLater(ensureVisible)
+  onWidthChanged: Qt.callLater(ensureVisible)
 
   Rectangle {
     anchors.fill: parent
@@ -26,78 +60,126 @@ Item {
     border.color: Util.alpha(Color.popups.text, 0.08)
   }
 
-  Rectangle {
-    id: indicator
+  Flickable {
+    id: flick
 
-    x: root.inset + root.currentIndex * root.tabWidth
-    y: root.inset
-    width: root.tabWidth
-    height: root.height - root.inset * 2
-    radius: Style.space(6)
-    color: Color.accent
-    visible: root.tabs.length > 0
-
-    Behavior on x {
-      NumberAnimation { duration: Style.duration(380); easing.type: Easing.OutBack; easing.overshoot: 1.4 }
-    }
-  }
-
-  Row {
     x: root.inset
     y: root.inset
+    width: root.viewWidth
     height: root.height - root.inset * 2
+    contentWidth: row.width
+    contentHeight: height
+    flickableDirection: Flickable.HorizontalFlick
+    boundsBehavior: Flickable.StopAtBounds
+    clip: true
 
-    Repeater {
-      model: root.tabs
+    NumberAnimation {
+      id: scroll
 
-      delegate: MouseArea {
-        id: tab
+      target: flick
+      property: "contentX"
+      duration: Style.duration(260)
+      easing.type: Easing.OutCubic
+    }
 
-        required property var modelData
-        required property int index
-        readonly property bool active: index === root.currentIndex
+    // A mouse wheel scrolls the tabs sideways when they do not fit.
+    WheelHandler {
+      enabled: root.overflows
+      onWheel: function (event) {
+        var delta = event.angleDelta.x !== 0 ? event.angleDelta.x : event.angleDelta.y
+        flick.contentX = Math.max(0, Math.min(flick.contentX - delta, flick.contentWidth - flick.width))
+      }
+    }
 
-        width: root.tabWidth
-        height: parent.height
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.activated(index)
+    Rectangle {
+      x: root.activeTab ? root.activeTab.x : 0
+      width: root.activeTab ? root.activeTab.width : 0
+      height: flick.height
+      radius: Style.space(6)
+      color: Color.accent
+      visible: root.activeTab !== null
 
-        Row {
-          anchors.centerIn: parent
-          spacing: Style.space(7)
+      Behavior on x {
+        NumberAnimation { duration: Style.duration(380); easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+      }
+      Behavior on width {
+        NumberAnimation { duration: Style.duration(380); easing.type: Easing.OutCubic }
+      }
+    }
 
-          Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: tab.modelData.name
-            textFormat: Text.PlainText
-            color: tab.active ? Color.popups.background : Util.alpha(Color.popups.text, 0.65)
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.body
-            font.bold: tab.active
+    Row {
+      id: row
 
-            Behavior on color { ColorAnimation { duration: Style.duration(250) } }
-          }
+      height: flick.height
 
-          Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: countLabel.implicitWidth + Style.space(12)
-            height: countLabel.implicitHeight + Style.space(2)
-            radius: height / 2
-            color: tab.active ? Util.alpha(Color.popups.background, 0.18) : Util.alpha(Color.popups.text, 0.08)
+      Repeater {
+        id: repeater
+
+        model: root.tabs
+
+        delegate: MouseArea {
+          id: tab
+
+          required property var modelData
+          required property int index
+          readonly property bool active: index === root.currentIndex
+          readonly property real nameWidth: content.implicitWidth + Style.space(24)
+
+          width: nameWidth + root.spare
+          height: row.height
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.activated(index)
+
+          Row {
+            id: content
+
+            anchors.centerIn: parent
+            spacing: Style.space(7)
 
             Text {
-              id: countLabel
-
-              anchors.centerIn: parent
-              text: String(tab.modelData.count)
+              anchors.verticalCenter: parent.verticalCenter
+              text: tab.modelData.name
               textFormat: Text.PlainText
-              color: tab.active ? Color.popups.background : Color.popups.text
+              color: tab.active ? Color.popups.background : Util.alpha(Color.popups.text, 0.65)
               font.family: root.fontFamily
-              font.pixelSize: Style.font.bodySmall
+              font.pixelSize: Style.font.body
+              font.bold: tab.active
+
+              Behavior on color { ColorAnimation { duration: Style.duration(250) } }
+            }
+
+            Rectangle {
+              anchors.verticalCenter: parent.verticalCenter
+              width: countLabel.implicitWidth + Style.space(12)
+              height: countLabel.implicitHeight + Style.space(2)
+              radius: height / 2
+              color: tab.active ? Util.alpha(Color.popups.background, 0.18) : Util.alpha(Color.popups.text, 0.08)
+
+              Text {
+                id: countLabel
+
+                anchors.centerIn: parent
+                text: String(tab.modelData.count)
+                textFormat: Text.PlainText
+                color: tab.active ? Color.popups.background : Color.popups.text
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.bodySmall
+              }
             }
           }
         }
       }
     }
+  }
+
+  // A thin scroll bar shows that more tabs wait to the side.
+  Rectangle {
+    visible: root.overflows
+    x: flick.x + flick.visibleArea.xPosition * flick.width
+    y: root.height - height - Style.space(1)
+    width: flick.visibleArea.widthRatio * flick.width
+    height: Style.space(2)
+    radius: height / 2
+    color: Util.alpha(Color.popups.text, 0.35)
   }
 }
