@@ -14,6 +14,7 @@ from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
 import shelf_previews
+import shelf_settings
 import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 
@@ -38,6 +39,16 @@ def build_parser() -> Parser:
         sub.add_argument("--lists", required=True)
         if name == "enrich":
             sub.add_argument("--previews", default="", help="comma list: tweets, links")
+    commands.add_parser("vaults", add_help=False)
+    scan = commands.add_parser("scan", add_help=False)
+    scan.add_argument("--vault", required=True)
+    paths = commands.add_parser("paths", add_help=False)
+    paths.add_argument("--vault", required=True)
+    paths.add_argument("--kind", required=True, choices=["folder", "file"])
+    create = commands.add_parser("create", add_help=False)
+    create.add_argument("--vault", required=True)
+    create.add_argument("--list", required=True)
+    create.add_argument("--sections", default="")
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
@@ -50,6 +61,11 @@ def build_parser() -> Parser:
         if name in ("done", "edit", "remove"):
             sub.add_argument("--item", required=True)
     return parser
+
+
+def config_home() -> Path:
+    home = Path(os.environ.get("HOME", str(Path.home())))
+    return Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
 
 
 def preview_cache() -> Path:
@@ -98,13 +114,12 @@ def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
 def run_sync(command: str, vault: Path) -> tuple:
     env = dict(os.environ)
     home = Path(env.get("HOME", str(Path.home())))
-    config_home = Path(env.get("XDG_CONFIG_HOME") or home / ".config")
     ob = shelf_sync.find_ob(env, home)
     if command == "sync-state":
-        return 0, shelf_sync.sync_state(vault, ob, config_home, shelf_sync.service_active, env)
+        return 0, shelf_sync.sync_state(vault, ob, config_home(), shelf_sync.service_active, env)
     if not ob:
         raise ArgumentError("Obsidian Headless is not installed")
-    return 0, shelf_sync.install_service(ob, vault, config_home, shelf_sync.run_quietly)
+    return 0, shelf_sync.install_service(ob, vault, config_home(), shelf_sync.run_quietly)
 
 
 def main(argv: list, stdin) -> tuple:
@@ -112,7 +127,19 @@ def main(argv: list, stdin) -> tuple:
         args = build_parser().parse_args(argv)
         if args.command is None:
             raise ArgumentError("a command is required")
+        if args.command == "vaults":
+            return 0, {"ok": True, "vaults": shelf_settings.known_vaults(config_home() / "obsidian" / "obsidian.json")}
         vault = Path(args.vault).expanduser()
+        if args.command == "scan":
+            return 0, {"ok": True, "suggestions": shelf_settings.scan(vault)}
+        if args.command == "paths":
+            return 0, {"ok": True, "paths": shelf_settings.vault_paths(vault, args.kind)}
+        if args.command == "create":
+            cfg = json.loads(args.list)
+            if not isinstance(cfg, dict) or not cfg.get("path"):
+                raise ArgumentError("--list must be a JSON object with a path")
+            sections = [name.strip() for name in args.sections.split(",") if name.strip()]
+            return 0, shelf_settings.create_list(vault, cfg, sections)
         if args.command in ("sync-state", "sync-service"):
             return run_sync(args.command, vault)
         if args.command in ("read", "enrich"):

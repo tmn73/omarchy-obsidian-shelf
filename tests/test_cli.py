@@ -116,6 +116,33 @@ class CliPreviewTest(VaultCase):
         self.assertEqual((code, out), (0, {"ok": True, "fetched": 0}))
 
 
+class CliSettingsTest(VaultCase):
+    def run_env(self, argv):
+        from unittest import mock
+        env = {"PATH": "/nonexistent", "HOME": str(self.vault), "XDG_CONFIG_HOME": str(self.vault / "cfg")}
+        with mock.patch.dict("os.environ", env, clear=True):
+            return main(argv, io.StringIO(""))
+
+    def test_vaults_reads_obsidian_registry(self):
+        self.write("cfg/obsidian/obsidian.json", json.dumps({"vaults": {"a": {"path": "/v/Notes", "open": True}}}))
+        self.assertEqual(self.run_env(["vaults"]), (0, {"ok": True, "vaults": [{"path": "/v/Notes", "name": "Notes", "open": True}]}))
+
+    def test_scan_paths_and_create(self):
+        self.write("Todo.md", "- [ ] a\n")
+        code, out = self.run_env(["scan", "--vault", str(self.vault)])
+        self.assertEqual(out["suggestions"], [{"type": "checklist", "path": "Todo.md", "count": 1}])
+        code, out = self.run_env(["paths", "--vault", str(self.vault), "--kind", "file"])
+        self.assertEqual(out["paths"], ["Todo.md"])
+        retro = json.dumps({"id": "m", "name": "M", "type": "sections", "path": "M.md"})
+        code, out = self.run_env(["create", "--vault", str(self.vault), "--list", retro, "--sections", "Good,Bad"])
+        self.assertEqual(out, {"ok": True, "created": True})
+        self.assertEqual(self.read("M.md"), "## Good\n\n## Bad\n")
+
+    def test_paths_rejects_an_unknown_kind(self):
+        code, out = self.run_env(["paths", "--vault", str(self.vault), "--kind", "both"])
+        self.assertEqual((code, out["error"]), (2, "invalid"))
+
+
 class ScriptHygieneTest(VaultCase):
     def test_script_does_not_write_bytecode_into_the_plugin(self):
         import shutil
