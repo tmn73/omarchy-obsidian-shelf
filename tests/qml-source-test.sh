@@ -138,15 +138,9 @@ has "SectionsList.qml" "\"clear\"" "SectionsList.qml never asks the helper to cl
 has "DashedBox.qml" "DashLine" "DashedBox.qml does not draw a dashed border"
 
 # ---- Settings view and error states (spec 4, 8.4, 10)
-has "SettingsView.qml" "obsidian/obsidian\.json" "SettingsView.qml does not propose the open vault"
-has "SettingsView.qml" "FileView" "SettingsView.qml does not read the vault registry with FileView"
 has "SettingsView.qml" "signal settingChanged" "SettingsView.qml does not report changes"
-has "SettingsView.qml" "Add list" "SettingsView.qml cannot add a list"
+has "SettingsView.qml" "Add a list" "SettingsView.qml cannot add a list"
 has "SettingsView.qml" "config\.errors" "SettingsView.qml does not show settings errors"
-for field in name type path badge; do
-  has "ListEditorRow.qml" "\b$field\b" "ListEditorRow.qml does not edit $field"
-done
-has "ListEditorRow.qml" "signal removed" "ListEditorRow.qml cannot remove a list"
 has "ListStateFrame.qml" "Open settings" "a missing list does not offer the settings"
 has "ShelfPopup.qml" "SettingsView" "ShelfPopup.qml does not host the settings view"
 has "Panel.qml" "popup\.inputFocused" "the key catcher ignores focused fields"
@@ -211,6 +205,22 @@ has "Service.qml" "previewArgument" "Service.qml does not pass the preview kinds
 has "Thumbnail.qml" "property bool round" "Thumbnail.qml cannot draw a round avatar"
 has "FolderRow.qml" "property string avatar" "FolderRow.qml has no avatar"
 has "FolderList.qml" "required avatar" "FolderList.qml does not pass the avatar to the row"
+
+# ---- Settings page (board 1)
+has "HelperCall.qml" "function run\\(" "HelperCall.qml has no run()"
+has "VaultPicker.qml" '"paths"' "VaultPicker.qml does not list the vault paths"
+has "VaultPicker.qml" "signal picked" "VaultPicker.qml does not report the pick"
+has "VaultPicker.qml" "New folder|New file" "VaultPicker.qml cannot offer a new path"
+has "ListRow.qml" "Notify" "ListRow.qml has no Notify switch"
+has "ListRowBody.qml" "Change" "ListRowBody.qml has no Change button"
+has "ListRowBody.qml" "Add from your phone: how" "ListRowBody.qml has no phone how-to"
+has "ListRowBody.qml" "Remove from shelf" "ListRowBody.qml cannot remove a list"
+has "UndoToast.qml" "Undo" "UndoToast.qml has no Undo"
+has "SettingsView.qml" "Model\\.moveList" "SettingsView.qml does not reorder lists"
+has "SettingsView.qml" "Model\\.removeList" "SettingsView.qml does not remove lists through the model"
+has "SettingsView.qml" "UndoToast" "SettingsView.qml offers no undo"
+has "SettingsView.qml" "stays in the vault" "SettingsView.qml does not say the file stays"
+has "VaultCard.qml" '"vaults"' "VaultCard.qml does not list the known vaults"
 
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do

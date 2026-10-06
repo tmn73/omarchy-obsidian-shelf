@@ -1,64 +1,37 @@
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import qs.Commons
 import qs.Ui
+import "Model.js" as Model
 
-// Vault folder, refresh interval, sync check and the list editor. Every
-// change goes out through settingChanged; Panel.qml is the only place that
-// persists it.
+// The settings page: vault and sync, the lists in tab order, previews and the
+// refresh rate. Every change goes out through settingChanged; Panel.qml is the
+// only place that persists it.
 FocusScope {
   id: root
 
-  property var config: ({ vaultPath: "", refreshIntervalSec: 10, syncCheckCommand: "", lists: [], errors: [] })
+  property var config: ({ vaultPath: "", refreshIntervalSec: 10, lists: [], errors: [] })
+  property var payload: null
+  property var syncGuide: null
   property string fontFamily: Style.font.family
+  property string expandedId: ""
+  property var removed: null
   readonly property bool inputFocused: activeFocus
 
   signal settingChanged(string name, var value)
-
-  property string suggestedVault: ""
+  signal addListRequested()
 
   implicitHeight: form.implicitHeight
 
-  function emitLists(lists) {
+  function setLists(lists) {
     root.settingChanged("lists", lists)
   }
 
-  function replaceList(index, entry) {
-    var lists = root.config.lists.slice()
-    lists[index] = entry
-    emitLists(lists)
-  }
-
-  function removeList(index) {
-    var lists = root.config.lists.slice()
-    lists.splice(index, 1)
-    emitLists(lists)
-  }
-
-  function addList() {
-    var lists = root.config.lists.slice()
-    var n = lists.length + 1
-    var ids = lists.map(function (l) { return l.id })
-    while (ids.indexOf("list-" + n) >= 0)
-      n++
-    lists.push({ id: "list-" + n, name: qsTr("List %1").arg(n), type: "checklist", path: "List " + n + ".md", badge: true, onDone: "delete" })
-    emitLists(lists)
-  }
-
-  // The vault Obsidian has open, read from its own registry, as a suggestion.
-  FileView {
-    path: Quickshell.env("HOME") + "/.config/obsidian/obsidian.json"
-    onLoaded: {
-      try {
-        var vaults = JSON.parse(text()).vaults || {}
-        var paths = Object.keys(vaults).map(function (k) { return vaults[k] })
-        var open = paths.filter(function (v) { return v.open })[0] || paths[0]
-        root.suggestedVault = open && open.path ? String(open.path) : ""
-      } catch (e) {
-        root.suggestedVault = ""
-      }
-    }
+  function remove(cfg) {
+    var result = Model.removeList(root.config.lists, cfg.id)
+    root.removed = result
+    root.expandedId = ""
+    setLists(result.lists)
+    toast.show(qsTr("%1 left the shelf. %2 stays in the vault.").arg(cfg.name).arg(cfg.path))
   }
 
   Column {
@@ -66,6 +39,26 @@ FocusScope {
 
     width: parent.width
     spacing: Style.space(14)
+
+    Row {
+      width: parent.width
+      spacing: Style.space(10)
+
+      VaultCard {
+        width: (parent.width - parent.spacing) / 2
+        vaultPath: root.config.vaultPath
+        fontFamily: root.fontFamily
+        onVaultChosen: function (path) { root.settingChanged("vaultPath", path) }
+      }
+
+      SyncSummary {
+        width: (parent.width - parent.spacing) / 2
+        guide: root.syncGuide
+        syncedAt: root.payload ? Model.clockText(root.payload.readAt) : ""
+        fontFamily: root.fontFamily
+        onGuideToggled: function (on) { root.settingChanged("obsidianSync", on) }
+      }
+    }
 
     Repeater {
       model: root.config.errors
@@ -79,60 +72,78 @@ FocusScope {
         wrapMode: Text.Wrap
         color: Color.urgent
         font.family: root.fontFamily
-        font.pixelSize: Style.font.body
+        font.pixelSize: Style.font.bodySmall
       }
     }
 
-    SettingsCaption { text: qsTr("Vault folder"); fontFamily: root.fontFamily }
-
-    TextField {
+    Column {
       width: parent.width
-      text: root.config.vaultPath
-      placeholderText: qsTr("Folder that holds your lists")
-      font.family: root.fontFamily
-      onEditingFinished: if (text.trim() !== root.config.vaultPath) root.settingChanged("vaultPath", text.trim())
+      spacing: Style.space(4)
+
+      SettingsCaption { text: qsTr("YOUR LISTS · TABS IN THIS ORDER"); fontFamily: root.fontFamily }
+
+      Text {
+        width: parent.width
+        text: qsTr("Notify: a new item from your phone makes the bar chip ping and show a count.")
+        textFormat: Text.PlainText
+        wrapMode: Text.Wrap
+        color: Util.alpha(Color.popups.text, 0.65)
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.bodySmall
+      }
     }
 
-    Button {
-      visible: root.suggestedVault !== "" && root.suggestedVault !== root.config.vaultPath
-      text: qsTr("Use the open Obsidian vault: %1").arg(root.suggestedVault)
-      onClicked: root.settingChanged("vaultPath", root.suggestedVault)
-    }
-
-    NumberField {
+    Column {
       width: parent.width
-      label: qsTr("Refresh every (seconds)")
-      from: 10
-      to: 600
-      stepSize: 10
-      value: root.config.refreshIntervalSec
-      fontFamily: root.fontFamily
-      onModified: function (value) { root.settingChanged("refreshIntervalSec", value) }
+      spacing: Style.space(8)
+
+      Repeater {
+        model: root.config.lists
+
+        delegate: ListRow {
+          required property var modelData
+          required property int index
+
+          width: form.width
+          cfg: modelData
+          detail: Model.listDetail(modelData, root.payload)
+          expanded: root.expandedId === modelData.id
+          first: index === 0
+          last: index === root.config.lists.length - 1
+          vaultPath: root.config.vaultPath
+          fontFamily: root.fontFamily
+          onMoveUp: root.setLists(Model.moveList(root.config.lists, index, -1))
+          onMoveDown: root.setLists(Model.moveList(root.config.lists, index, 1))
+          onToggleExpand: root.expandedId = root.expandedId === modelData.id ? "" : modelData.id
+          onChanged: function (field, value) { root.setLists(Model.updateList(root.config.lists, modelData.id, field, value)) }
+          onRemoveRequested: root.remove(modelData)
+        }
+      }
+
+      UndoToast {
+        id: toast
+
+        width: parent.width
+        fontFamily: root.fontFamily
+        onUndo: if (root.removed && root.removed.list) root.setLists(Model.insertList(root.config.lists, root.removed.list, root.removed.index))
+      }
+
+      DashedButton {
+        width: parent.width
+        text: qsTr("+  Add a list")
+        fontFamily: root.fontFamily
+        onClicked: root.addListRequested()
+      }
     }
 
-    SettingsCaption { text: qsTr("Sync check command (optional)"); fontFamily: root.fontFamily }
+    Rectangle { width: parent.width; height: 1; color: Util.alpha(Color.popups.text, 0.08) }
 
-    TextField {
-      width: parent.width
-      text: root.config.syncCheckCommand
-      placeholderText: "systemctl --user is-active --quiet obsidian-headless.service"
-      font.family: root.fontFamily
-      onEditingFinished: if (text.trim() !== root.config.syncCheckCommand) root.settingChanged("syncCheckCommand", text.trim())
-    }
-
-    Toggle {
-      width: parent.width
-      label: qsTr("Guide the Obsidian Sync setup")
-      description: qsTr("Shows the steps to keep the vault in sync while the Obsidian app is closed.")
-      checked: root.config.obsidianSync !== false
-      fontFamily: root.fontFamily
-      onClicked: root.settingChanged("obsidianSync", !checked)
-    }
+    SettingsCaption { text: qsTr("PREVIEWS AND REFRESH"); fontFamily: root.fontFamily }
 
     Toggle {
       width: parent.width
       label: qsTr("Link previews")
-      description: qsTr("A saved link without a picture or title: read its page once for them. Only the site sees it.")
+      description: qsTr("A saved link without a picture or title: the page is read once for them. Only the site sees it.")
       checked: root.config.linkPreviews !== false
       fontFamily: root.fontFamily
       onClicked: root.settingChanged("linkPreviews", !checked)
@@ -140,33 +151,36 @@ FocusScope {
 
     Toggle {
       width: parent.width
-      label: qsTr("Tweet previews (fxtwitter.com)")
-      description: qsTr("Author picture and first photo of saved tweets. fxtwitter sees the tweet links you save, once per tweet.")
+      label: qsTr("Tweet previews")
+      description: qsTr("Author picture and first photo of saved tweets. fxtwitter.com sees the tweet links, once each.")
       checked: root.config.tweetPreviews === true
       fontFamily: root.fontFamily
       onClicked: root.settingChanged("tweetPreviews", !checked)
     }
 
-    SettingsCaption { text: qsTr("Lists"); fontFamily: root.fontFamily }
+    Row {
+      width: parent.width
+      spacing: Style.space(10)
 
-    Repeater {
-      model: root.config.lists
+      SettingsCaption { anchors.verticalCenter: parent.verticalCenter; text: qsTr("Read the vault every"); fontFamily: root.fontFamily }
 
-      delegate: ListEditorRow {
-        required property var modelData
-        required property int index
-
-        width: form.width
-        entry: modelData
+      ButtonGroup {
+        options: [{ value: "10", label: "10 s" }, { value: "30", label: "30 s" }, { value: "60", label: "1 min" }]
+        value: String(root.config.refreshIntervalSec)
         fontFamily: root.fontFamily
-        onEdited: function (entry) { root.replaceList(index, entry) }
-        onRemoved: root.removeList(index)
+        onChanged: function (value) { root.settingChanged("refreshIntervalSec", Number(value)) }
       }
     }
 
-    Button {
-      text: qsTr("Add list")
-      onClicked: root.addList()
+    SettingsCaption { text: qsTr("Sync check command (advanced, optional)"); fontFamily: root.fontFamily; visible: !root.config.obsidianSync }
+
+    TextField {
+      visible: !root.config.obsidianSync
+      width: parent.width
+      text: root.config.syncCheckCommand || ""
+      placeholderText: qsTr("A command that exits 0 while your sync works")
+      font.family: root.fontFamily
+      onEditingFinished: if (text.trim() !== root.config.syncCheckCommand) root.settingChanged("syncCheckCommand", text.trim())
     }
   }
 }

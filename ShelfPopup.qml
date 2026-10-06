@@ -142,6 +142,8 @@ Item {
 
         width: parent.width
         config: root.service ? root.service.config : ({ vaultPath: "", refreshIntervalSec: 10, syncCheckCommand: "", lists: [], errors: [] })
+        payload: root.service ? root.service.payload : null
+        syncGuide: root.syncGuide
         fontFamily: root.fontFamily
         onSettingChanged: function (name, value) { root.settingChanged(name, value) }
       }
