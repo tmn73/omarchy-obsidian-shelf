@@ -193,6 +193,7 @@ has "Service.qml" "function clearUnseen\\(" "Service.qml cannot clear unseen ite
 has "Service.qml" "mergeUnseen" "Service.qml does not merge unseen items"
 has "ShelfChip.qml" "property bool marked" "ShelfChip.qml has no persistent dot"
 has "Panel.qml" "clearUnseen" "Panel.qml never clears unseen items"
+has "Panel.qml" "count: shelf.unseenBadge" "the chip still shows the total instead of new items"
 has "ListStateFrame.qml" "property int openCount" "lists cannot replay the arrival flash on open"
 has "FolderRow.qml" "onReplayChanged" "FolderRow.qml does not replay its flash when the popup opens"
 

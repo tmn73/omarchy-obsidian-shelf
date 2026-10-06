@@ -2,11 +2,12 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 
-// The bar chip: the shelf glyph and the open count.
+// The bar chip: the shelf glyph, and the number of new items.
 //
-// The count enters from above and an accent dot pings three times when a new
-// item lands in a list that counts. The dot then stays until the popup opens. A dot in the urgent color means the sync
-// check fails, which is the only state that deserves an alarm color.
+// The count is the number of new items from lists that notify, and the glyph
+// stands alone at rest. A new item makes the count enter from above and an
+// accent dot ping three times; the dot then stays until the popup opens. A
+// dot in the urgent color means the sync stopped, the only alarm state.
 WidgetButton {
   id: root
 
