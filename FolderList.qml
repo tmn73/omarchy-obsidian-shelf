@@ -1,0 +1,70 @@
+import QtQuick
+import qs.Commons
+import "Model.js" as Model
+
+// The `folder` list: one row per saved note, newest first.
+ListStateFrame {
+  id: root
+
+  readonly property var items: listPayload && listPayload.state === "ok" ? (Model.toArray(listPayload.items) || []) : []
+
+  contentHeightHint: showRows ? view.contentHeight : stateHeight
+  showRows: items.length > 0
+  emptyTitle: qsTr("All caught up")
+  emptyText: qsTr("Share a link to Obsidian from your phone. It lands here.")
+
+  onItemsChanged: view.syncItems(items)
+  Component.onCompleted: view.syncItems(items)
+
+  function currentItem() {
+    return view.currentIndex >= 0 && view.currentIndex < view.count ? view.keyedModel.get(view.currentIndex) : null
+  }
+
+  function moveHighlight(dy) {
+    if (view.count > 0)
+      view.currentIndex = Math.max(0, Math.min(view.count - 1, view.currentIndex + dy))
+  }
+
+  function activateCurrent() {
+    var item = currentItem()
+    if (item && service)
+      service.openUrl(item.url)
+  }
+
+  function doneCurrent() {
+    var item = currentItem()
+    if (item)
+      markSeen(item.key)
+  }
+
+  function markSeen(key) {
+    if (!service || !listConfig)
+      return
+    view.keyedModel.removeKey(key)
+    service.act("done", listConfig.id, { item: key })
+  }
+
+  ShelfListView {
+    id: view
+
+    anchors.fill: parent
+    visible: root.showRows
+
+    delegate: FolderRow {
+      required property int index
+      required property string key
+      required title
+      required excerpt
+      required url
+      required domain
+      required modifiedAt
+
+      width: view.width
+      current: index === view.currentIndex
+      fresh: root.service ? root.service.fresh.indexOf(root.listConfig.id + Model.KEY_SEPARATOR + key) >= 0 : false
+      fontFamily: root.fontFamily
+      onOpenRequested: root.service.openUrl(url)
+      onDoneRequested: root.markSeen(key)
+    }
+  }
+}

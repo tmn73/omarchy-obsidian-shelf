@@ -93,6 +93,29 @@ done
 has "Panel.qml" "PanelKeyCatcher" "Panel.qml does not catch keys"
 has "Panel.qml" "ShelfPopup" "Panel.qml does not host ShelfPopup"
 
+# ---- Shared list contract (every list type answers what ShelfPopup calls)
+for property in service listConfig listPayload fontFamily contentHeightHint; do
+  has "ListStateFrame.qml" "property .*\b$property\b" "ListStateFrame.qml does not expose $property"
+done
+for file in FolderList.qml ChecklistList.qml SectionsList.qml; do
+  [[ -f "$ROOT/$file" ]] || continue
+  has "$file" "^ListStateFrame \{" "$file does not build on ListStateFrame"
+  for method in moveHighlight activateCurrent doneCurrent; do
+    has "$file" "function $method\(" "$file has no $method()"
+  done
+done
+
+# ---- Folder rows (spec 8.3)
+has "ShelfListView.qml" "add: *Transition" "ShelfListView.qml has no add transition"
+has "ShelfListView.qml" "remove: *Transition" "ShelfListView.qml has no remove transition"
+has "ShelfListView.qml" "displaced: *Transition" "ShelfListView.qml has no displaced transition"
+has "ShelfListView.qml" "Style\.duration\(700\)" "rows do not arrive in 700 ms"
+has "FolderRow.qml" '"NEW"' "FolderRow.qml has no NEW tag"
+has "FolderRow.qml" "Style\.duration\(2600\)" "the arrival flash does not fade over 2.6 s"
+has "FolderList.qml" "Share a link to Obsidian from your phone\. It lands here\." "FolderList.qml lost the empty-state copy"
+has "FolderList.qml" "All caught up" "FolderList.qml lost the empty-state title"
+has "FolderList.qml" "removeKey" "FolderList.qml does not remove the row before the helper answers"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
