@@ -89,6 +89,7 @@ has "TabBar.qml" "Style\.duration\(380\)" "the tab indicator does not slide in 3
 has "TabBar.qml" "Easing\.OutBack" "the tab indicator has no spring"
 has "TabBar.qml" "Flickable \\{" "long tab names overflow instead of scrolling"
 has "TabBar.qml" "function ensureVisible\\(" "the active tab can stay out of view"
+has "TabBar.qml" "nameWidth: nameLabel.implicitWidth" "a tab width does not come from its name"
 hasnt "TabBar.qml" "width - inset \\* 2\\) / tabCount" "tabs still share the width equally and clip long names"
 for method in moveHighlight activateCurrent doneCurrent focusAdd nextTab; do
   has "ShelfPopup.qml" "function $method\(" "ShelfPopup.qml has no $method()"

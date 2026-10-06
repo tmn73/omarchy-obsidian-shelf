@@ -123,7 +123,8 @@ Item {
           required property var modelData
           required property int index
           readonly property bool active: index === root.currentIndex
-          readonly property real nameWidth: content.implicitWidth + Style.space(24)
+          // From the text and the count, not from the Row: a Row has no implicit width.
+          readonly property real nameWidth: nameLabel.implicitWidth + content.spacing + countPill.width + Style.space(24)
 
           width: nameWidth + root.spare
           height: row.height
@@ -137,6 +138,8 @@ Item {
             spacing: Style.space(7)
 
             Text {
+              id: nameLabel
+
               anchors.verticalCenter: parent.verticalCenter
               text: tab.modelData.name
               textFormat: Text.PlainText
@@ -149,6 +152,8 @@ Item {
             }
 
             Rectangle {
+              id: countPill
+
               anchors.verticalCenter: parent.verticalCenter
               width: countLabel.implicitWidth + Style.space(12)
               height: countLabel.implicitHeight + Style.space(2)
