@@ -1,0 +1,148 @@
+// Pin the zone so clock text is the same on every machine.
+process.env.TZ = 'UTC'
+
+const test = require('node:test')
+const assert = require('node:assert')
+const Model = require('../Model.js')
+
+const LATER = { id: 'read-later', name: 'Read later', type: 'folder', path: 'Read Later' }
+const RETRO = { id: 'retro', name: 'Retro', type: 'sections', path: 'Retrospective.md' }
+const TODO = { id: 'todo', name: 'Todo', type: 'checklist', path: 'Todo.md' }
+
+function payload (later, retro, todo) {
+  return {
+    ok: true,
+    readAt: '2026-10-06T12:22:00+00:00',
+    lists: [
+      { id: 'read-later', state: 'ok', items: later.map(k => ({ key: k })) },
+      { id: 'retro', state: 'ok', sections: [{ heading: 'Good', items: retro.map(k => ({ key: 'Good\n- ' + k })) }] },
+      { id: 'todo', state: 'ok', items: todo.map(k => ({ key: '- [ ] ' + k })) }
+    ]
+  }
+}
+
+// ---- normalizeSettings
+
+test('normalizeSettings uses the default lists when lists is absent', () => {
+  const config = Model.normalizeSettings({ vaultPath: '/v' })
+  assert.deepEqual(config.lists.map(l => l.id), ['read-later', 'retro', 'todo'])
+  assert.equal(config.vaultPath, '/v')
+  assert.equal(config.refreshIntervalSec, 30)
+  assert.equal(config.syncCheckCommand, '')
+  assert.deepEqual(config.errors, [])
+})
+
+test('normalizeSettings copies a foreign array-like into a plain array', () => {
+  const config = Model.normalizeSettings({ lists: { length: 1, 0: TODO } })
+  assert.ok(Array.isArray(config.lists))
+  assert.deepEqual(config.lists.map(l => l.id), ['todo'])
+})
+
+test('normalizeSettings parses lists given as a JSON string', () => {
+  const config = Model.normalizeSettings({ lists: JSON.stringify([LATER]) })
+  assert.deepEqual(config.lists.map(l => l.id), ['read-later'])
+})
+
+test('normalizeSettings drops an entry without a type and reports it', () => {
+  const config = Model.normalizeSettings({ lists: [TODO, { id: 'x', name: 'X', path: 'X.md' }] })
+  assert.deepEqual(config.lists.map(l => l.id), ['todo'])
+  assert.deepEqual(config.errors, ['List 2 has no valid type'])
+})
+
+test('normalizeSettings drops duplicate ids and bad ids', () => {
+  const config = Model.normalizeSettings({ lists: [TODO, TODO, { id: 'Bad Id', name: 'B', type: 'checklist', path: 'b.md' }] })
+  assert.deepEqual(config.lists.map(l => l.id), ['todo'])
+  assert.deepEqual(config.errors, ['List 2 repeats the id todo', 'List 3 has no valid id'])
+})
+
+test('normalizeSettings clamps refreshIntervalSec to 10..600', () => {
+  assert.equal(Model.normalizeSettings({ refreshIntervalSec: 2 }).refreshIntervalSec, 10)
+  assert.equal(Model.normalizeSettings({ refreshIntervalSec: 9999 }).refreshIntervalSec, 600)
+  assert.equal(Model.normalizeSettings({ refreshIntervalSec: 'x' }).refreshIntervalSec, 30)
+})
+
+test('normalizeSettings defaults badge by type and onDone to delete', () => {
+  const lists = Model.normalizeSettings({}).lists
+  assert.deepEqual(lists.map(l => l.badge), [true, false, true])
+  assert.equal(lists[2].onDone, 'delete')
+  const own = Model.normalizeSettings({ lists: [Object.assign({}, RETRO, { badge: true })] }).lists
+  assert.equal(own[0].badge, true)
+})
+
+// ---- counts
+
+test('listItemCount counts items and section items', () => {
+  const p = payload(['a', 'b'], ['x', 'y', 'z'], [])
+  assert.equal(Model.listItemCount(p.lists[0]), 2)
+  assert.equal(Model.listItemCount(p.lists[1]), 3)
+  assert.equal(Model.listItemCount({ state: 'missing' }), 0)
+})
+
+test('badgeCount ignores sections and missing lists', () => {
+  const p = payload(['a'], ['x', 'y'], ['t1', 't2'])
+  const lists = Model.normalizeSettings({}).lists
+  assert.equal(Model.badgeCount(p, lists), 3)
+  p.lists[2] = { id: 'todo', state: 'missing', message: 'Todo.md not found' }
+  assert.equal(Model.badgeCount(p, lists), 1)
+  assert.equal(Model.badgeCount(null, lists), 0)
+})
+
+// ---- fresh items
+
+test('freshKeys is empty on the first read', () => {
+  assert.deepEqual(Model.freshKeys(null, payload(['a'], [], [])), [])
+})
+
+test('freshKeys returns only new keys', () => {
+  const before = payload(['a'], ['x'], ['t1'])
+  const after = payload(['n', 'a'], ['x', 'y'], ['t1'])
+  assert.deepEqual(Model.freshKeys(before, after), ['read-later\u0000n', 'retro\u0000Good\n- y'])
+})
+
+// ---- text
+
+test('relativeAge boundaries', () => {
+  const now = Date.parse('2026-10-06T12:00:00Z')
+  const at = s => new Date(now - s * 1000).toISOString()
+  assert.equal(Model.relativeAge(at(59), now), 'now')
+  assert.equal(Model.relativeAge(at(60), now), '1m')
+  assert.equal(Model.relativeAge(at(3600), now), '1h')
+  assert.equal(Model.relativeAge(at(86400), now), '1d')
+})
+
+test('clockText gives local hours and minutes', () => {
+  assert.equal(Model.clockText('2026-10-06T07:22:00+00:00'), '07:22')
+  assert.equal(Model.clockText(''), '')
+})
+
+test('tooltipText lists only non-zero badge lists', () => {
+  const lists = Model.normalizeSettings({}).lists
+  assert.equal(Model.tooltipText(payload(['a', 'b', 'c'], ['x'], ['t']), lists), '3 read later, 1 todo')
+  assert.equal(Model.tooltipText(payload([], ['x'], ['t']), lists), '1 todo')
+  assert.equal(Model.tooltipText(payload([], [], []), lists), 'Nothing on the shelf')
+})
+
+// ---- keyed sync
+
+function apply (current, plan) {
+  const out = current.slice()
+  plan.remove.forEach(i => out.splice(i, 1))
+  plan.insert.forEach(op => out.splice(op.index, 0, op.key))
+  return out
+}
+
+test('keyedSyncPlan turns abc into acd', () => {
+  const plan = Model.keyedSyncPlan(['a', 'b', 'c'], ['a', 'c', 'd'])
+  assert.deepEqual(plan, { remove: [1], insert: [{ index: 2, key: 'd' }] })
+})
+
+test('keyedSyncPlan inserts a new item at the top', () => {
+  const plan = Model.keyedSyncPlan(['a', 'b'], ['n', 'a', 'b'])
+  assert.deepEqual(plan, { remove: [], insert: [{ index: 0, key: 'n' }] })
+})
+
+test('keyedSyncPlan reaches the target when kept keys change order', () => {
+  const current = ['a', 'b', 'c']
+  const next = ['c', 'a', 'x']
+  assert.deepEqual(apply(current, Model.keyedSyncPlan(current, next)), next)
+})
