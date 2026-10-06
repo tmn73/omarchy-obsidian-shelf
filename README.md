@@ -14,8 +14,9 @@ without opening Obsidian.
   an item, clear a notes file after a meeting.
 - **Previews**: YouTube thumbnails, tweet pictures, and the preview image and
   title of most other pages, Instagram and Reddit included.
-- **A chip that tells you what is new**: it shows how many items arrived from
-  your phone since you last looked, and pings when one lands.
+- **A chip so you do not forget**: it shows how many items wait in the lists
+  you choose. A dot marks a new arrival until you open the popup, on every
+  screen.
 - **Obsidian Sync without the app**: a guide in the popup sets up Obsidian
   Headless, so captures reach the desktop while Obsidian does not run.
 - **Your theme**: every color comes from the active Omarchy theme, and the
@@ -136,8 +137,8 @@ Open them with the gear in the popup:
 - the vault, and the sync status,
 - your lists in tab order: move them, rename them, point them at another
   folder or file, choose what a tick does, and choose whether a list
-  **notifies** (a new item from the phone pings the chip and adds to its
-  count),
+  **notifies** (its items count on the chip, and a new item pings it and
+  shows the dot),
 - add a list, from the suggestions found in the vault or from a kind,
 - link and tweet previews, and how often the plugin reads the vault (10 s,
   30 s or 1 min).

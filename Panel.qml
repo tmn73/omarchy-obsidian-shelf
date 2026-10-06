@@ -81,7 +81,7 @@ Panel {
 
     anchors.fill: parent
     bar: root.bar
-    count: shelf.unseenBadge
+    count: shelf.badge
     pinging: shelf.freshBadge > 0
     marked: shelf.unseenBadge > 0 && !root.opened
     urgent: syncGuide.active ? syncGuide.syncState === "stopped" : !shelf.syncHealthy

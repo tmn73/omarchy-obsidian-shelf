@@ -215,7 +215,7 @@ Column {
     Toggle {
       width: parent.width
       label: qsTr("Notify on new items")
-      description: qsTr("The bar chip pings when one arrives from your phone.")
+      description: qsTr("Its items count on the bar chip, and a new one pings it.")
       checked: root.notify
       fontFamily: root.fontFamily
       onClicked: root.notify = !root.notify

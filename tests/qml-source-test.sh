@@ -189,7 +189,8 @@ has "SeenState.qml" "watchChanges: true" "SeenState.qml does not watch the seen 
 has "SeenState.qml" "\"seen\", \"--lists\"" "SeenState.qml never stores what was seen"
 has "ShelfChip.qml" "property bool marked" "ShelfChip.qml has no persistent dot"
 has "Panel.qml" "clearUnseen" "Panel.qml never clears unseen items"
-has "Panel.qml" "count: shelf.unseenBadge" "the chip still shows the total instead of new items"
+has "Panel.qml" "count: shelf.badge$" "the chip does not show the total of the notify lists"
+has "Panel.qml" "marked: shelf.unseenBadge > 0" "the chip dot does not mark new items"
 has "ListStateFrame.qml" "property int openCount" "lists cannot replay the arrival flash on open"
 has "FolderRow.qml" "onReplayChanged" "FolderRow.qml does not replay its flash when the popup opens"
 

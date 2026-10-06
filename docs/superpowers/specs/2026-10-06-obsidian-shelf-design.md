@@ -255,8 +255,8 @@ closed state.
 | State | Look |
 | --- | --- |
 | Empty | Icon only, at reduced opacity. |
-| Pending | Icon and the badge count. |
-| Just arrived | The count enters from above, and an accent dot pings 3 times. The dot then stays until the user opens the popup. The count and the dot are the same on every screen. The helper keeps the seen items in `$XDG_STATE_HOME/obsidian-shelf/seen.json`, and every bar watches that file. Closing the popup on one screen clears the chip on all of them. The state survives a shell restart. A list the file does not know yet starts with all its items seen. |
+| Pending | Icon and the badge count: the items that wait in the lists with Notify on. The count stays while the items exist, so the chip reminds the user of them. |
+| Just arrived | The count enters from above, and an accent dot pings 3 times. The dot then stays until the user opens the popup; the count stays. The count and the dot are the same on every screen. The helper keeps the seen items, which drive the dot, in `$XDG_STATE_HOME/obsidian-shelf/seen.json`, and every bar watches that file. Closing the popup on one screen clears the chip on all of them. The state survives a shell restart. A list the file does not know yet starts with all its items seen. |
 | Sync stalled | A small dot in `Color.urgent` on the chip. The chip shows it only when `syncCheckCommand` has a value and the command fails. The tooltip gives the reason. |
 
 The icon is the "Lines" glyph (three horizontal lines, the last one shorter).
