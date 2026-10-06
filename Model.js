@@ -327,7 +327,7 @@ function phoneHowTo (cfg) {
     ? 'turn on "Choose heading when capturing"'
     : 'set its format to - [ ] {{VALUE}}'
   return 'In Obsidian on your phone, install QuickAdd, add a Capture to ' + cfg.path + ' and ' + setting +
-    '. Then pick "QuickAdd: Run" in Settings > Mobile > Pull-down action, and pull down in Obsidian to add a line.'
+    '. Then pick "QuickAdd: Run" in Settings > Interface > Configure mobile Quick Action, and pull down in Obsidian to add a line.'
 }
 
 if (typeof module !== 'undefined') {

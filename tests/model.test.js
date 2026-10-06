@@ -263,5 +263,5 @@ test('phoneHowTo names the right plugin for each kind', () => {
 test('phoneHowTo gives the setting that makes each capture land right', () => {
   assert.match(Model.phoneHowTo(THREE[2]), /- \[ \] \{\{VALUE\}\}/)
   assert.match(Model.phoneHowTo(THREE[1]), /Choose heading when capturing/)
-  assert.match(Model.phoneHowTo(THREE[1]), /Settings > Mobile > Pull-down action/)
+  assert.match(Model.phoneHowTo(THREE[1]), /Settings > Interface > Configure mobile Quick Action/)
 })

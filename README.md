@@ -95,8 +95,8 @@ list in the settings has an "Add from your phone: how" note. In short:
   to Obsidian and pick ReadItLater.
 - **Checklists and notes**: install the QuickAdd community plugin and add a
   Capture to the file: `- [ ] {{VALUE}}` for a checklist, "Choose heading when
-  capturing" for notes by section. Set the Obsidian mobile pull-down action
-  to "QuickAdd: Run".
+  capturing" for notes by section. Then pick "QuickAdd: Run" in Settings >
+  Interface > Configure mobile Quick Action, and pull down to add a line.
 
 ## Sync
 
