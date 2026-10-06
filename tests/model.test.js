@@ -247,6 +247,20 @@ test('newListId makes a unique id from the name', () => {
   assert.equal(Model.newListId(THREE, '!!!'), 'list')
 })
 
+test('trashLabel offers to delete a file, or a folder only when it is empty', () => {
+  const p = { lists: [
+    { id: 'read-later', state: 'ok', items: [] },
+    { id: 'retro', state: 'ok', sections: [] },
+    { id: 'todo', state: 'missing' }
+  ] }
+  assert.equal(Model.trashLabel(THREE[0], p), 'Delete the folder too')
+  assert.equal(Model.trashLabel(THREE[1], p), 'Delete the file too')
+  assert.equal(Model.trashLabel(THREE[2], p), '')
+  assert.equal(Model.trashLabel(THREE[1], null), '')
+  const full = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a' }] }] }
+  assert.equal(Model.trashLabel(THREE[0], full), '')
+})
+
 test('listDetail describes a list for the settings row', () => {
   const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a' }, { key: 'b' }] }, { id: 'todo', state: 'missing' }] }
   // The row icon already shows the kind, so the line names the place and the count.

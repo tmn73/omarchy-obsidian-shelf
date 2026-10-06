@@ -138,6 +138,11 @@ class CliSettingsTest(VaultCase):
         self.assertEqual(out, {"ok": True, "created": True})
         self.assertEqual(self.read("M.md"), "## Good\n\n## Bad\n")
 
+    def test_trash_moves_the_file_of_a_list(self):
+        self.write("Todo.md", "")
+        code, out = self.run_env(["trash", "--vault", str(self.vault), "--list", json.dumps({"id": "t", "type": "checklist", "path": "Todo.md"})])
+        self.assertEqual((code, out), (0, {"ok": True, "trashed": ".trash/Todo.md"}))
+
     def test_paths_rejects_an_unknown_kind(self):
         code, out = self.run_env(["paths", "--vault", str(self.vault), "--kind", "both"])
         self.assertEqual((code, out["error"]), (2, "invalid"))

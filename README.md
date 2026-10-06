@@ -143,7 +143,9 @@ Open them with the gear in the popup:
 - link and tweet previews, and how often the plugin reads the vault (10 s,
   30 s or 1 min).
 
-Removing a list from the shelf never touches its file.
+Removing a list from the shelf keeps its file. The message that follows
+can also move the file to the `.trash` folder of the vault, where Obsidian
+keeps the files it takes out. A folder goes only when it is empty.
 
 ## Keys
 

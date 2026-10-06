@@ -2,7 +2,7 @@ import json
 import os
 import unittest
 
-from shelf_settings import create_list, known_vaults, scan, vault_paths
+from shelf_settings import create_list, known_vaults, scan, trash_list, vault_paths
 from tests.vault_case import VaultCase
 
 
@@ -78,6 +78,51 @@ class CreateListTest(VaultCase):
     def test_refuses_a_path_outside_the_vault(self):
         out = create_list(self.vault, {"id": "x", "type": "checklist", "path": "../x.md"}, [])
         self.assertEqual(out["error"], "invalid")
+
+
+class TrashListTest(VaultCase):
+    def test_moves_the_file_to_the_vault_trash(self):
+        self.write("Todo.md", "- [ ] a\n")
+        out = trash_list(self.vault, {"type": "checklist", "path": "Todo.md"})
+        self.assertEqual(out, {"ok": True, "trashed": ".trash/Todo.md"})
+        self.assertFalse((self.vault / "Todo.md").exists())
+        self.assertEqual(self.read(".trash/Todo.md"), "- [ ] a\n")
+
+    def test_keeps_a_name_already_in_the_trash(self):
+        self.write("Todo.md", "new\n")
+        self.write(".trash/Todo.md", "old\n")
+        out = trash_list(self.vault, {"type": "checklist", "path": "Todo.md"})
+        self.assertEqual(out["trashed"], ".trash/Todo 1.md")
+        self.assertEqual(self.read(".trash/Todo.md"), "old\n")
+
+    def test_moves_an_empty_folder(self):
+        (self.vault / "Read Later").mkdir()
+        out = trash_list(self.vault, {"type": "folder", "path": "Read Later"})
+        self.assertEqual(out["trashed"], ".trash/Read Later")
+        self.assertTrue((self.vault / ".trash" / "Read Later").is_dir())
+
+    def test_refuses_a_folder_that_holds_files(self):
+        self.write("Read Later/a.md", "# A\n")
+        out = trash_list(self.vault, {"type": "folder", "path": "Read Later"})
+        self.assertEqual(out["error"], "not-empty")
+        self.assertTrue((self.vault / "Read Later" / "a.md").exists())
+
+    def test_a_missing_path_is_missing(self):
+        out = trash_list(self.vault, {"type": "checklist", "path": "Gone.md"})
+        self.assertEqual(out["error"], "missing")
+
+    def test_refuses_a_path_outside_the_vault(self):
+        out = trash_list(self.vault, {"type": "checklist", "path": "../x.md"})
+        self.assertEqual(out["error"], "invalid")
+
+    def test_refuses_the_vault_itself_its_trash_and_its_config(self):
+        (self.vault / ".trash").mkdir()
+        self.write(".obsidian/app.json", "{}")
+        for path in (".", "", ".trash", ".obsidian", ".obsidian/app.json"):
+            out = trash_list(self.vault, {"type": "folder", "path": path})
+            self.assertEqual(out["error"], "invalid", path)
+        self.assertTrue((self.vault / ".trash").is_dir())
+        self.assertTrue((self.vault / ".obsidian" / "app.json").exists())
 
 
 if __name__ == "__main__":

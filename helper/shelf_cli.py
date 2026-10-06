@@ -52,6 +52,9 @@ def build_parser() -> Parser:
     create.add_argument("--vault", required=True)
     create.add_argument("--list", required=True)
     create.add_argument("--sections", default="")
+    trash = commands.add_parser("trash", add_help=False)
+    trash.add_argument("--vault", required=True)
+    trash.add_argument("--list", required=True)
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
@@ -176,6 +179,11 @@ def main(argv: list, stdin) -> tuple:
                 raise ArgumentError("--list must be a JSON object with a path")
             sections = [name.strip() for name in args.sections.split(",") if name.strip()]
             return 0, shelf_settings.create_list(vault, cfg, sections)
+        if args.command == "trash":
+            cfg = json.loads(args.list)
+            if not isinstance(cfg, dict):
+                raise ArgumentError("--list must be a JSON object")
+            return 0, shelf_settings.trash_list(vault, cfg)
         if args.command in ("sync-state", "sync-service"):
             return run_sync(args.command, vault)
         if args.command in ("read", "enrich"):

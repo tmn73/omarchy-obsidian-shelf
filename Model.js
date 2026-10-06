@@ -320,6 +320,15 @@ function listDetail (cfg, payload) {
   return parts.join(' · ')
 }
 
+// The second action of the removal toast: delete the file of the list too.
+// A folder qualifies only when it holds no note; the helper checks again.
+function trashLabel (cfg, payload) {
+  var list = findList(payload, cfg.id)
+  if (!list || list.state !== 'ok') return ''
+  if (cfg.type !== 'folder') return 'Delete the file too'
+  return listItemCount(list) === 0 ? 'Delete the folder too' : ''
+}
+
 function phoneHowTo (cfg) {
   if (cfg.type === 'folder')
     return 'In Obsidian on your phone, install ReadItLater and set its inbox folder to ' + cfg.path + '. Then share any link to Obsidian and pick ReadItLater.'
@@ -356,6 +365,7 @@ if (typeof module !== 'undefined') {
     insertList: insertList,
     newListId: newListId,
     listDetail: listDetail,
+    trashLabel: trashLabel,
     phoneHowTo: phoneHowTo
   }
 }

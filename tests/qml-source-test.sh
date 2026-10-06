@@ -226,6 +226,8 @@ has "UndoToast.qml" "Undo" "UndoToast.qml has no Undo"
 has "SettingsView.qml" "Model\\.moveList" "SettingsView.qml does not reorder lists"
 has "SettingsView.qml" "Model\\.removeList" "SettingsView.qml does not remove lists through the model"
 has "SettingsView.qml" "UndoToast" "SettingsView.qml offers no undo"
+has "SettingsView.qml" "\"trash\", \"--vault\"" "removing a list never offers to delete its file"
+has "UndoToast.qml" "signal action\\(\\)" "UndoToast.qml has no second action"
 has "SettingsView.qml" "stays in the vault" "SettingsView.qml does not say the file stays"
 has "VaultCard.qml" '"vaults"' "VaultCard.qml does not list the known vaults"
 

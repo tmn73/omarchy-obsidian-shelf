@@ -31,8 +31,21 @@ FocusScope {
     root.removed = result
     root.expandedId = ""
     setLists(result.lists)
-    toast.show(qsTr("%1 left the shelf. %2 stays in the vault.").arg(cfg.name).arg(cfg.path))
+    toast.show(qsTr("%1 left the shelf. %2 stays in the vault.").arg(cfg.name).arg(cfg.path), Model.trashLabel(cfg, root.payload))
   }
+
+  // The second action of the toast: the file goes to the trash of the vault,
+  // where Obsidian keeps its deleted files.
+  function trashRemoved() {
+    if (!root.removed || !root.removed.list)
+      return
+    var cfg = root.removed.list
+    helper.run(["trash", "--vault", root.config.vaultPath, "--list", JSON.stringify(cfg)], function (data) {
+      toast.show(data.ok ? qsTr("%1 is in the trash of the vault.").arg(cfg.path) : String(data.message || qsTr("Could not delete it")), "", false)
+    })
+  }
+
+  HelperCall { id: helper }
 
   Column {
     id: form
@@ -126,6 +139,7 @@ FocusScope {
         width: parent.width
         fontFamily: root.fontFamily
         onUndo: if (root.removed && root.removed.list) root.setLists(Model.insertList(root.config.lists, root.removed.list, root.removed.index))
+        onAction: root.trashRemoved()
       }
 
       DashedButton {

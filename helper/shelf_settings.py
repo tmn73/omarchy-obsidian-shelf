@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 from shelf_checklist import OPEN_RE
-from shelf_folder import URL_RE
+from shelf_folder import URL_RE, trash_target
 from shelf_io import OutsideVault, atomic_write, fail, read_text, resolve_in_vault
 from shelf_sections import parse_sections
 
@@ -89,3 +89,31 @@ def create_list(vault: Path, cfg: dict, sections: list) -> dict:
     except OSError as err:
         return fail("io", str(err))
     return {"ok": True, "created": True}
+
+
+def trash_list(vault: Path, cfg: dict) -> dict:
+    """Move the file of a list, or its empty folder, to the trash of the vault.
+
+    Obsidian keeps its deleted files in the same `.trash` folder, so the user
+    can get the file back. A folder that still holds a file stays.
+    """
+    root = Path(vault).resolve()
+    trash = root / ".trash"
+    try:
+        path = resolve_in_vault(vault, cfg.get("path", ""))
+    except OutsideVault as err:
+        return fail("invalid", str(err))
+    guarded = (trash, root / ".obsidian")
+    if path == root or any(path == g or g in path.parents for g in guarded):
+        return fail("invalid", "The vault, its trash and its settings cannot go to the trash")
+    if not path.exists():
+        return fail("missing", f"{cfg.get('path')} is not in the vault")
+    try:
+        if path.is_dir() and any(path.iterdir()):
+            return fail("not-empty", f"{cfg.get('path')} still holds files, so it stays")
+        trash.mkdir(exist_ok=True)
+        target = trash_target(trash, path.name)
+        os.rename(path, target)
+    except OSError as err:
+        return fail("io", str(err))
+    return {"ok": True, "trashed": target.relative_to(root).as_posix()}
