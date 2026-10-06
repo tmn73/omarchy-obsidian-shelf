@@ -444,3 +444,37 @@ Expected: everything passes.
 - [ ] **Step 3: Run the full suite** (command of Task 11, Step 4). Expected: everything passes.
 - [ ] **Step 4: Commit.** `git add README.md LICENSE && git commit -m "docs: README for Obsidian Shelf"`.
 - [ ] **Step 5: Ask the user** whether to create the GitHub repository `tmn73/omarchy-obsidian-shelf` and push. Do nothing until they answer.
+
+---
+
+## Settings v2 (added 2026-10-06, after the live review)
+
+Design reference: https://claude.ai/artifact/CjtGS773kedbSFkgcXz99X (boards 1 to 6). Decisions:
+
+- The chip shows only the number of new items (unseen) from lists with "Notify" on. At rest: the glyph alone. The tooltip keeps the totals. The list setting key stays `badge`; its label becomes "Notify on new items".
+- List kinds in the UI: "Links to read or watch" (`folder`), "A checklist" (`checklist`), "Notes by section" (`sections`). Generic examples only.
+- "Change…" opens the vault picker (search, existing paths of the right kind, "+ New …"). "Add from your phone: how" shows a two-line guide in place.
+- Removing a list never touches its file, and offers Undo.
+
+### Task 14: Helper commands for settings
+- `vaults`: the vaults in `~/.config/obsidian/obsidian.json` (`path`, `name`, `open`), open first.
+- `scan --vault V`: suggested lists: folders whose notes hold links (`folder`), files with open `- [ ]` lines (`checklist`), files with headings and top-level bullets (`sections`); each with `path`, `type`, `count`. Skips `.obsidian`, `.trash` and dot folders.
+- `paths --vault V --kind folder|file`: every folder or `.md` file, relative, sorted.
+- `create --vault V --list JSON [--sections "A,B"]`: creates the folder or the file when missing (`sections` gets one `## <name>` per section). Never overwrites: an existing path returns `{"ok": true, "created": false}`.
+- Tests first in `tests/test_settings.py` and `tests/test_cli.py`.
+
+### Task 15: Chip counts new items only
+- `Model.chipCount(unseen, lists)` (TDD) and the chip binds it; dimmed glyph at rest.
+
+### Task 16: Settings page (board 1)
+- `SettingsView.qml` rebuilt from small parts: `VaultCard`, `SyncCard` status, `ListRow` (move up/down, Notify switch, expand: name, Change… picker, when-ticked choice, phone how-to, remove), `UndoToast`, previews and refresh controls. `VaultPicker.qml` shared with Task 17.
+
+### Task 17: Add a list (board 2)
+- `AddListSheet.qml`: kind cards, details (name, VaultPicker, sections chips, Notify), done screen; calls `create` then saves the list.
+
+### Task 18: Tab menu (board 3)
+- `⋯` on each tab and right click: rename in place, Change file…, Notify, move left or right, phone how-to, remove. A `+` tab opens `AddListSheet`.
+
+### Task 19: First run (board 4) and edge states (board 6)
+- First run when no vault is set: vault from `vaults`, lists from `scan` plus kinds, sync step with `SyncGuide`, phone how-to.
+- Missing list file: "Create it again" (`create`), "Choose another file", "Remove this tab". Vault unreachable: last data plus the message. Sync stopped: header banner with Restart.
