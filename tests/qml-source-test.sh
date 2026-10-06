@@ -240,6 +240,11 @@ has "EmptyShelf.qml" "Add your first list" "EmptyShelf.qml does not lead to the 
 has "ShelfPopup.qml" "EmptyShelf" "ShelfPopup.qml does not show the empty shelf"
 hasnt "Panel.qml" "showSettings = !shelf.configured" "a new user still lands on the settings page"
 
+# ---- A list's file is gone
+has "ListStateFrame.qml" "Create it again" "a missing list cannot be created again"
+has "ListStateFrame.qml" "signal createRequested" "ListStateFrame.qml does not ask for the file"
+has "ShelfPopup.qml" "createRequested" "ShelfPopup.qml ignores a request to create a missing file"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

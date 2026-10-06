@@ -98,6 +98,15 @@ Item {
       root.addBar.focusInput()
   }
 
+  // A list whose folder or file went missing: make it again, empty. A notes
+  // file comes back without headings, and its tab says how to add them.
+  function createActiveList() {
+    if (!activeConfig || !service)
+      return
+    var args = ["create", "--vault", service.config.vaultPath, "--list", JSON.stringify(activeConfig)]
+    creator.run(args, function () { root.service.refresh() })
+  }
+
   function openList(listId) {
     adding = false
     if (settingsOpen)
@@ -114,6 +123,8 @@ Item {
     openCount++
     dropIn.restart()
   }
+
+  HelperCall { id: creator }
 
   Column {
     id: content
@@ -233,6 +244,7 @@ Item {
           item.fontFamily = Qt.binding(function () { return root.fontFamily })
           item.openCount = Qt.binding(function () { return root.openCount })
           item.settingsRequested.connect(root.settingsToggled)
+          item.createRequested.connect(root.createActiveList)
         }
       }
 

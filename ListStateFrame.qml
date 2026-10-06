@@ -21,6 +21,7 @@ Item {
   readonly property bool editing: editingKey !== ""
 
   signal settingsRequested()
+  signal createRequested()
 
   readonly property string listState: listPayload ? String(listPayload.state || "") : ""
   readonly property real stateHeight: stateBlock.implicitHeight + Style.space(56)
@@ -77,11 +78,24 @@ Item {
       font.bold: true
     }
 
-    Button {
+    Row {
       anchors.horizontalCenter: parent.horizontalCenter
-      visible: root.listState === "missing" || root.listState === "error"
-      text: qsTr("Open settings")
-      onClicked: root.settingsRequested()
+      spacing: Style.space(8)
+
+      Button {
+        visible: root.listState === "missing"
+        text: qsTr("Create it again")
+        bordered: true
+        background: Color.accent
+        foreground: Color.popups.background
+        onClicked: root.createRequested()
+      }
+
+      Button {
+        visible: root.listState === "missing" || root.listState === "error"
+        text: qsTr("Open settings")
+        onClicked: root.settingsRequested()
+      }
     }
 
     Text {
