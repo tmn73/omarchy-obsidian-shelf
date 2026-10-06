@@ -131,6 +131,15 @@ FocusScope {
 
     Toggle {
       width: parent.width
+      label: qsTr("Link previews")
+      description: qsTr("A saved link without a picture or title: read its page once for them. Only the site sees it.")
+      checked: root.config.linkPreviews !== false
+      fontFamily: root.fontFamily
+      onClicked: root.settingChanged("linkPreviews", !checked)
+    }
+
+    Toggle {
+      width: parent.width
       label: qsTr("Tweet previews (fxtwitter.com)")
       description: qsTr("Author picture and first photo of saved tweets. fxtwitter sees the tweet links you save, once per tweet.")
       checked: root.config.tweetPreviews === true

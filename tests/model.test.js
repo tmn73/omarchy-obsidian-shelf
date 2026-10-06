@@ -191,10 +191,21 @@ test('normalizeSettings keeps tweet previews off unless asked', () => {
   assert.equal(Model.normalizeSettings({ tweetPreviews: 'true' }).tweetPreviews, true)
 })
 
-test('previewsPending is true when a folder item still waits for its preview', () => {
-  const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a', previewPending: false }, { key: 'b', previewPending: true }] }] }
-  assert.equal(Model.previewsPending(p), true)
-  p.lists[0].items[1].previewPending = false
-  assert.equal(Model.previewsPending(p), false)
-  assert.equal(Model.previewsPending(null), false)
+test('previewsPending asks only for the preview kinds that are on', () => {
+  const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a', previewKind: '' }, { key: 'b', previewKind: 'link' }] }] }
+  assert.equal(Model.previewsPending(p, { tweetPreviews: false, linkPreviews: true }), true)
+  assert.equal(Model.previewsPending(p, { tweetPreviews: true, linkPreviews: false }), false)
+  p.lists[0].items[1].previewKind = 'tweet'
+  assert.equal(Model.previewsPending(p, { tweetPreviews: true, linkPreviews: false }), true)
+  assert.equal(Model.previewsPending(null, { tweetPreviews: true, linkPreviews: true }), false)
+})
+
+test('previewArgument names the kinds for the helper', () => {
+  assert.equal(Model.previewArgument({ tweetPreviews: true, linkPreviews: true }), 'tweets,links')
+  assert.equal(Model.previewArgument({ tweetPreviews: false, linkPreviews: true }), 'links')
+})
+
+test('normalizeSettings turns link previews on unless asked not to', () => {
+  assert.equal(Model.normalizeSettings({}).linkPreviews, true)
+  assert.equal(Model.normalizeSettings({ linkPreviews: false }).linkPreviews, false)
 })

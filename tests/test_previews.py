@@ -2,7 +2,7 @@ import json
 import unittest
 
 from shelf_folder import read_folder
-from shelf_previews import enrich, load_cache, preview_from_fxtwitter, tweet_api_url
+from shelf_previews import enrich, load_cache, og_from_html, preview_from_fxtwitter, preview_key, tweet_api_url
 from tests.vault_case import VaultCase
 
 CFG = {"id": "read-later", "type": "folder", "path": "Read Later"}
@@ -83,6 +83,85 @@ class EnrichTest(VaultCase):
 
     def test_a_missing_cache_file_reads_as_empty(self):
         self.assertEqual(load_cache(self.vault / "nope.json"), {})
+
+
+
+IG_NOTE = """[[ReadItLater]] [[Article]]
+
+[https://www.instagram.com/reel/DeJJ1cMj6W8/?stkn=x](https://www.instagram.com/reel/DeJJ1cMj6W8/?stkn=x)
+"""
+IG_HTML = """<html><head>
+<meta property="og:site_name" content="Instagram" />
+<meta property="og:title" content="ana beatriz on Instagram: &quot;TAKE MOZART AI AWAY FROM HER
+
+#beefing&quot;" />
+<meta content="457 likes, 26 comments" property="og:description" />
+<meta property="og:image" content="https://scontent.cdninstagram.com/v/a.jpg?stp=x&amp;_nc_cat=101" />
+</head></html>"""
+
+
+class OpenGraphTest(unittest.TestCase):
+    def test_reads_og_tags_in_both_attribute_orders_and_unescapes(self):
+        self.assertEqual(og_from_html(IG_HTML), {
+            "title": 'ana beatriz on Instagram: "TAKE MOZART AI AWAY FROM HER #beefing"',
+            "description": "457 likes, 26 comments",
+            "image": "https://scontent.cdninstagram.com/v/a.jpg?stp=x&_nc_cat=101",
+        })
+
+    def test_twitter_image_is_a_fallback(self):
+        html = '<meta name="twitter:image" content="https://example.org/t.png">'
+        self.assertEqual(og_from_html(html)["image"], "https://example.org/t.png")
+
+    def test_preview_keys(self):
+        self.assertEqual(preview_key("https://x.com/a/status/1"), "https://api.fxtwitter.com/a/status/1")
+        self.assertEqual(preview_key("https://www.instagram.com/reel/X/"), "og:https://www.instagram.com/reel/X/")
+        self.assertEqual(preview_key(""), "")
+
+
+class LinkPreviewTest(VaultCase):
+    def setUp(self):
+        super().setUp()
+        self.cache = self.vault / "cache" / "previews.json"
+        self.pages = []
+
+    def page(self, url):
+        self.pages.append(url)
+        return IG_HTML
+
+    def test_instagram_note_takes_title_excerpt_and_image_from_the_page(self):
+        self.write("Read Later/Article 2026-10-06 09-49-32.md", IG_NOTE)
+        self.assertEqual(read_folder(self.vault, CFG, {})["items"][0]["previewKind"], "link")
+        enrich(self.vault, [CFG], self.cache, fetch_page=self.page, now=1000)
+        item = read_folder(self.vault, CFG, load_cache(self.cache))["items"][0]
+        self.assertTrue(item["title"].startswith("ana beatriz on Instagram"))
+        self.assertEqual(item["excerpt"], "457 likes, 26 comments")
+        self.assertTrue(item["image"].startswith("https://scontent.cdninstagram.com/"))
+        self.assertEqual(item["previewKind"], "")
+        self.assertEqual(len(self.pages), 1)
+
+    def test_a_note_heading_keeps_its_title(self):
+        self.write("Read Later/a.md", "# My own title\n\nhttps://www.instagram.com/reel/X/\n")
+        enrich(self.vault, [CFG], self.cache, fetch_page=self.page, now=1000)
+        item = read_folder(self.vault, CFG, load_cache(self.cache))["items"][0]
+        self.assertEqual(item["title"], "My own title")
+        self.assertTrue(item["image"].startswith("https://scontent"))
+
+    def test_a_note_with_title_and_image_needs_no_page(self):
+        self.write("Read Later/v.md", "# Video\n\nhttps://youtube.com/watch?v=pg5PZk_PhP4\n")
+        self.assertEqual(read_folder(self.vault, CFG, {})["items"][0]["previewKind"], "")
+        enrich(self.vault, [CFG], self.cache, fetch_page=self.page, now=1000)
+        self.assertEqual(self.pages, [])
+
+    def test_link_previews_off_fetches_no_page(self):
+        self.write("Read Later/i.md", IG_NOTE)
+        enrich(self.vault, [CFG], self.cache, fetch_page=self.page, now=1000, links=False)
+        self.assertEqual(self.pages, [])
+
+    def test_tweet_previews_off_fetches_no_tweet(self):
+        self.write("Read Later/wes.md", TWEET)
+        calls = []
+        enrich(self.vault, [CFG], self.cache, fetch=lambda u: calls.append(u) or FX, now=1000, tweets=False)
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__":

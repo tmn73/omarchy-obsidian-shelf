@@ -81,6 +81,7 @@ function normalizeSettings (raw) {
     syncCheckCommand: text(raw.syncCheckCommand),
     obsidianSync: raw.obsidianSync !== false && raw.obsidianSync !== 'false',
     tweetPreviews: raw.tweetPreviews === true || raw.tweetPreviews === 'true',
+    linkPreviews: raw.linkPreviews !== false && raw.linkPreviews !== 'false',
     lists: lists,
     errors: errors
   }
@@ -131,13 +132,21 @@ function freshKeys (previousPayload, nextPayload) {
   return itemKeys(nextPayload).filter(function (k) { return !before[k] })
 }
 
-// Whether a folder item still waits for its tweet preview. The helper marks
-// an item pending only until a fetch succeeded or failed, so asking for the
-// previews again never loops.
-function previewsPending (payload) {
+// Whether a folder item still waits for a preview of a kind that is on. The
+// helper marks an item only until a fetch succeeded or failed, so asking
+// again never loops.
+function previewsPending (payload, config) {
+  var on = { tweet: !!(config && config.tweetPreviews), link: !!(config && config.linkPreviews) }
   return (toArray(payload && payload.lists) || []).some(function (list) {
-    return (toArray(list.items) || []).some(function (item) { return item.previewPending === true })
+    return (toArray(list.items) || []).some(function (item) { return on[item.previewKind] === true })
   })
+}
+
+function previewArgument (config) {
+  var kinds = []
+  if (config.tweetPreviews) kinds.push('tweets')
+  if (config.linkPreviews) kinds.push('links')
+  return kinds.join(',')
 }
 
 // Unseen items: what arrived since the popup was last opened. Keys that left
@@ -251,6 +260,7 @@ if (typeof module !== 'undefined') {
     freshInBadgeLists: freshInBadgeLists,
     mergeUnseen: mergeUnseen,
     previewsPending: previewsPending,
+    previewArgument: previewArgument,
     relativeAge: relativeAge,
     clockText: clockText,
     tooltipText: tooltipText,

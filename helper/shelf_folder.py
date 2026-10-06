@@ -119,9 +119,11 @@ def iso_mtime(path: Path) -> str:
 def folder_item(vault_root: Path, path: Path) -> dict:
     meta, body = split_front_matter(read_text(path))
     url = note_url(meta, body)
+    title = note_title(meta, body, "")
     return {
         "key": path.relative_to(vault_root).as_posix(),
-        "title": note_title(meta, body, path.stem),
+        "title": title or path.stem,
+        "titleFromNote": title != "",
         "excerpt": note_excerpt(body),
         "url": url,
         "domain": url_domain(url),

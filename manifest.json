@@ -36,7 +36,8 @@
       "refreshIntervalSec": 10,
       "syncCheckCommand": "",
       "obsidianSync": true,
-      "tweetPreviews": false
+      "tweetPreviews": false,
+      "linkPreviews": true
     },
     "schema": [
       {
@@ -75,6 +76,13 @@
         "label": "Tweet previews (fxtwitter.com)",
         "defaultValue": false,
         "description": "Show the author picture and the first photo of saved tweets. The plugin asks api.fxtwitter.com once per tweet, so that service sees the tweet links you save."
+      },
+      {
+        "key": "linkPreviews",
+        "type": "boolean",
+        "label": "Link previews",
+        "defaultValue": true,
+        "description": "For a saved link without a picture or a title, read the page once and use its preview image and title. Only the site itself sees the request."
       }
     ]
   }

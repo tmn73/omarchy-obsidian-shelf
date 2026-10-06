@@ -1,12 +1,15 @@
-"""Tweet previews (author avatar, first photo or video thumbnail) from fxtwitter.
+"""Previews for saved links: tweets through fxtwitter, other pages through
+their own OpenGraph tags.
 
-A ReadItLater tweet note holds only the text and a pic.twitter.com link. The
-helper asks api.fxtwitter.com once per tweet, keeps the answer in a local
-cache, and every later read merges the cache without any network call. A
-failure is remembered for a day, so a dead service never causes a fetch on
+A ReadItLater tweet note holds only the text and a pic.twitter.com link, and a
+link ReadItLater could not parse (an Instagram reel, say) holds only the
+address. The helper fetches what is missing once per link, keeps it in a
+local cache, and every later read merges the cache without any network call.
+A failure is remembered for a day, so a dead site never causes a fetch on
 every refresh. Notes in the vault are never changed.
 """
 
+import html
 import json
 import re
 import time
@@ -16,8 +19,14 @@ from pathlib import Path
 from shelf_io import atomic_write
 
 STATUS_RE = re.compile(r"^https?://(?:www\.|mobile\.)?(?:x|twitter)\.com/([A-Za-z0-9_]{1,15})/status/(\d+)")
+META_RE = re.compile(r"<meta\b[^>]*>", re.IGNORECASE)
+ATTR_RE = re.compile(r'([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\')', re.DOTALL)
 RETRY_AFTER = 86400
 TIMEOUT = 5
+PAGE_LIMIT = 1_500_000
+# Many sites, Instagram among them, give their preview tags only to link
+# preview crawlers; this is the agent chat apps use for the same purpose.
+PAGE_AGENT = "facebookexternalhit/1.1 (compatible; obsidian-shelf)"
 
 
 def tweet_api_url(url: str) -> str:
@@ -25,6 +34,33 @@ def tweet_api_url(url: str) -> str:
     if not match:
         return ""
     return f"https://api.fxtwitter.com/{match.group(1)}/status/{match.group(2)}"
+
+
+def preview_key(url: str) -> str:
+    """The cache key of a link: its fxtwitter address for a tweet, else og:<url>."""
+    if tweet_api_url(url):
+        return tweet_api_url(url)
+    return "og:" + url if re.match(r"^https?://", url or "") else ""
+
+
+def og_from_html(page: str) -> dict:
+    tags = {}
+    for tag in META_RE.findall(page):
+        attrs = {m.group(1).lower(): (m.group(2) if m.group(2) is not None else m.group(3)) for m in ATTR_RE.finditer(tag)}
+        name = (attrs.get("property") or attrs.get("name") or "").lower()
+        if name and "content" in attrs and name not in tags:
+            tags[name] = " ".join(html.unescape(attrs["content"]).split())
+    return {
+        "title": tags.get("og:title", "")[:160],
+        "description": tags.get("og:description", "")[:200],
+        "image": tags.get("og:image") or tags.get("twitter:image", ""),
+    }
+
+
+def fetch_html(url: str) -> str:
+    request = urllib.request.Request(url, headers={"User-Agent": PAGE_AGENT})
+    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+        return response.read(PAGE_LIMIT).decode("utf-8", errors="replace")
 
 
 def small(photo_url: str) -> str:
@@ -59,27 +95,33 @@ def fetch_json(url: str) -> dict:
         return json.loads(response.read().decode("utf-8"))
 
 
-def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=None) -> dict:
-    """Fetch the preview of every tweet that has none yet, and save the cache."""
+def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=None,
+           fetch_page=fetch_html, tweets=True, links=True) -> dict:
+    """Fetch the preview of every link that still needs one, and save the cache."""
     from shelf_folder import read_folder
 
     now = time.time() if now is None else now
     cache = load_cache(cache_path)
+    allowed = {"tweet": tweets, "link": links}
     fetched = 0
     for cfg in lists:
         if cfg.get("type") != "folder":
             continue
         for item in read_folder(vault, cfg, cache).get("items", []):
-            key = tweet_api_url(item["url"])
+            kind = needed_kind(item)
+            key = preview_key(item["url"])
             entry = cache.get(key)
-            if not key:
+            if not kind or not allowed[kind]:
                 continue
             if entry and "failedAt" not in entry:
                 continue
             if entry and now - entry["failedAt"] < RETRY_AFTER:
                 continue
             try:
-                cache[key] = preview_from_fxtwitter(fetch(key))
+                if kind == "tweet":
+                    cache[key] = preview_from_fxtwitter(fetch(key))
+                else:
+                    cache[key] = og_from_html(fetch_page(item["url"]))
                 fetched += 1
             except (OSError, ValueError):
                 cache[key] = {"failedAt": now}
@@ -88,11 +130,28 @@ def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=Non
     return {"ok": True, "fetched": fetched}
 
 
+def needed_kind(item: dict) -> str:
+    """Which preview a note still lacks: tweet, link or nothing."""
+    if tweet_api_url(item["url"]):
+        return "tweet"
+    if preview_key(item["url"]) and (not item["image"] or not item.get("titleFromNote", True)):
+        return "link"
+    return ""
+
+
 def merge_preview(item: dict, cache: dict) -> dict:
-    key = tweet_api_url(item["url"])
+    kind = needed_kind(item)
+    key = preview_key(item["url"]) if kind else ""
     entry = cache.get(key) if key else None
-    item["avatar"] = (entry or {}).get("avatar", "")
+    ready = entry if entry and "failedAt" not in entry else {}
+    item["avatar"] = ready.get("avatar", "")
+    if kind == "link":
+        if not item.get("titleFromNote", True) and ready.get("title"):
+            item["title"] = ready["title"]
+        if (not item["excerpt"] or item["excerpt"].startswith("http")) and ready.get("description"):
+            item["excerpt"] = ready["description"]
     if not item["image"]:
-        item["image"] = (entry or {}).get("image", "")
-    item["previewPending"] = bool(key) and entry is None
+        item["image"] = ready.get("image", "")
+    item["previewKind"] = kind if entry is None else ""
+    item["previewPending"] = item["previewKind"] != ""
     return item

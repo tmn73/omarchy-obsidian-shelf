@@ -36,6 +36,8 @@ def build_parser() -> Parser:
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
         sub.add_argument("--lists", required=True)
+        if name == "enrich":
+            sub.add_argument("--previews", default="", help="comma list: tweets, links")
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
@@ -118,7 +120,9 @@ def main(argv: list, stdin) -> tuple:
             if not isinstance(lists, list):
                 raise ArgumentError("--lists must be a JSON array")
             if args.command == "enrich":
-                return 0, shelf_previews.enrich(vault, lists, preview_cache())
+                kinds = {k.strip() for k in args.previews.split(",") if k.strip()}
+                return 0, shelf_previews.enrich(vault, lists, preview_cache(),
+                                                tweets="tweets" in kinds, links="links" in kinds)
             return 0, read_lists(vault, lists)
         cfg = json.loads(args.list)
         if not isinstance(cfg, dict) or not cfg.get("path"):

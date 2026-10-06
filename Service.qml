@@ -97,8 +97,9 @@ Item {
     unseen = Model.mergeUnseen(unseen, added, data)
     payload = data
     error = ""
-    if (config.tweetPreviews && Model.previewsPending(data) && !enrichProcess.running) {
-      enrichProcess.command = [helperPath(), "enrich", "--vault", config.vaultPath, "--lists", JSON.stringify(config.lists)]
+    if (Model.previewsPending(data, config) && !enrichProcess.running) {
+      enrichProcess.command = [helperPath(), "enrich", "--vault", config.vaultPath, "--lists", JSON.stringify(config.lists),
+                               "--previews", Model.previewArgument(config)]
       enrichProcess.running = true
     }
     if (added.length > 0) {
@@ -244,7 +245,7 @@ Item {
     }
   }
 
-  // Tweet previews come from the network, so they load after the lists: the
+  // Previews come from the network, so they load after the lists: the
   // rows show at once and pick up their pictures on the read that follows.
   Process {
     id: enrichProcess
