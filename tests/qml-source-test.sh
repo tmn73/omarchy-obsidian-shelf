@@ -272,6 +272,7 @@ has "Reminders.qml" '"remind", "--vault"' "nothing asks the helper for reminders
 has "Panel.qml" "late: shelf.lateCount > 0" "a late card does not show on the chip"
 has "Panel.qml" 'popup.forward\("moveCard", dx\)' "Left and Right do not move a card"
 has "DatePanel.qml" "dateField.forceActiveFocus" "Escape cannot close the date panel"
+hasnt "BoardLane.qml" "required property string key" "a card delegate hides the key of CardRow, so every card edits at once"
 
 # Syntax: qmllint, when the machine has it, parses every file. It refuses the
 # typed functions an IpcHandler needs, so files with one are left out.

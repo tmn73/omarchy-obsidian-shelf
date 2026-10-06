@@ -116,7 +116,7 @@ Column {
     spacing: Style.space(6)
 
     delegate: CardRow {
-      required property string key
+      required key
       required text
       required date
       required time

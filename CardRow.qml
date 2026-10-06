@@ -17,9 +17,11 @@ Column {
   property bool accent: false
   property string fontFamily: Style.font.family
 
-  readonly property bool current: board !== null && board.currentKey === key
-  readonly property bool editing: board !== null && board.editingKey === key
-  readonly property bool dating: board !== null && board.datingKey === key
+  // An empty key never matches: "" is also what the board holds when no card
+  // is current, edited or dated.
+  readonly property bool current: key !== "" && board !== null && board.currentKey === key
+  readonly property bool editing: key !== "" && board !== null && board.editingKey === key
+  readonly property bool dating: key !== "" && board !== null && board.datingKey === key
   readonly property var label: Board.dateLabel({ date: date, time: time, checked: checked }, board ? board.today : "", board ? board.datesOn : true)
 
   spacing: Style.space(4)
