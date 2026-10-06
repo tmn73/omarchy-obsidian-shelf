@@ -36,6 +36,10 @@ Item {
       return ""
     if (/(^|\.)(x\.com|twitter\.com|bsky\.app|threads\.com|mastodon\.social)$/.test(domain))
       return ""
+    if (/(^|\.)reddit\.com$/.test(domain))
+      return "\uf1a1"
+    if (/(^|\.)instagram\.com$/.test(domain))
+      return "\uf16d"
     return ""
   }
 
