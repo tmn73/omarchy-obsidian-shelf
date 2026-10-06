@@ -98,9 +98,10 @@ ob login
 ob sync-setup --vault "<your vault>" --path ~/Documents/obsidian/<vault>
 ```
 
-Then disconnect Sync in the desktop app (Settings, Sync, Disconnect), so that
-only one client writes the folder. Do not turn off the Sync core plugin: the
-list of core plugins syncs to your other devices.
+Then pause Sync in the desktop app (Settings, Sync, Pause), so that only one
+client writes the folder. The app still opens and edits the vault, and
+Obsidian Headless syncs what you change. Do not turn off the Sync core plugin:
+the list of core plugins syncs to your other devices.
 
 Install the service from `systemd/obsidian-headless.service`. Change the vault
 path in `ExecStart` first.

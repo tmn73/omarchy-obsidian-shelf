@@ -87,7 +87,7 @@ Rectangle {
     Text {
       width: parent.width
       visible: root.warnDesktop
-      text: qsTr("Turn off Sync in the Obsidian app on this PC (Settings, Sync, Disconnect), so that only one client writes the folder.")
+      text: qsTr("Pause Sync in the Obsidian app on this PC (Settings, Sync, Pause), so that only one client writes the folder. The app still opens and edits the vault.")
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
       color: Color.urgent

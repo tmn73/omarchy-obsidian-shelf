@@ -183,7 +183,7 @@ has "SyncGuide.qml" "function runSyncStep\(" "SyncGuide.qml has no runSyncStep()
 has "SyncGuide.qml" "obsidian-shelf-login" "SyncGuide.qml does not use the login script"
 has "SyncGuide.qml" "obsidian-shelf-link" "SyncGuide.qml does not use the link script"
 has "SyncCard.qml" "Obsidian Sync on this PC" "SyncCard.qml lost its title"
-has "SyncCard.qml" "Turn off Sync in the Obsidian app" "SyncCard.qml does not warn about the desktop client"
+has "SyncCard.qml" "Pause Sync in the Obsidian app" "SyncCard.qml does not warn about the desktop client"
 has "ShelfPopup.qml" "SyncCard" "ShelfPopup.qml does not show the sync card"
 has "manifest.json" '"obsidianSync"' "manifest.json has no obsidianSync setting"
 
