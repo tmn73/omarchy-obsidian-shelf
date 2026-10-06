@@ -1,10 +1,25 @@
 # Obsidian Shelf
 
-Obsidian Shelf puts lists from your Obsidian vault in the Omarchy bar. You
-capture links, todos and retro topics on your phone, and you handle them from
-the desktop without opening Obsidian.
+Obsidian Shelf puts lists from your Obsidian vault in the Omarchy bar. You save
+links, tasks and notes on your phone, and you handle them from the desktop
+without opening Obsidian.
 
-The plugin reads plain Markdown files, so any folder of Markdown files works.
+![Obsidian Shelf](preview.png)
+
+## What it does
+
+- **Three kinds of lists**, read from plain Markdown files: links to read or
+  watch (a folder, one note per link), checklists, and notes by section.
+- **Act from the bar**: open a link, tick a task, add a line, edit or remove
+  an item, clear a notes file after a meeting.
+- **Previews**: YouTube thumbnails, tweet pictures, and the preview image and
+  title of most other pages, Instagram and Reddit included.
+- **A chip that tells you what is new**: it shows how many items arrived from
+  your phone since you last looked, and pings when one lands.
+- **Obsidian Sync without the app**: a guide in the popup sets up Obsidian
+  Headless, so captures reach the desktop while Obsidian does not run.
+- **Your theme**: every color comes from the active Omarchy theme, and the
+  motion follows the shell's animation setting.
 
 ## Install
 
@@ -12,54 +27,97 @@ The plugin reads plain Markdown files, so any folder of Markdown files works.
 omarchy plugin add https://github.com/tmn73/omarchy-obsidian-shelf.git --enable
 ```
 
-Click the chip in the bar. The first time, the popup opens on its settings: set
-the vault folder, or accept the vault open in Obsidian.
+Click the chip in the bar. The first time, the popup asks for your vault (it
+lists the vaults Obsidian knows), then helps you add your first list. It
+suggests the lists it finds in the vault.
 
-## The three list types
+## The three kinds of lists
 
-A list is a tab in the popup. It has a name, a type and a path in the vault.
-
-| Type | What it reads | One item is | Actions |
+| Kind | What it reads | One item is | Actions |
 | --- | --- | --- | --- |
-| `folder` | every `.md` file directly in a folder | one note | open its link, mark it as seen |
-| `checklist` | one file | one `- [ ] text` line | tick, add |
-| `sections` | one file | one `- text` bullet under a heading | add under a heading, clear all |
+| Links to read or watch | every `.md` file directly in a folder | one note | open its link, edit its title, remove it |
+| A checklist | one file | one `- [ ] text` line | tick, add, edit, remove |
+| Notes by section | one file | one `- text` bullet under a heading | add under a heading, edit, remove, clear all |
 
 Details:
 
-- `folder`: the title comes from the first `# ` heading, else from the file
-  name. The link is the `url`, `source` or `link` key of the front matter, else
-  the first web address in the note. "Seen" moves the note to the `.trash`
-  folder of the vault, the Obsidian trash, so you can get it back.
-- `checklist`: a tick removes the line. Set `onDone` to `check` to write `[x]`
+- **Links**: the title is the `title` key of the front matter, else the first
+  `# ` heading, else the file name. The link is the `url`, `source` or `link`
+  key of the front matter, else the first web address in the note. Removing a
+  link moves the note to the `.trash` folder of the vault, where Obsidian can
+  restore it. Editing a title writes the `title` key and leaves the note body
+  as it is.
+- **Checklists**: a tick removes the line by default. A list can write `[x]`
   instead. Lines ticked on the phone (`- [x]`) do not show, and the plugin
   removes them at its next write to the file.
-- `sections`: a section starts at a heading (`#` to `######`). Clear removes
-  every bullet and keeps the headings.
+- **Notes by section**: a section starts at a heading (`#` to `######`). Use
+  it for a meeting agenda (To discuss / Decided), a list by status (This
+  week / Later) or a retrospective (Good / Bad). Clear removes every bullet
+  and keeps the headings.
 
 The plugin ignores lines that do not match these formats, and it never
-rewrites them.
+rewrites them. Before each write it reads the file again and finds the item
+by its text, so a capture that synced in a second ago stays.
 
-The default lists:
+## Add from your phone
 
-```json
-[
-  { "id": "read-later", "name": "Read later", "type": "folder", "path": "Read Later" },
-  { "id": "retro", "name": "Retro", "type": "sections", "path": "Retrospective.md" },
-  { "id": "todo", "name": "Todo", "type": "checklist", "path": "Todo.md" }
-]
-```
+Obsidian on the phone writes the files, and the sync brings them here. Each
+list in the settings has an "Add from your phone: how" note. In short:
+
+- **Links**: install the ReadItLater community plugin in Obsidian mobile and
+  set its inbox folder to the folder of your links list. Then share any link
+  to Obsidian and pick ReadItLater.
+- **Checklists and notes**: install the QuickAdd community plugin and add a
+  Capture to the file: `- [ ] {{VALUE}}` for a checklist, "Choose heading when
+  capturing" for notes by section. Set the Obsidian mobile pull-down action
+  to "QuickAdd: Run".
+
+## Sync
+
+The plugin reads local files. With Obsidian Sync, the files on the desktop
+change only while a sync client runs. The popup guides you through Obsidian
+Headless, the official client that needs no app, one step at a time:
+
+1. Install it (`bun add -g obsidian-headless`, or npm with Node 22 or later).
+2. Log in. A terminal opens, and the password goes to `ob`, never to the plugin.
+3. Link the vault folder to one of your remote vaults.
+4. Start the background sync. A user service runs it now and at every login.
+
+Then pause Sync in the Obsidian app on this PC (Settings, Sync, Pause). The
+app still opens and edits the vault, and Obsidian Headless sends your changes.
+
+If you sync another way (Syncthing, git, the Obsidian app left open), turn
+the guide off in the settings. An optional command can tell the chip when
+your own sync stops.
+
+## Previews and privacy
+
+- **Link previews** (on by default): for a saved link that has no picture or
+  no title, the plugin reads the page once and keeps its preview image and
+  title in a local cache. It asks with the user agent that chat apps use for
+  link previews, because many sites give their preview tags only to those.
+  Only the site sees the request. Local and private addresses (`localhost`,
+  your home network) are never read.
+- **Tweet previews** (off by default): the author picture and first photo of
+  a tweet come from api.fxtwitter.com, once per tweet. That service sees the
+  links of the tweets you save.
+- The plugin sends nothing anywhere else, and a preview never changes a note
+  in the vault.
 
 ## Settings
 
-Open them with the gear in the popup.
+Open them with the gear in the popup:
 
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| Vault folder | empty | The root folder of your lists. |
-| Refresh every | 10 s | Time between two reads, from 10 to 600 seconds. |
-| Sync check command | empty | A shell command that exits 0 while your sync works. When it fails, the chip shows a dot in the urgent color. |
-| Lists | the three above | Name, type, path, and whether the list counts in the bar. |
+- the vault, and the sync status,
+- your lists in tab order: move them, rename them, point them at another
+  folder or file, choose what a tick does, and choose whether a list
+  **notifies** (a new item from the phone pings the chip and adds to its
+  count),
+- add a list, from the suggestions found in the vault or from a kind,
+- link and tweet previews, and how often the plugin reads the vault (10 s,
+  30 s or 1 min).
+
+Removing a list from the shelf never touches its file.
 
 ## Keys
 
@@ -67,55 +125,13 @@ Open them with the gear in the popup.
 | --- | --- |
 | Tab, Shift+Tab | next or previous list |
 | Up, Down | move in the list |
-| Enter | open the link, or tick the todo |
-| `d`, `Del` | mark as seen, or tick |
+| Enter | open the link, or tick the task |
+| `e` | edit the item |
+| `x`, `Del` | remove the item |
+| `d` | done: tick a task, remove a link |
 | `a` | go to the add field |
 | `r` | read the vault again |
 | Escape | close |
-
-## Capture on the phone
-
-Obsidian on the phone writes the files, and your sync tool brings them to the
-desktop.
-
-- Links: install the ReadItLater community plugin in Obsidian and set its inbox
-  folder to the path of your `folder` list. In any app, share a link to
-  Obsidian, then choose ReadItLater.
-- Todos and retro topics: install the QuickAdd community plugin. Make one
-  Capture choice per file: append `- [ ] {{VALUE}}` to the todo file, and for
-  the retro file use "Choose heading when capturing" with `- {{VALUE}}`. Set the
-  Obsidian mobile pull-down action to "QuickAdd: Run".
-
-## Sync without the Obsidian app
-
-The plugin reads local files. If you use Obsidian Sync, the files on the
-desktop change only while a sync client runs. Obsidian Headless is the official
-client that runs without the app:
-
-```bash
-bun add -g obsidian-headless      # or: npm install -g obsidian-headless (Node 22+)
-ob login
-ob sync-setup --vault "<your vault>" --path ~/Documents/obsidian/<vault>
-```
-
-Then pause Sync in the desktop app (Settings, Sync, Pause), so that only one
-client writes the folder. The app still opens and edits the vault, and
-Obsidian Headless syncs what you change. Do not turn off the Sync core plugin:
-the list of core plugins syncs to your other devices.
-
-Install the service from `systemd/obsidian-headless.service`. Change the vault
-path in `ExecStart` first.
-
-```bash
-cp systemd/obsidian-headless.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now obsidian-headless.service
-```
-
-Then set the sync check command to
-`systemctl --user is-active --quiet obsidian-headless.service`.
-
-Other setups also work: Obsidian left open on the desktop, Syncthing, or git.
 
 ## Development
 
@@ -124,13 +140,16 @@ bash tests/run-all.sh
 ```
 
 This runs the helper tests (`python3 -m unittest`), the model tests
-(`node --test`), the QML source checks and `omarchy plugin validate`.
+(`node --test`), the QML source checks, the setup script checks and
+`omarchy plugin validate`.
 
 - `bin/obsidian-shelf` and `helper/`: the only code that reads or writes the
-  vault. Python standard library only.
+  vault, and the only code that goes to the network. Python standard library
+  only.
 - `Model.js`: pure logic, tested under node.
-- `Service.qml`: runs the helper and keeps the last good data.
-- The other QML files: the chip, the popup and one component per list type.
+- `Service.qml` reads the vault, and `SyncGuide.qml` follows the sync setup.
+- The other QML files are small components: the chip, the popup, one list per
+  kind, the settings and the add sheet.
 
 Install your local copy, then update it after each commit:
 

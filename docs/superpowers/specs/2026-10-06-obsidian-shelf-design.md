@@ -20,7 +20,8 @@ The main flow:
    retro list.
 
 The plugin knows list TYPES, not use cases. A list is a name, a type and a path.
-The default configuration is the author's: Read later, Retro, Todo.
+A new user starts with an empty shelf, and adds lists from the vault (see
+section 4).
 
 ## 2. Goals and non-goals
 
@@ -79,15 +80,10 @@ A list entry:
 | `badge` | no | boolean | `true` for `folder` and `checklist`, `false` for `sections` |
 | `onDone` | no | `delete`, `check` (checklist only) | `delete` |
 
-The default `lists`:
-
-```json
-[
-  { "id": "read-later", "name": "Read later", "type": "folder", "path": "Read Later" },
-  { "id": "retro", "name": "Retro", "type": "sections", "path": "Retrospective.md" },
-  { "id": "todo", "name": "Todo", "type": "checklist", "path": "Todo.md" }
-]
-```
+The default `lists` is empty: no two vaults share their paths. A new user
+picks the vault (the popup lists the vaults Obsidian knows), then adds lists
+from the suggestions the helper finds in the vault, or from a kind. The list
+setting key `badge` shows as "Notify on new items" in the settings.
 
 `Model.js` normalizes the settings at the boundary. Arrays that come from
 `shell.json` fail `Array.isArray` and have no `indexOf`, so the model copies
@@ -299,7 +295,9 @@ The tooltip lists the count per list, for example "3 read later, 7 todo".
 - `checklist` empty: "Nothing left."
 - `sections` section empty: a dashed box with "Nothing yet".
 - List `missing`: the expected path, and a button that opens the settings.
-- Vault not set: the popup shows only the settings view.
+- Vault not set: the popup asks for the vault, with the vaults Obsidian knows.
+- No list yet: an empty shelf with "Add your first list".
+- A list's file is gone: "Create it again", or "Open settings".
 
 ## 9. Sync setup (outside the plugin)
 
