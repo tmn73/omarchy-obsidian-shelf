@@ -10,6 +10,7 @@ every refresh. Notes in the vault are never changed.
 """
 
 import html
+import ipaddress
 import json
 import re
 import time
@@ -37,11 +38,31 @@ def tweet_api_url(url: str) -> str:
     return f"https://api.fxtwitter.com/{match.group(1)}/status/{match.group(2)}"
 
 
+LOCAL_SUFFIXES = (".local", ".localhost", ".internal", ".lan", ".home.arpa")
+
+
+def is_public_url(url: str) -> bool:
+    """False for localhost, private or link-local addresses and local names.
+
+    A note can hold any address; the helper must never probe the user's own
+    machine or network on its own.
+    """
+    host = (urlparse(url).hostname or "").lower().rstrip(".")
+    if not host or host == "localhost" or host.endswith(LOCAL_SUFFIXES):
+        return False
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return "." in host
+    return not (address.is_private or address.is_loopback or address.is_link_local
+                or address.is_reserved or address.is_multicast or address.is_unspecified)
+
+
 def preview_key(url: str) -> str:
     """The cache key of a link: its fxtwitter address for a tweet, else og:<url>."""
     if tweet_api_url(url):
         return tweet_api_url(url)
-    return "og:" + url if re.match(r"^https?://", url or "") else ""
+    return "og:" + url if re.match(r"^https?://", url or "") and is_public_url(url) else ""
 
 
 def meta_tags(page: str) -> dict:

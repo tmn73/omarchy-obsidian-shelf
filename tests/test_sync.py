@@ -86,6 +86,14 @@ class ServiceTest(VaultCase):
         self.assertIn("Restart=on-failure", unit)
         self.assertIn("WantedBy=default.target", unit)
 
+    def test_percent_in_the_vault_path_is_escaped_for_systemd(self):
+        unit = service_unit("/bin/ob", Path("/home/u/100% notes"))
+        self.assertIn('--path "/home/u/100%% notes"', unit)
+
+    def test_a_vault_path_with_a_quote_is_refused(self):
+        out = install_service("/bin/ob", self.vault / 'say "hi"', self.vault / "cfg", lambda cmd: 0)
+        self.assertEqual(out["error"], "invalid")
+
     def test_install_writes_unit_then_enables_it(self):
         calls = []
         out = install_service("/bin/ob", self.vault / "notes", self.vault / "config-home", lambda cmd: calls.append(cmd) or 0)

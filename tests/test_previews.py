@@ -2,7 +2,7 @@ import json
 import unittest
 
 from shelf_folder import read_folder
-from shelf_previews import enrich, load_cache, og_from_html, page_preview, preview_from_fxtwitter, preview_key, tweet_api_url
+from shelf_previews import enrich, is_public_url, load_cache, og_from_html, page_preview, preview_from_fxtwitter, preview_key, tweet_api_url
 from tests.vault_case import VaultCase
 
 CFG = {"id": "read-later", "type": "folder", "path": "Read Later"}
@@ -124,6 +124,20 @@ REDDIT_HTML = """<html><head><title>Can someone explain how Omarchy is bloated o
 <meta property="og:description" content="Explore this post and more from the omarchy community">
 <meta property="og:image" content="https://share.redd.it/preview/post/1wyz0ar">
 </head></html>"""
+
+
+class PublicUrlTest(unittest.TestCase):
+    def test_local_and_private_addresses_are_never_fetched(self):
+        for url in ("http://localhost:8080/x", "http://127.0.0.1/", "http://192.168.1.10/admin", "http://10.0.0.2/",
+                    "http://172.16.5.4/", "http://[::1]/", "http://printer.local/", "http://169.254.169.254/latest"):
+            self.assertFalse(is_public_url(url), url)
+
+    def test_public_sites_are_fetched(self):
+        self.assertTrue(is_public_url("https://www.instagram.com/reel/X/"))
+        self.assertTrue(is_public_url("https://8.8.8.8/"))
+
+    def test_a_local_link_gets_no_link_preview(self):
+        self.assertEqual(preview_key("http://localhost:3000/dashboard"), "")
 
 
 class SitePreviewTest(unittest.TestCase):

@@ -84,7 +84,8 @@ def service_unit(ob: str, vault: Path) -> str:
         "",
         "[Service]",
         "Type=simple",
-        f'ExecStart={ob} sync --continuous --path "{vault}"',
+        # systemd reads % as a specifier, so a literal one is written %%.
+        f'ExecStart={ob} sync --continuous --path "{str(vault).replace("%", "%%")}"',
         "Restart=on-failure",
         "RestartSec=10",
         "",
@@ -96,6 +97,8 @@ def service_unit(ob: str, vault: Path) -> str:
 
 def install_service(ob: str, vault: Path, config_home: Path, run) -> dict:
     """Write the user unit, then reload systemd and start the sync at login and now."""
+    if any(c in str(vault) for c in '"\\\n'):
+        return fail("invalid", "The vault path holds a quote, a backslash or a line break; systemd cannot run it")
     unit = Path(config_home) / "systemd" / "user" / SERVICE
     try:
         unit.parent.mkdir(parents=True, exist_ok=True)
