@@ -259,3 +259,9 @@ test('phoneHowTo names the right plugin for each kind', () => {
   assert.match(Model.phoneHowTo(THREE[0]), /ReadItLater.*Read Later/)
   assert.match(Model.phoneHowTo(THREE[2]), /QuickAdd.*Todo\.md/)
 })
+
+test('phoneHowTo gives the setting that makes each capture land right', () => {
+  assert.match(Model.phoneHowTo(THREE[2]), /- \[ \] \{\{VALUE\}\}/)
+  assert.match(Model.phoneHowTo(THREE[1]), /Choose heading when capturing/)
+  assert.match(Model.phoneHowTo(THREE[1]), /Settings > Mobile > Pull-down action/)
+})

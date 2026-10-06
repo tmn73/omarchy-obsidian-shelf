@@ -323,7 +323,11 @@ function listDetail (cfg, payload) {
 function phoneHowTo (cfg) {
   if (cfg.type === 'folder')
     return 'In Obsidian on your phone, install ReadItLater and set its inbox folder to ' + cfg.path + '. Then share any link to Obsidian and pick ReadItLater.'
-  return 'In Obsidian on your phone, install QuickAdd and add a capture to ' + cfg.path + '. Pull down in Obsidian to add a line.'
+  var setting = cfg.type === 'sections'
+    ? 'turn on "Choose heading when capturing"'
+    : 'set its format to - [ ] {{VALUE}}'
+  return 'In Obsidian on your phone, install QuickAdd, add a Capture to ' + cfg.path + ' and ' + setting +
+    '. Then pick "QuickAdd: Run" in Settings > Mobile > Pull-down action, and pull down in Obsidian to add a line.'
 }
 
 if (typeof module !== 'undefined') {
