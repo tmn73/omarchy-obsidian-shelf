@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Read and change Obsidian Shelf lists in a Markdown vault. Prints one JSON object."""
+
+import json
+import sys
+from pathlib import Path
+
+# The plugin folder is a git checkout that `omarchy plugin update` fast-forwards.
+# Bytecode written next to the modules would count as local changes and block
+# every update, so the helper never writes any.
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helper"))
+
+from shelf_cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    code, result = main(sys.argv[1:], sys.stdin)
+    print(json.dumps(result, ensure_ascii=False))
+    sys.exit(code)

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Log in to Obsidian Sync with the `ob` client, in the terminal the popup opens.
+#
+# Three tries, a plain message instead of the client's error trace, and Ctrl+C
+# stops at once. The password goes from the keyboard to `ob` and nowhere else.
+#
+# Usage: obsidian-shelf-login <path of ob>
+ob=$1
+
+for try in 1 2 3; do
+  "$ob" login 2>/dev/null
+  code=$?
+  if (( code == 0 )); then
+    exit 0
+  fi
+  # `ob` exits 2 on wrong credentials and 1 on Ctrl+C.
+  (( code == 2 )) || exit 130
+  echo
+  if (( try < 3 )); then
+    echo "Login failed: check your email and password. Try $((try + 1)) of 3."
+  fi
+done
+
+echo "Login failed 3 times. Reset your password at https://obsidian.md/account"
+exit 1

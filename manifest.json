@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "tmn73.obsidian",
+  "name": "Obsidian Shelf",
+  "version": "0.1.0",
+  "author": "tmn73",
+  "license": "MIT",
+  "description": "Lists from your Obsidian vault in the bar: links to read later, checklists, boards with dates and reminders, and notes by section, captured on your phone and handled from the desktop.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "activation": "on-demand",
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Obsidian Shelf",
+    "description": "Links to read later, checklists, Kanban boards and notes from a Markdown vault. Open, tick, move, date, add and clear them without opening Obsidian.",
+    "category": "Productivity",
+    "aliases": [
+      "obsidian",
+      "read later",
+      "reading list",
+      "todo",
+      "checklist",
+      "retro",
+      "retrospective",
+      "inbox",
+      "capture",
+      "markdown",
+      "kanban",
+      "board",
+      "reminder"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "vaultPath": "",
+      "refreshIntervalSec": 10,
+      "syncCheckCommand": "",
+      "obsidianSync": true,
+      "tweetPreviews": false,
+      "linkPreviews": true,
+      "reminderTime": "09:00"
+    },
+    "schema": [
+      {
+        "key": "vaultPath",
+        "type": "path",
+        "label": "Vault folder",
+        "defaultValue": "",
+        "description": "The folder that holds your lists, usually your Obsidian vault."
+      },
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 10,
+        "max": 600,
+        "step": 10,
+        "defaultValue": 10
+      },
+      {
+        "key": "syncCheckCommand",
+        "type": "string",
+        "label": "Sync check command",
+        "defaultValue": "",
+        "description": "Optional. A shell command that exits 0 while your sync works. The chip shows a dot when it fails."
+      },
+      {
+        "key": "obsidianSync",
+        "type": "boolean",
+        "label": "Guide the Obsidian Sync setup",
+        "defaultValue": true,
+        "description": "Show the steps to keep the vault in sync with Obsidian Headless while the Obsidian app is closed."
+      },
+      {
+        "key": "tweetPreviews",
+        "type": "boolean",
+        "label": "Tweet previews (fxtwitter.com)",
+        "defaultValue": false,
+        "description": "Show the author picture and the first photo of saved tweets. The plugin asks api.fxtwitter.com once per tweet, so that service sees the tweet links you save."
+      },
+      {
+        "key": "linkPreviews",
+        "type": "boolean",
+        "label": "Link previews",
+        "defaultValue": true,
+        "description": "For a saved link without a picture or a title, read the page once and use its preview image and title. Only the site itself sees the request."
+      },
+      {
+        "key": "reminderTime",
+        "type": "string",
+        "label": "Morning summary time",
+        "defaultValue": "09:00",
+        "description": "When the board summary rings each day, as HH:MM. It lists the cards due today without a time and the late cards."
+      }
+    ]
+  }
+}

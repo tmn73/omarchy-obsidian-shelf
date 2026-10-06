@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Link the vault folder to one of your Obsidian Sync remote vaults.
+#
+# Shows the remote vaults as a numbered menu, or as one yes/no question when
+# the account has a single vault, then runs `ob sync-setup` with the vault id.
+# Three tries when the setup fails, for example on a wrong encryption password.
+#
+# Usage: obsidian-shelf-link <path of ob> <vault folder>
+ob=$1
+folder=$2
+
+echo "Link this folder to an Obsidian Sync vault:"
+echo "  $folder"
+echo
+
+json=$("$ob" sync-list-remote --json 2>/dev/null) || { echo "Could not list your remote vaults."; exit 1; }
+mapfile -t rows < <(python3 -I -c '
+import json, sys
+data = json.loads(sys.stdin.read() or "{}")
+for v in (data.get("vaults") or []) + (data.get("shared") or []):
+    print("\t".join([str(v.get("id", "")), str(v.get("name", "")), str(v.get("region", ""))]))
+' <<< "$json")
+
+if (( ${#rows[@]} == 0 )); then
+  echo "No remote vault on this account. Create one in the Obsidian app: Settings, Sync."
+  exit 1
+fi
+
+pick_vault() {
+  local id name region row number i=1
+  if (( ${#rows[@]} == 1 )); then
+    IFS=$'\t' read -r id name region <<< "${rows[0]}"
+    printf 'Link "%s" (%s) to this folder? [Y/n] ' "$name" "$region"
+    read -r answer || return 1
+    [[ -z $answer || $answer == [yY]* ]] || return 1
+    chosen=$id
+    return 0
+  fi
+  for row in "${rows[@]}"; do
+    IFS=$'\t' read -r id name region <<< "$row"
+    echo "  $i) $name ($region)"
+    i=$((i + 1))
+  done
+  while printf 'Vault number: ' && read -r number; do
+    if [[ $number =~ ^[0-9]+$ ]] && (( number >= 1 && number <= ${#rows[@]} )); then
+      IFS=$'\t' read -r chosen _ <<< "${rows[number - 1]}"
+      return 0
+    fi
+    echo "Type a number from 1 to ${#rows[@]}."
+  done
+  return 1
+}
+
+for try in 1 2 3; do
+  pick_vault || exit 130
+  echo
+  # Keep the client's message, drop its stack trace.
+  if "$ob" sync-setup --vault "$chosen" --path "$folder" 2> >(grep -v -E '^\s+at |^\s*$' >&2); then
+    echo "Linked."
+    exit 0
+  fi
+  echo
+  if (( try < 3 )); then
+    echo "The setup failed. Try $((try + 1)) of 3."
+  fi
+done
+
+exit 1
