@@ -6,5 +6,6 @@ cd "$ROOT"
 PYTHONPATH=helper python3 -m unittest discover -s tests
 node --test tests/model.test.js
 bash tests/qml-source-test.sh
+bash tests/setup-scripts-test.sh
 omarchy plugin validate "$ROOT"
 echo "all checks passed"

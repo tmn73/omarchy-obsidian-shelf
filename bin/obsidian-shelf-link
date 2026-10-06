@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Link the vault folder to one of your Obsidian Sync remote vaults.
+#
+# Lists the remote vaults, asks for a name, and runs `ob sync-setup`. Three
+# tries for a mistyped name; Ctrl+C at the prompt stops.
+#
+# Usage: obsidian-shelf-link <path of ob> <vault folder>
+ob=$1
+vault=$2
+
+"$ob" sync-list-remote || exit 1
+echo
+
+for try in 1 2 3; do
+  read -rp "Remote vault to sync into this folder: " name || exit 130
+  [[ -n $name ]] || continue
+  "$ob" sync-setup --vault "$name" --path "$vault" 2>/dev/null
+  if (( $? == 0 )); then
+    exit 0
+  fi
+  echo
+  if (( try < 3 )); then
+    echo "That did not work: check the vault name. Try $((try + 1)) of 3."
+  fi
+done
+
+exit 1

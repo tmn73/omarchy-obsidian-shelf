@@ -29,6 +29,10 @@ Item {
     return Qt.resolvedUrl("bin/obsidian-shelf").toString().replace(/^file:\/\//, "")
   }
 
+  function scriptPath(name) {
+    return Qt.resolvedUrl("bin/" + name).toString().replace(/^file:\/\//, "")
+  }
+
   function quote(value) {
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
   }
@@ -51,10 +55,9 @@ Item {
     if (syncState === "no-client")
       openTerminal("bun add -g obsidian-headless || npm install -g obsidian-headless")
     else if (syncState === "logged-out")
-      openTerminal(ob + " login")
+      openTerminal(quote(scriptPath("obsidian-shelf-login")) + " " + ob)
     else if (syncState === "unlinked")
-      openTerminal(ob + " sync-list-remote && read -rp 'Remote vault to sync into this folder: ' name && "
-                   + ob + " sync-setup --vault \"$name\" --path " + quote(vaultPath))
+      openTerminal(quote(scriptPath("obsidian-shelf-link")) + " " + ob + " " + quote(vaultPath))
     else if (syncState === "stopped" && !serviceProcess.running) {
       serviceProcess.command = [helperPath(), "sync-service", "--vault", vaultPath]
       serviceProcess.running = true
