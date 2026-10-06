@@ -62,6 +62,7 @@ ListStateFrame {
     id: view
 
     anchors.fill: parent
+    spacing: Style.space(6)
     visible: root.showRows
 
     delegate: ChecklistRow {

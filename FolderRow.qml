@@ -53,7 +53,9 @@ Item {
 
     anchors.fill: parent
     radius: Style.space(10)
-    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.05) : "transparent"
+    // Every row sits on its own faint card, like the board cards, so the
+    // rows read apart without lines.
+    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.07) : Util.alpha(Color.popups.text, 0.03)
 
     Behavior on color { ColorAnimation { duration: Style.duration(150) } }
   }
