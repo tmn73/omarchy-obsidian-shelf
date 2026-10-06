@@ -309,12 +309,11 @@ function newListId (lists, name) {
   for (var n = 2; ; n++) if (!used[base + '-' + n]) return base + '-' + n
 }
 
-var KIND_NAMES = { folder: 'links', checklist: 'checklist', sections: 'notes by section' }
 var COUNT_WORDS = { folder: 'notes', checklist: 'open', sections: 'topics' }
 
 function listDetail (cfg, payload) {
   var path = cfg.type === 'folder' ? cfg.path.replace(/\/*$/, '/') : cfg.path
-  var parts = [path, KIND_NAMES[cfg.type] || cfg.type]
+  var parts = [path]
   var listPayload = findList(payload, cfg.id)
   if (listPayload && listPayload.state === 'missing') parts.push(cfg.type === 'folder' ? 'folder missing' : 'file missing')
   else if (listPayload && listPayload.state === 'ok') parts.push(listItemCount(listPayload) + ' ' + COUNT_WORDS[cfg.type])

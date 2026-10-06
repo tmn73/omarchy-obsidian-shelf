@@ -249,9 +249,10 @@ test('newListId makes a unique id from the name', () => {
 
 test('listDetail describes a list for the settings row', () => {
   const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a' }, { key: 'b' }] }, { id: 'todo', state: 'missing' }] }
-  assert.equal(Model.listDetail(THREE[0], p), 'Read Later/ · links · 2 notes')
-  assert.equal(Model.listDetail(THREE[2], p), 'Todo.md · checklist · file missing')
-  assert.equal(Model.listDetail(THREE[1], null), 'Retrospective.md · notes by section')
+  // The row icon already shows the kind, so the line names the place and the count.
+  assert.equal(Model.listDetail(THREE[0], p), 'Read Later/ · 2 notes')
+  assert.equal(Model.listDetail(THREE[2], p), 'Todo.md · file missing')
+  assert.equal(Model.listDetail(THREE[1], null), 'Retrospective.md')
 })
 
 test('phoneHowTo names the right plugin for each kind', () => {
