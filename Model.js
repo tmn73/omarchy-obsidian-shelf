@@ -316,7 +316,7 @@ function newListId (lists, name) {
   for (var n = 2; ; n++) if (!used[base + '-' + n]) return base + '-' + n
 }
 
-var COUNT_WORDS = { folder: 'notes', checklist: 'open', sections: 'topics' }
+var COUNT_WORDS = { folder: 'notes', checklist: 'open', sections: 'topics', board: 'cards' }
 
 function listDetail (cfg, payload) {
   var path = cfg.type === 'folder' ? cfg.path.replace(/\/*$/, '/') : cfg.path
@@ -337,6 +337,8 @@ function trashLabel (cfg, payload) {
 }
 
 function phoneHowTo (cfg) {
+  if (cfg.type === 'board')
+    return 'In Obsidian on your phone, install the Kanban plugin and open ' + cfg.path + ' to see the board. To add from the pull-down, add a QuickAdd Capture to ' + cfg.path + ' with "Insert after" set to ## To do (your first lane).'
   if (cfg.type === 'folder')
     return 'In Obsidian on your phone, install ReadItLater and set its inbox folder to ' + cfg.path + '. Then share any link to Obsidian and pick ReadItLater.'
   var setting = cfg.type === 'sections'

@@ -300,3 +300,10 @@ test('a board counts the cards of its open lanes', () => {
 test('board cards have keys in every lane', () => {
   assert.deepEqual(Model.itemKeys({ lists: [BOARD] }), ['b\u0000a', 'b\u0000b', 'b\u0000z'])
 })
+
+test('a board row counts cards and its phone how-to names the Kanban plugin', () => {
+  const cfg = { id: 'b', type: 'board', path: 'Todo.md' }
+  assert.equal(Model.listDetail(cfg, { lists: [Object.assign({}, BOARD, { id: 'b' })] }), 'Todo.md · 2 cards')
+  assert.match(Model.phoneHowTo(cfg), /Kanban plugin.*Todo\.md/)
+  assert.match(Model.phoneHowTo(cfg), /## To do/)
+})
