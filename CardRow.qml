@@ -128,14 +128,33 @@ Column {
       }
     }
 
-    // The buttons show over the end of the text, on the hovered card color,
-    // so the text keeps the whole width when they hide.
-    Rectangle {
-      anchors.fill: actions
-      anchors.margins: -Style.space(4)
-      radius: Style.space(8)
-      color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.07))
+    // The buttons show over the end of the text, on a band of the hovered
+    // card color that takes the whole card height and fades in from the left,
+    // so the text never shows around them and keeps the whole width when
+    // they hide.
+    Item {
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.right: parent.right
+      width: actions.width + Style.space(40)
       opacity: actions.opacity
+
+      Rectangle {
+        anchors.fill: parent
+        anchors.leftMargin: Style.space(28)
+        radius: Style.space(9)
+        color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.07))
+      }
+
+      Rectangle {
+        width: Style.space(28)
+        height: parent.height
+        gradient: Gradient {
+          orientation: Gradient.Horizontal
+          GradientStop { position: 0; color: "transparent" }
+          GradientStop { position: 1; color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.07)) }
+        }
+      }
     }
 
     Row {
