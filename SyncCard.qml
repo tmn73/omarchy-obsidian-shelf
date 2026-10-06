@@ -107,6 +107,9 @@ Rectangle {
     }
 
     Button {
+      bordered: true
+      background: Color.accent
+      foreground: Color.popups.background
       text: root.step ? qsTr(root.step.button) : ""
       onClicked: if (root.guide) root.guide.runSyncStep()
     }
