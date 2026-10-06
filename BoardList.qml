@@ -14,8 +14,9 @@ ListStateFrame {
   property bool doneOpen: false
   property string currentKey: ""
   property string datingKey: ""
-  // The date panel has fields: the popup keys stay off while it is open.
-  readonly property bool typing: datingKey !== ""
+  property string statusKey: ""
+  // The date and status panels take the keys: the popup keys stay off.
+  readonly property bool typing: datingKey !== "" || statusKey !== ""
   // The cards the keyboard walks through, in the order they show.
   readonly property var visibleKeys: {
     var keys = []
@@ -87,12 +88,27 @@ ListStateFrame {
   function editCurrent() { if (currentKey !== "") editingKey = currentKey }
   function removeCurrent() { if (currentKey !== "") remove(currentKey) }
   function moveCard(step) { if (currentKey !== "") shift(currentKey, step) }
-  function dateCurrent() { if (currentKey !== "" && datesOn) datingKey = currentKey }
+  function dateCurrent() { if (currentKey !== "" && datesOn) toggleDate(currentKey) }
+  function statusCurrent() { if (currentKey !== "") toggleStatus(currentKey) }
 
   function tick(key) { act("done", { item: key }) }
   function remove(key) { act("remove", { item: key }) }
   function clearDone() { act("clear", {}) }
-  function toggleDate(key) { datingKey = datingKey === key ? "" : key }
+  function toggleDate(key) { statusKey = ""; datingKey = datingKey === key ? "" : key }
+  function toggleStatus(key) { datingKey = ""; statusKey = statusKey === key ? "" : key }
+
+  function moveTo(key, lane) {
+    statusKey = ""
+    if (lane !== laneOf(key))
+      act("move", { item: key, lane: lane })
+  }
+
+  // A new status is a new lane; the card moves there right after.
+  function addLaneAndMove(key, title) {
+    statusKey = ""
+    act("lane", { title: title })
+    act("move", { item: key, lane: title })
+  }
 
   function shift(key, step) {
     var lane = Board.neighbour(listPayload, laneOf(key), step)

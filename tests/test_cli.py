@@ -100,6 +100,11 @@ class CliBoardTest(VaultCase):
         self.assertEqual(self.run_cli("done", *self.base(), "--item", "a")[1], {"ok": True})
         self.assertEqual(self.read("B.md"), "## To do\n\n## Doing\n\n## Done\n**Complete**\n- [x] a @{2026-10-09}\n")
 
+    def test_lane_adds_a_status(self):
+        self.write("B.md", "## To do\n\n## Done\n**Complete**\n")
+        self.assertEqual(self.run_cli("lane", *self.base(), "--title", "Waiting")[1], {"ok": True})
+        self.assertIn("## Waiting", self.read("B.md"))
+
     def test_move_on_a_checklist_is_invalid(self):
         self.write("Todo.md", "- [ ] a\n")
         code, out = self.run_cli("move", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a", "--lane", "x")

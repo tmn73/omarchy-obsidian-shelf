@@ -182,6 +182,7 @@ keeps the files it takes out. A folder goes only when it is empty.
 | Tab, Shift+Tab | next or previous list |
 | Up, Down | move in the list |
 | Enter | open the link, or tick the task or the card |
+| `s` | open the status menu of a card |
 | Left, Right | move a card to the lane before or after |
 | `t` | give a card a date |
 | `e` | edit the item |

@@ -121,6 +121,7 @@ Column {
       required date
       required time
       required checked
+      required lane
 
       width: view.width
       board: root.board

@@ -130,6 +130,8 @@ Panel {
           shelf.refresh()
         else if (key === "t")
           Qt.callLater(popup.forward, "dateCurrent")
+        else if (key === "s")
+          Qt.callLater(popup.forward, "statusCurrent")
       }
 
       ShelfPopup {

@@ -75,3 +75,8 @@ test('the date picks are counted from today', () => {
   assert.equal(Board.nextMonday('2026-10-12'), '2026-10-19')
   assert.equal(Board.isoDay(new Date(2026, 9, 6, 23, 30)), '2026-10-06')
 })
+
+test('laneTitles lists every lane a card can go to, Complete lanes too', () => {
+  assert.deepEqual(Board.laneTitles(PAYLOAD), ['To do', 'In progress', 'Done'])
+  assert.deepEqual(Board.laneTitles(null), [])
+})

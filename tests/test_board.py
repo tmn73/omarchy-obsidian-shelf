@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from shelf_board import (add_board, clear_board, date_board, done_board, edit_board, move_board,
+from shelf_board import (add_board, add_lane, clear_board, date_board, done_board, edit_board, move_board,
                          parse_board, read_board, remove_board)
 from tests.vault_case import VaultCase
 
@@ -195,6 +195,28 @@ class ActionTest(VaultCase):
         clear_board(self.vault, CFG)
         self.assertTrue(self.read("Todo.md").endswith(TAIL))
 
+
+
+class LaneTest(VaultCase):
+    def titles(self):
+        return [lane["title"] for lane in parse_board(self.read("Todo.md").split("\n"))["lanes"]]
+
+    def test_a_new_lane_goes_before_the_complete_lane(self):
+        self.write("Todo.md", BOARD)
+        self.assertEqual(add_lane(self.vault, CFG, "Waiting"), {"ok": True})
+        self.assertEqual(self.titles(), ["To do", "In progress", "Waiting", "Done"])
+        self.assertIn("\n## Waiting\n\n\n\n## Done\n", self.read("Todo.md"))
+        self.assertTrue(self.read("Todo.md").endswith(TAIL))
+
+    def test_without_a_complete_lane_it_goes_last(self):
+        self.write("Todo.md", "## A\n- [ ] a\n" + TAIL)
+        add_lane(self.vault, CFG, "B")
+        self.assertEqual(self.read("Todo.md"), "## A\n- [ ] a\n\n## B\n\n\n\n" + TAIL)
+
+    def test_a_name_that_exists_or_is_empty_is_invalid(self):
+        self.write("Todo.md", BOARD)
+        self.assertEqual(add_lane(self.vault, CFG, "to do")["error"], "invalid")
+        self.assertEqual(add_lane(self.vault, CFG, "  ")["error"], "invalid")
 
 if __name__ == "__main__":
     unittest.main()

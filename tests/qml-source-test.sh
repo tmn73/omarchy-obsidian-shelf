@@ -273,6 +273,9 @@ has "Panel.qml" "late: shelf.lateCount > 0" "a late card does not show on the ch
 has "Panel.qml" 'popup.forward\("moveCard", dx\)' "Left and Right do not move a card"
 has "DatePanel.qml" "dateField.forceActiveFocus" "Escape cannot close the date panel"
 hasnt "BoardLane.qml" "required property string key" "a card delegate hides the key of CardRow, so every card edits at once"
+has "CardRow.qml" "root.board.toggleStatus" "a card has no status button"
+has "Service.qml" "action === \"lane\"" "the service cannot add a status"
+hasnt "CardRow.qml" "Move to the lane before" "the card still shows arrows instead of its status"
 
 # Syntax: qmllint, when the machine has it, parses every file. It refuses the
 # typed functions an IpcHandler needs, so files with one are left out.

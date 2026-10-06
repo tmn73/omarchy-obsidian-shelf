@@ -66,7 +66,7 @@ def build_parser() -> Parser:
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
-    for name in ("add", "done", "clear", "edit", "remove", "move", "date"):
+    for name in ("add", "done", "clear", "edit", "remove", "move", "date", "lane"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
         sub.add_argument("--list", required=True)
@@ -76,6 +76,8 @@ def build_parser() -> Parser:
             sub.add_argument("--item", required=True)
         if name == "move":
             sub.add_argument("--lane", required=True)
+        if name == "lane":
+            sub.add_argument("--title", required=True)
         if name == "date":
             sub.add_argument("--date", default="")
             sub.add_argument("--time", default="")
@@ -162,6 +164,8 @@ def run_board(args, vault: Path, cfg: dict, stdin) -> dict:
         return shelf_board.add_board(vault, cfg, args.section, stdin.read())
     if args.command == "move":
         return shelf_board.move_board(vault, cfg, args.item, args.lane)
+    if args.command == "lane":
+        return shelf_board.add_lane(vault, cfg, args.title)
     if args.command == "date":
         today = datetime.now().astimezone().date().isoformat()
         return shelf_board.date_board(vault, cfg, args.item, args.date, args.time, today)
@@ -176,7 +180,7 @@ def run_board(args, vault: Path, cfg: dict, stdin) -> dict:
 def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
     if cfg.get("type") == "board":
         return run_board(args, vault, cfg, stdin)
-    if args.command in ("move", "date"):
+    if args.command in ("move", "date", "lane"):
         raise ArgumentError(f"{args.command} applies to a board only")
     kind = (args.command, cfg.get("type"))
     if kind == ("add", "checklist"):

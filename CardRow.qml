@@ -13,6 +13,7 @@ Column {
   property string date: ""
   property string time: ""
   property bool checked: false
+  property string lane: ""
   property Item board: null
   property bool accent: false
   property string fontFamily: Style.font.family
@@ -22,6 +23,7 @@ Column {
   readonly property bool current: key !== "" && board !== null && board.currentKey === key
   readonly property bool editing: key !== "" && board !== null && board.editingKey === key
   readonly property bool dating: key !== "" && board !== null && board.datingKey === key
+  readonly property bool choosing: key !== "" && board !== null && board.statusKey === key
   readonly property var label: Board.dateLabel({ date: date, time: time, checked: checked }, board ? board.today : "", board ? board.datesOn : true)
 
   spacing: Style.space(4)
@@ -33,7 +35,7 @@ Column {
     Rectangle {
       anchors.fill: parent
       radius: Style.space(9)
-      color: hover.hovered || root.current || root.dating ? Util.alpha(Color.popups.text, 0.07) : root.accent ? Util.alpha(Color.accent, 0.06) : Util.alpha(Color.popups.text, 0.03)
+      color: hover.hovered || root.current || root.dating || root.choosing ? Util.alpha(Color.popups.text, 0.07) : root.accent ? Util.alpha(Color.accent, 0.06) : Util.alpha(Color.popups.text, 0.03)
 
       Behavior on color { ColorAnimation { duration: Style.duration(150) } }
     }
@@ -129,16 +131,57 @@ Column {
       anchors.rightMargin: Style.space(6)
       anchors.verticalCenter: parent.verticalCenter
       spacing: Style.space(2)
-      opacity: (hover.hovered || root.current || root.dating) && !root.editing ? 1 : 0
+      opacity: (hover.hovered || root.current || root.dating || root.choosing) && !root.editing ? 1 : 0
       enabled: opacity > 0
 
       Behavior on opacity { NumberAnimation { duration: Style.duration(150) } }
 
-      RowButton { glyph: ""; label: qsTr("Move to the lane before"); fontFamily: root.fontFamily; onClicked: root.board.shift(root.key, -1) }
-      RowButton { glyph: ""; label: qsTr("Move to the lane after"); fontFamily: root.fontFamily; onClicked: root.board.shift(root.key, 1) }
+      MouseArea {
+        id: statusButton
+
+        anchors.verticalCenter: parent.verticalCenter
+        width: statusLabel.implicitWidth + Style.space(18)
+        height: Style.space(30)
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        Accessible.role: Accessible.Button
+        Accessible.name: qsTr("Status: %1").arg(root.lane)
+        onClicked: root.board.toggleStatus(root.key)
+
+        Rectangle {
+          anchors.fill: parent
+          radius: Style.space(7)
+          color: statusButton.containsMouse || root.choosing ? Util.alpha(Color.popups.text, 0.14) : Util.alpha(Color.popups.text, 0.06)
+        }
+
+        Text {
+          id: statusLabel
+
+          anchors.centerIn: parent
+          text: root.lane + "  "
+          textFormat: Text.PlainText
+          color: Util.alpha(Color.popups.text, 0.8)
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.caption
+        }
+      }
       RowButton { visible: root.board !== null && root.board.datesOn; glyph: ""; label: qsTr("Date"); fontFamily: root.fontFamily; onClicked: root.board.toggleDate(root.key) }
       RowButton { glyph: ""; label: qsTr("Edit"); fontFamily: root.fontFamily; onClicked: root.board.editingKey = root.key }
       RowButton { glyph: ""; label: qsTr("Remove"); primary: true; fontFamily: root.fontFamily; onClicked: root.board.remove(root.key) }
+    }
+  }
+
+  Loader {
+    width: parent.width
+    active: root.choosing
+    visible: active
+    sourceComponent: StatusPanel {
+      lanes: Board.laneTitles(root.board.listPayload)
+      current: root.lane
+      fontFamily: root.fontFamily
+      onPicked: function (lane) { root.board.moveTo(root.key, lane) }
+      onCreated: function (lane) { root.board.addLaneAndMove(root.key, lane) }
+      onCancelled: root.board.statusKey = ""
     }
   }
 

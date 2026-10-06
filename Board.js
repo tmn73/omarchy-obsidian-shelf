@@ -96,6 +96,11 @@ function openLanes (listPayload) {
   return arr(listPayload && listPayload.lanes).filter(function (l) { return !l.complete }).map(function (l) { return l.title })
 }
 
+// Every lane, in file order: the statuses a card can take.
+function laneTitles (listPayload) {
+  return arr(listPayload && listPayload.lanes).map(function (l) { return l.title })
+}
+
 // The lane before (step -1) or after (step 1) a lane, in file order.
 function neighbour (listPayload, title, step) {
   var titles = arr(listPayload && listPayload.lanes).map(function (l) { return l.title })
@@ -109,6 +114,7 @@ if (typeof module !== 'undefined') {
     dateLabel: dateLabel,
     lateCount: lateCount,
     openLanes: openLanes,
+    laneTitles: laneTitles,
     neighbour: neighbour,
     shiftDay: shiftDay,
     nextMonday: nextMonday,

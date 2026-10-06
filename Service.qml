@@ -131,6 +131,8 @@ Item {
     } else if (action === "move" || action === "date") {
       var more = action === "move" ? ["--lane", String(args.lane)] : ["--date", String(args.date || ""), "--time", String(args.time || "")]
       call.command = [helperPath(), action].concat(base, ["--item", String(args.item)], more)
+    } else if (action === "lane") {
+      call.command = [helperPath(), "lane"].concat(base, ["--title", String(args.title)])
     } else if (action === "clear") {
       call.command = [helperPath(), "clear"].concat(base)
     } else {

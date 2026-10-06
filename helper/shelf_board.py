@@ -308,3 +308,27 @@ def clear_board(vault: Path, cfg: dict) -> dict:
     for card in sorted(blocks, key=lambda c: -c["start"]):
         del lines[card["start"]:card["end"]]
     return write_lines(path, lines)
+
+
+def add_lane(vault: Path, cfg: dict, title: str) -> dict:
+    """Add a `## title` lane before the Complete lane, or at the end of the board."""
+    title = one_line(title).lstrip("#").strip()
+    if not title:
+        return fail("invalid", "The lane needs a name")
+    path, lines, problem = load(vault, cfg)
+    if problem:
+        return problem
+    board = parse_board(lines)
+    if any(lane["title"].lower() == title.lower() for lane in board["lanes"]):
+        return fail("invalid", f"A lane named {title} is already there")
+    complete = next((lane for lane in board["lanes"] if lane["complete"]), None)
+    block = [f"## {title}", "", "", ""]
+    if complete is not None:
+        at = complete["line"]
+    else:
+        at = board["end"]
+        if at == len(lines) and lines and lines[-1] == "":
+            at -= 1
+        if at > 0 and lines[at - 1].strip():
+            block = [""] + block
+    return write_lines(path, lines[:at] + block + lines[at:])
