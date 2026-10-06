@@ -127,6 +127,16 @@ has "AddBar.qml" "signal submitted" "AddBar.qml does not report submissions"
 has "AddBar.qml" "property bool inputFocused" "AddBar.qml does not report input focus"
 has "ShelfPopup.qml" "AddBar" "ShelfPopup.qml does not host the add bar"
 
+# ---- Sections columns and the clear button (spec 8.3, 8.4)
+has "ClearButton.qml" "Clear after %1" "ClearButton.qml lost the clear label"
+has "ClearButton.qml" "Click again to clear %1 items" "ClearButton.qml lost the armed label"
+has "ClearButton.qml" "Style\.duration\(3000\)" "the clear button does not drain over 3 s"
+has "ClearButton.qml" "signal confirmed" "ClearButton.qml does not report the confirmation"
+has "SectionsList.qml" "Nothing yet" "SectionsList.qml lost the empty-section copy"
+has "SectionsList.qml" "ClearButton" "SectionsList.qml has no clear button"
+has "SectionsList.qml" "\"clear\"" "SectionsList.qml never asks the helper to clear"
+has "DashedBox.qml" "DashLine" "DashedBox.qml does not draw a dashed border"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
