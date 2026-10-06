@@ -8,6 +8,7 @@ const Model = require('../Model.js')
 const LATER = { id: 'read-later', name: 'Read later', type: 'folder', path: 'Read Later' }
 const RETRO = { id: 'retro', name: 'Retro', type: 'sections', path: 'Retrospective.md' }
 const TODO = { id: 'todo', name: 'Todo', type: 'checklist', path: 'Todo.md' }
+const withThree = () => Model.normalizeSettings({ lists: [LATER, RETRO, TODO] }).lists
 
 function payload (later, retro, todo) {
   return {
@@ -23,9 +24,9 @@ function payload (later, retro, todo) {
 
 // ---- normalizeSettings
 
-test('normalizeSettings uses the default lists when lists is absent', () => {
+test('normalizeSettings starts a new user with an empty shelf', () => {
   const config = Model.normalizeSettings({ vaultPath: '/v' })
-  assert.deepEqual(config.lists.map(l => l.id), ['read-later', 'retro', 'todo'])
+  assert.deepEqual(config.lists, [])
   assert.equal(config.vaultPath, '/v')
   assert.equal(config.refreshIntervalSec, 10)
   assert.equal(config.syncCheckCommand, '')
@@ -62,7 +63,7 @@ test('normalizeSettings clamps refreshIntervalSec to 10..600', () => {
 })
 
 test('normalizeSettings defaults badge by type and onDone to delete', () => {
-  const lists = Model.normalizeSettings({}).lists
+  const lists = withThree()
   assert.deepEqual(lists.map(l => l.badge), [true, false, true])
   assert.equal(lists[2].onDone, 'delete')
   const own = Model.normalizeSettings({ lists: [Object.assign({}, RETRO, { badge: true })] }).lists
@@ -80,7 +81,7 @@ test('listItemCount counts items and section items', () => {
 
 test('badgeCount ignores sections and missing lists', () => {
   const p = payload(['a'], ['x', 'y'], ['t1', 't2'])
-  const lists = Model.normalizeSettings({}).lists
+  const lists = withThree()
   assert.equal(Model.badgeCount(p, lists), 3)
   p.lists[2] = { id: 'todo', state: 'missing', message: 'Todo.md not found' }
   assert.equal(Model.badgeCount(p, lists), 1)
@@ -116,7 +117,7 @@ test('clockText gives local hours and minutes', () => {
 })
 
 test('tooltipText lists only non-zero badge lists', () => {
-  const lists = Model.normalizeSettings({}).lists
+  const lists = withThree()
   assert.equal(Model.tooltipText(payload(['a', 'b', 'c'], ['x'], ['t']), lists), '3 read later, 1 todo')
   assert.equal(Model.tooltipText(payload([], ['x'], ['t']), lists), '1 todo')
   assert.equal(Model.tooltipText(payload([], [], []), lists), 'Nothing on the shelf')
@@ -150,7 +151,7 @@ test('keyedSyncPlan reaches the target when kept keys change order', () => {
 // ---- fresh items in the bar
 
 test('freshInBadgeLists counts only fresh keys of badge lists', () => {
-  const lists = Model.normalizeSettings({}).lists
+  const lists = withThree()
   const fresh = ['read-later\u0000n', 'retro\u0000Good\n- y', 'todo\u0000- [ ] t']
   assert.equal(Model.freshInBadgeLists(fresh, lists), 2)
   assert.equal(Model.freshInBadgeLists([], lists), 0)
@@ -212,7 +213,7 @@ test('normalizeSettings turns link previews on unless asked not to', () => {
 
 // ---- Settings: list editing
 
-const THREE = Model.normalizeSettings({}).lists
+const THREE = withThree()
 
 test('moveList swaps with the neighbour and ignores moves past an end', () => {
   assert.deepEqual(Model.moveList(THREE, 0, 1).map(l => l.id), ['retro', 'read-later', 'todo'])

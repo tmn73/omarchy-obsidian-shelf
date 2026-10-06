@@ -26,6 +26,7 @@ Item {
   readonly property bool inputFocused: addBarItem.inputFocused || settingsView.inputFocused || (listLoader.item ? listLoader.item.editing === true : false)
 
   readonly property var lists: service ? service.config.lists : []
+  readonly property bool configured: service ? service.configured : false
   readonly property var activeConfig: lists.length > 0 ? lists[Math.min(activeIndex, lists.length - 1)] : null
   readonly property var activePayload: activeConfig && service ? Model.findList(service.payload, activeConfig.id) : null
   readonly property real maxListHeight: Style.space(470)
@@ -195,6 +196,15 @@ Item {
       onHideRequested: root.settingChanged("obsidianSync", false)
     }
 
+    EmptyShelf {
+      width: parent.width
+      visible: !root.settingsOpen && !root.adding && (!root.configured || root.lists.length === 0)
+      configured: root.configured
+      fontFamily: root.fontFamily
+      onVaultChosen: function (path) { root.settingChanged("vaultPath", path) }
+      onAddRequested: root.adding = true
+    }
+
     TabBar {
       width: parent.width
       visible: !root.settingsOpen && !root.adding && root.lists.length > 0
@@ -208,7 +218,7 @@ Item {
       id: listArea
 
       width: parent.width
-      visible: !root.settingsOpen && !root.adding
+      visible: !root.settingsOpen && !root.adding && root.configured && root.lists.length > 0
       height: Math.min(listLoader.item ? listLoader.item.contentHeightHint : Style.space(120), root.maxListHeight)
 
       Loader {

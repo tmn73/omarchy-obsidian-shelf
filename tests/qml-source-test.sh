@@ -233,6 +233,13 @@ has "AddListSheet.qml" "signal added" "AddListSheet.qml does not report the new 
 has "AddListSheet.qml" "is on the shelf" "AddListSheet.qml has no done screen"
 has "ShelfPopup.qml" "AddListSheet" "ShelfPopup.qml does not open the add sheet"
 
+# ---- A new user's first open
+has "EmptyShelf.qml" "Where are your notes" "EmptyShelf.qml does not ask for the vault"
+has "EmptyShelf.qml" '"vaults"' "EmptyShelf.qml does not offer the vaults Obsidian knows"
+has "EmptyShelf.qml" "Add your first list" "EmptyShelf.qml does not lead to the first list"
+has "ShelfPopup.qml" "EmptyShelf" "ShelfPopup.qml does not show the empty shelf"
+hasnt "Panel.qml" "showSettings = !shelf.configured" "a new user still lands on the settings page"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

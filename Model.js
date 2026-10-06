@@ -8,11 +8,6 @@ var TYPES = ['folder', 'checklist', 'sections']
 var ID_RE = /^[a-z0-9-]{1,32}$/
 var KEY_SEPARATOR = '\u0000'
 
-var DEFAULT_LISTS = [
-  { id: 'read-later', name: 'Read later', type: 'folder', path: 'Read Later', badge: true, onDone: 'delete' },
-  { id: 'retro', name: 'Retro', type: 'sections', path: 'Retrospective.md', badge: false, onDone: 'delete' },
-  { id: 'todo', name: 'Todo', type: 'checklist', path: 'Todo.md', badge: true, onDone: 'delete' }
-]
 
 // Arrays that come from shell.json fail Array.isArray and have no indexOf, and
 // a value typed into a settings field arrives as a string. Copy into a plain
@@ -63,8 +58,10 @@ function normalizeSettings (raw) {
 
   var lists = []
   var given = raw.lists === undefined || raw.lists === null ? null : toArray(raw.lists)
+  // A new user starts with an empty shelf: lists are added from the vault,
+  // never assumed, because no two vaults share their paths.
   if (raw.lists === undefined || raw.lists === null) {
-    lists = DEFAULT_LISTS.map(function (l) { return Object.assign({}, l) })
+    lists = []
   } else if (given === null) {
     errors.push('The lists setting is not a JSON array')
   } else {
@@ -312,7 +309,6 @@ function phoneHowTo (cfg) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    DEFAULT_LISTS: DEFAULT_LISTS,
     KEY_SEPARATOR: KEY_SEPARATOR,
     toArray: toArray,
     normalizeSettings: normalizeSettings,

@@ -40,7 +40,7 @@ Panel {
       return
     }
     shelf.refresh()
-    showSettings = !shelf.configured
+    showSettings = false
     popup.playOpen()
     Qt.callLater(function () { keyCatcher.forceActiveFocus() })
   }
