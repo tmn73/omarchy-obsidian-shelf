@@ -1,6 +1,6 @@
 import unittest
 
-from shelf_sections import read_sections
+from shelf_sections import add_sections, clear_sections, read_sections
 from tests.vault_case import VaultCase
 
 RETRO = "## Good\n\n## Bad\n- canal payments-sandbox-staging-errors\n- Meilleur logs payment-service car pas d'accès aws\n"
@@ -37,6 +37,48 @@ class SectionsReadTest(VaultCase):
         out = read_sections(self.vault, CFG)
         self.assertEqual(out["state"], "missing")
         self.assertEqual(out["message"], "Retrospective.md not found")
+
+
+class SectionsActionTest(VaultCase):
+    def test_add_inserts_after_last_item_of_section(self):
+        self.write("Retrospective.md", RETRO)
+        self.assertEqual(add_sections(self.vault, CFG, "Good", "x"), {"ok": True})
+        self.assertEqual(self.read("Retrospective.md"), "## Good\n- x\n\n## Bad\n- canal payments-sandbox-staging-errors\n- Meilleur logs payment-service car pas d'accès aws\n")
+
+    def test_add_to_section_with_items_appends_after_last(self):
+        self.write("Retrospective.md", RETRO)
+        add_sections(self.vault, CFG, "Bad", "y")
+        self.assertTrue(self.read("Retrospective.md").endswith("- Meilleur logs payment-service car pas d'accès aws\n- y\n"))
+
+    def test_add_keeps_line_added_after_read(self):
+        self.write("Retrospective.md", "## Good\n- a\n")
+        read_sections(self.vault, CFG)
+        self.write("Retrospective.md", "## Good\n- a\n- from phone\n")
+        add_sections(self.vault, CFG, "Good", "b")
+        self.assertEqual(self.read("Retrospective.md"), "## Good\n- a\n- from phone\n- b\n")
+
+    def test_add_unknown_heading_returns_changed(self):
+        self.write("Retrospective.md", RETRO)
+        self.assertEqual(add_sections(self.vault, CFG, "Ugly", "x")["error"], "changed")
+        self.assertEqual(self.read("Retrospective.md"), RETRO)
+
+    def test_add_empty_text_is_invalid(self):
+        self.write("Retrospective.md", RETRO)
+        self.assertEqual(add_sections(self.vault, CFG, "Good", "")["error"], "invalid")
+
+    def test_add_missing_file_returns_missing(self):
+        self.assertEqual(add_sections(self.vault, CFG, "Good", "x")["error"], "missing")
+
+    def test_clear_keeps_headings_and_preamble(self):
+        self.write("Retrospective.md", RETRO)
+        self.assertEqual(clear_sections(self.vault, CFG), {"ok": True})
+        self.assertEqual(self.read("Retrospective.md"), "## Good\n\n## Bad\n")
+        self.write("Retrospective.md", "Topics\n\n## Good\n- a\n\n## Bad\n- b\n")
+        clear_sections(self.vault, CFG)
+        self.assertEqual(self.read("Retrospective.md"), "Topics\n\n## Good\n\n## Bad\n")
+
+    def test_clear_missing_file_returns_missing(self):
+        self.assertEqual(clear_sections(self.vault, CFG)["error"], "missing")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from shelf_folder import read_folder
+from shelf_folder import done_folder, read_folder
 
 TWEET = """[[ReadItLater]] [[Tweet]]
 
@@ -14,7 +14,7 @@ TWEET = """[[ReadItLater]] [[Tweet]]
 CFG = {"id": "read-later", "type": "folder", "path": "Read Later"}
 
 
-class FolderReadTest(unittest.TestCase):
+class FolderCase(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.vault = Path(self._tmp.name)
@@ -34,6 +34,8 @@ class FolderReadTest(unittest.TestCase):
     def items(self):
         return read_folder(self.vault, CFG)["items"]
 
+
+class FolderReadTest(FolderCase):
     def test_title_url_excerpt_domain_from_readitlater_note(self):
         self.note("Tweet from WitcherHour.md", TWEET)
         out = read_folder(self.vault, CFG)
@@ -100,6 +102,34 @@ class FolderReadTest(unittest.TestCase):
     def test_read_missing_vault_reports_every_list_missing(self):
         out = read_folder(self.vault / "gone", CFG)
         self.assertEqual(out["state"], "missing")
+
+
+class FolderDoneTest(FolderCase):
+    def test_done_moves_note_to_trash(self):
+        self.note("a.md", "# A\n")
+        self.assertEqual(done_folder(self.vault, CFG, "Read Later/a.md"), {"ok": True})
+        self.assertFalse((self.folder / "a.md").exists())
+        self.assertEqual((self.vault / ".trash" / "a.md").read_text(encoding="utf-8"), "# A\n")
+
+    def test_done_trash_conflict_adds_suffix(self):
+        (self.vault / ".trash").mkdir()
+        (self.vault / ".trash" / "a.md").write_text("older", encoding="utf-8")
+        self.note("a.md", "# A\n")
+        self.assertEqual(done_folder(self.vault, CFG, "Read Later/a.md"), {"ok": True})
+        self.assertEqual((self.vault / ".trash" / "a 1.md").read_text(encoding="utf-8"), "# A\n")
+        self.assertEqual((self.vault / ".trash" / "a.md").read_text(encoding="utf-8"), "older")
+
+    def test_done_unknown_key_returns_changed(self):
+        out = done_folder(self.vault, CFG, "Read Later/gone.md")
+        self.assertEqual(out["ok"], False)
+        self.assertEqual(out["error"], "changed")
+
+    def test_done_key_outside_folder_is_invalid(self):
+        (self.vault / "Todo.md").write_text("- [ ] a\n", encoding="utf-8")
+        for key in ("Todo.md", "Read Later/../Todo.md", "../x.md"):
+            out = done_folder(self.vault, CFG, key)
+            self.assertEqual(out["error"], "invalid", key)
+        self.assertTrue((self.vault / "Todo.md").exists())
 
 
 if __name__ == "__main__":

@@ -3,9 +3,10 @@
 import re
 from pathlib import Path
 
-from shelf_io import locate, read_text
+from shelf_io import atomic_write, fail, locate, locate_for_write, ok, one_line, read_text, resolve_in_vault, write_lines
 
 OPEN_RE = re.compile(r"^[-*] \[ \] (.+)$")
+CHECKED_RE = re.compile(r"^[-*] \[[xX]\] ")
 
 
 def read_checklist(vault: Path, cfg: dict) -> dict:
@@ -22,3 +23,47 @@ def read_checklist(vault: Path, cfg: dict) -> dict:
         if match:
             items.append({"key": line, "text": match.group(1)})
     return {"id": cfg["id"], "state": "ok", "items": items}
+
+
+def done_checklist(vault: Path, cfg: dict, key: str) -> dict:
+    """Tick one item: remove its line, or write [x] with onDone "check"."""
+    path, problem = locate_for_write(vault, cfg)
+    if problem:
+        return problem
+    try:
+        lines = read_text(path).split("\n")
+    except OSError as err:
+        return fail("io", str(err))
+    if key not in lines:
+        return fail("changed", "The item is no longer there")
+    index = lines.index(key)
+    if cfg.get("onDone") == "check":
+        lines[index] = key[:2] + "[x]" + key[5:]
+    else:
+        del lines[index]
+        lines = [line for line in lines if not CHECKED_RE.match(line)]
+    return write_lines(path, lines)
+
+
+def add_checklist(vault: Path, cfg: dict, text: str) -> dict:
+    """Append `- [ ] text` at the end of the file, and create the file if needed."""
+    text = one_line(text)
+    if not text:
+        return fail("invalid", "The text is empty")
+    path, problem = locate_for_write(vault, cfg)
+    if problem and problem["error"] != "missing":
+        return problem
+    if problem:
+        path = resolve_in_vault(vault, cfg["path"])
+    try:
+        current = read_text(path) if path.exists() else ""
+    except OSError as err:
+        return fail("io", str(err))
+    if current and not current.endswith("\n"):
+        current += "\n"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write(path, current + f"- [ ] {text}\n")
+    except OSError as err:
+        return fail("io", str(err))
+    return ok()

@@ -1,6 +1,6 @@
 import unittest
 
-from shelf_checklist import read_checklist
+from shelf_checklist import add_checklist, done_checklist, read_checklist
 from tests.vault_case import VaultCase
 
 CFG = {"id": "todo", "type": "checklist", "path": "Todo.md"}
@@ -41,6 +41,69 @@ class ChecklistReadTest(VaultCase):
     def test_path_outside_vault_is_refused(self):
         out = read_checklist(self.vault, {"id": "x", "type": "checklist", "path": "../x.md"})
         self.assertEqual(out["state"], "error")
+
+
+class ChecklistActionTest(VaultCase):
+    def first_key(self):
+        return read_checklist(self.vault, CFG)["items"][0]["key"]
+
+    def test_done_delete_removes_line(self):
+        self.write("Todo.md", "# Todo\n- [ ] a\n- [ ] b\n")
+        self.assertEqual(done_checklist(self.vault, CFG, "- [ ] a"), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "# Todo\n- [ ] b\n")
+
+    def test_done_check_mode_writes_x(self):
+        self.write("Todo.md", "- [ ] a\n")
+        cfg = dict(CFG, onDone="check")
+        self.assertEqual(done_checklist(self.vault, cfg, "- [ ] a"), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "- [x] a\n")
+
+    def test_done_delete_purges_checked_lines(self):
+        self.write("Todo.md", "- [x] old\n- [ ] a\n- [X] older\n- [ ] b\n")
+        done_checklist(self.vault, CFG, "- [ ] a")
+        self.assertEqual(self.read("Todo.md"), "- [ ] b\n")
+
+    def test_done_check_mode_keeps_checked_lines(self):
+        self.write("Todo.md", "- [x] old\n- [ ] a\n")
+        done_checklist(self.vault, dict(CFG, onDone="check"), "- [ ] a")
+        self.assertEqual(self.read("Todo.md"), "- [x] old\n- [x] a\n")
+
+    def test_done_removes_only_first_duplicate(self):
+        self.write("Todo.md", "- [ ] same\n- [ ] same\n")
+        done_checklist(self.vault, CFG, "- [ ] same")
+        self.assertEqual(self.read("Todo.md"), "- [ ] same\n")
+
+    def test_done_keeps_line_added_after_read(self):
+        self.write("Todo.md", "- [ ] a\n- [ ] b\n")
+        key = self.first_key()
+        self.write("Todo.md", "- [ ] a\n- [ ] b\n- [ ] from phone\n")
+        self.assertEqual(done_checklist(self.vault, CFG, key), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "- [ ] b\n- [ ] from phone\n")
+
+    def test_done_unknown_key_returns_changed(self):
+        self.write("Todo.md", "- [ ] a\n")
+        out = done_checklist(self.vault, CFG, "- [ ] gone")
+        self.assertEqual(out["error"], "changed")
+        self.assertEqual(self.read("Todo.md"), "- [ ] a\n")
+
+    def test_done_missing_file_returns_missing(self):
+        self.assertEqual(done_checklist(self.vault, CFG, "- [ ] a")["error"], "missing")
+
+    def test_add_appends_open_item(self):
+        self.write("Todo.md", "- [ ] a")
+        self.assertEqual(add_checklist(self.vault, CFG, "buy filters"), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "- [ ] a\n- [ ] buy filters\n")
+
+    def test_add_creates_missing_file(self):
+        self.assertEqual(add_checklist(self.vault, CFG, "a"), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "- [ ] a\n")
+
+    def test_add_empty_text_is_invalid(self):
+        self.assertEqual(add_checklist(self.vault, CFG, "   ")["error"], "invalid")
+
+    def test_add_multiline_text_becomes_one_line(self):
+        add_checklist(self.vault, CFG, "a\nb")
+        self.assertEqual(self.read("Todo.md"), "- [ ] a b\n")
 
 
 if __name__ == "__main__":

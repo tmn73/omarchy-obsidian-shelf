@@ -1,11 +1,12 @@
 """The `folder` list type: one note in a folder is one item."""
 
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-from shelf_io import locate, read_text
+from shelf_io import OutsideVault, fail, locate, locate_for_write, ok, read_text, resolve_in_vault
 
 FRONT_MATTER_URL_KEYS = ("url", "source", "link")
 URL_RE = re.compile(r"https?://[^\s)>\]]+")
@@ -102,3 +103,34 @@ def read_folder(vault: Path, cfg: dict) -> dict:
     except OSError as err:
         return {"id": list_id, "state": "error", "message": str(err)}
     return {"id": list_id, "state": "ok", "items": items}
+
+
+def trash_target(trash: Path, name: str) -> Path:
+    stem, suffix = Path(name).stem, Path(name).suffix
+    candidate, n = trash / name, 0
+    while candidate.exists():
+        n += 1
+        candidate = trash / f"{stem} {n}{suffix}"
+    return candidate
+
+
+def done_folder(vault: Path, cfg: dict, key: str) -> dict:
+    """Move one note of the folder to the Obsidian trash of the vault."""
+    folder, problem = locate_for_write(vault, cfg, want_dir=True)
+    if problem:
+        return problem
+    try:
+        note = resolve_in_vault(vault, key)
+    except OutsideVault as err:
+        return fail("invalid", str(err))
+    if note.parent != folder or note.suffix != ".md":
+        return fail("invalid", f"{key} is not a note of {cfg['path']}")
+    if not note.is_file():
+        return fail("changed", f"{key} is no longer there")
+    trash = Path(vault).resolve() / ".trash"
+    try:
+        trash.mkdir(exist_ok=True)
+        os.rename(note, trash_target(trash, note.name))
+    except OSError as err:
+        return fail("io", str(err))
+    return ok()
