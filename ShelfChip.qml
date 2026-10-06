@@ -5,13 +5,14 @@ import qs.Ui
 // The bar chip: the shelf glyph and the open count.
 //
 // The count enters from above and an accent dot pings three times when a new
-// item lands in a list that counts. A dot in the urgent color means the sync
+// item lands in a list that counts. The dot then stays until the popup opens. A dot in the urgent color means the sync
 // check fails, which is the only state that deserves an alarm color.
 WidgetButton {
   id: root
 
   property int count: 0
   property bool pinging: false
+  property bool marked: false
   property bool urgent: false
 
   readonly property string glyph: ""
@@ -49,7 +50,7 @@ WidgetButton {
         x: parent.width - width / 2
         y: -height / 3
         color: Color.accent
-        visible: root.pinging
+        visible: root.pinging || root.marked
 
         Rectangle {
           id: halo

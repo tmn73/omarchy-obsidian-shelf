@@ -14,6 +14,7 @@ Item {
   property var service: null
   property var syncGuide: null
   property int activeIndex: 0
+  property int openCount: 0
   property bool settingsOpen: false
   property Item addBar: addBarItem
   property string fontFamily: Style.font.family
@@ -96,6 +97,7 @@ Item {
   }
 
   function playOpen() {
+    openCount++
     dropIn.restart()
   }
 
@@ -179,6 +181,7 @@ Item {
           item.listConfig = Qt.binding(function () { return root.activeConfig })
           item.listPayload = Qt.binding(function () { return root.activePayload })
           item.fontFamily = Qt.binding(function () { return root.fontFamily })
+          item.openCount = Qt.binding(function () { return root.openCount })
           item.settingsRequested.connect(root.settingsToggled)
         }
       }

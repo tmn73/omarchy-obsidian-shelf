@@ -172,3 +172,15 @@ test('syncStep names the next step and its button', () => {
   assert.equal(Model.syncStep('running'), null)
   assert.equal(Model.syncStep(''), null)
 })
+
+// ---- Unseen items (kept until the popup has been opened and closed)
+
+test('mergeUnseen adds new keys and keeps unseen keys that still exist', () => {
+  const p = payload(['n2', 'n1', 'a'], [], ['t'])
+  const merged = Model.mergeUnseen(['read-later\u0000n1', 'read-later\u0000gone'], ['read-later\u0000n2', 'read-later\u0000n1'], p)
+  assert.deepEqual(merged, ['read-later\u0000n1', 'read-later\u0000n2'])
+})
+
+test('mergeUnseen starts empty', () => {
+  assert.deepEqual(Model.mergeUnseen(null, [], payload(['a'], [], [])), [])
+})

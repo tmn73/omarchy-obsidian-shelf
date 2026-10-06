@@ -260,7 +260,7 @@ closed state.
 | --- | --- |
 | Empty | Icon only, at reduced opacity. |
 | Pending | Icon and the badge count. |
-| Just arrived | The count enters from above, and an accent dot pings 3 times. |
+| Just arrived | The count enters from above, and an accent dot pings 3 times. The dot then stays until the user opens the popup. |
 | Sync stalled | A small dot in `Color.urgent` on the chip. The chip shows it only when `syncCheckCommand` has a value and the command fails. The tooltip gives the reason. |
 
 The icon is the "Lines" glyph (three horizontal lines, the last one shorter).
@@ -284,7 +284,7 @@ The tooltip lists the count per list, for example "3 read later, 7 todo".
 
 | Event | Motion |
 | --- | --- |
-| New item arrives | Slides down 16 px and scales from 0.96 (700 ms, overshoot), then a background flash in the accent color fades over 2.6 s. A "NEW" tag shows while the item is fresh. |
+| New item arrives | Slides down 16 px and scales from 0.96 (700 ms, overshoot), then a background flash in the accent color fades over 2.6 s. A "NEW" tag and the flash show on new items until the popup closes after the user saw them. |
 | Removed | Slides 48 px to the right and fades, then the row height collapses (400 ms total). |
 | Edited | The row keeps its place. The text changes in place, with no motion. |
 | Todo ticked | The checkbox fills and the check mark draws (350 ms). A strike line grows over the text from left to right. Then the row leaves as above. |

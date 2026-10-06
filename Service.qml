@@ -22,12 +22,16 @@ Item {
   property bool loading: false
   property string error: ""
   property var fresh: []
+  // What arrived since the popup was last open. The chip keeps its dot and
+  // the rows keep their NEW tag until the popup has been seen and closed.
+  property var unseen: []
   property bool syncHealthy: true
   property string syncMessage: ""
   property string notice: ""
 
   readonly property int badge: Model.badgeCount(payload, config.lists)
   readonly property int freshBadge: Model.freshInBadgeLists(fresh, config.lists)
+  readonly property int unseenBadge: Model.freshInBadgeLists(unseen, config.lists)
   readonly property string tooltip: {
     if (!configured)
       return qsTr("Obsidian Shelf: choose a vault folder")
@@ -89,6 +93,8 @@ Item {
       return
     }
     var added = Model.freshKeys(payload, data)
+    // Before the payload, so rows created for new items already know they are new.
+    unseen = Model.mergeUnseen(unseen, added, data)
     payload = data
     error = ""
     if (added.length > 0) {
@@ -150,6 +156,10 @@ Item {
       return
     openProcess.command = ["xdg-open", String(url)]
     openProcess.running = true
+  }
+
+  function clearUnseen() {
+    unseen = []
   }
 
   function showNotice(text) {

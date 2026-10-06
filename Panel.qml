@@ -35,8 +35,10 @@ Panel {
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
 
   onOpenedChanged: {
-    if (!opened)
+    if (!opened) {
+      shelf.clearUnseen()
       return
+    }
     shelf.refresh()
     showSettings = !shelf.configured
     popup.playOpen()
@@ -81,6 +83,7 @@ Panel {
     bar: root.bar
     count: shelf.badge
     pinging: shelf.freshBadge > 0
+    marked: shelf.unseenBadge > 0 && !root.opened
     urgent: syncGuide.active ? syncGuide.syncState === "stopped" : !shelf.syncHealthy
     tooltipText: shelf.tooltip
     onPressed: function (buttonCode) {

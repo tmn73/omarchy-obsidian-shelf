@@ -17,6 +17,7 @@ Item {
   property string emptyTitle: ""
   property string emptyText: ""
   property string editingKey: ""
+  property int openCount: 0
   readonly property bool editing: editingKey !== ""
 
   signal settingsRequested()

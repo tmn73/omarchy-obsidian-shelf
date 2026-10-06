@@ -79,7 +79,8 @@ ListStateFrame {
 
       width: view.width
       current: index === view.currentIndex
-      fresh: root.service ? root.service.fresh.indexOf(root.listConfig.id + Model.KEY_SEPARATOR + key) >= 0 : false
+      fresh: root.service ? root.service.unseen.indexOf(root.listConfig.id + Model.KEY_SEPARATOR + key) >= 0 : false
+      replay: root.openCount
       fontFamily: root.fontFamily
       editing: root.editingKey === key
       onOpenRequested: root.service.openUrl(url)

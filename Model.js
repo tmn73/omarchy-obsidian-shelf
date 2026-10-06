@@ -130,6 +130,22 @@ function freshKeys (previousPayload, nextPayload) {
   return itemKeys(nextPayload).filter(function (k) { return !before[k] })
 }
 
+// Unseen items: what arrived since the popup was last opened. Keys that left
+// the vault drop out, new arrivals join, nothing repeats.
+function mergeUnseen (unseen, added, payload) {
+  var present = {}
+  itemKeys(payload).forEach(function (k) { present[k] = true })
+  var out = []
+  var seen = {}
+  ;(toArray(unseen) || []).concat(toArray(added) || []).forEach(function (k) {
+    if (present[k] && !seen[k]) {
+      seen[k] = true
+      out.push(k)
+    }
+  })
+  return out
+}
+
 // How many fresh keys belong to a list that counts in the bar badge. The chip
 // pings for these only: a retro topic arriving is not worth a ping.
 function freshInBadgeLists (fresh, lists) {
@@ -223,6 +239,7 @@ if (typeof module !== 'undefined') {
     itemKeys: itemKeys,
     freshKeys: freshKeys,
     freshInBadgeLists: freshInBadgeLists,
+    mergeUnseen: mergeUnseen,
     relativeAge: relativeAge,
     clockText: clockText,
     tooltipText: tooltipText,

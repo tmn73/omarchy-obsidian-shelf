@@ -187,6 +187,15 @@ has "SyncCard.qml" "Pause Sync in the Obsidian app" "SyncCard.qml does not warn 
 has "ShelfPopup.qml" "SyncCard" "ShelfPopup.qml does not show the sync card"
 has "manifest.json" '"obsidianSync"' "manifest.json has no obsidianSync setting"
 
+# ---- Unseen items stay marked until the popup has been opened
+has "Service.qml" "property var unseen" "Service.qml does not keep unseen items"
+has "Service.qml" "function clearUnseen\\(" "Service.qml cannot clear unseen items"
+has "Service.qml" "mergeUnseen" "Service.qml does not merge unseen items"
+has "ShelfChip.qml" "property bool marked" "ShelfChip.qml has no persistent dot"
+has "Panel.qml" "clearUnseen" "Panel.qml never clears unseen items"
+has "ListStateFrame.qml" "property int openCount" "lists cannot replay the arrival flash on open"
+has "FolderRow.qml" "onReplayChanged" "FolderRow.qml does not replay its flash when the popup opens"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

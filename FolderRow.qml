@@ -17,6 +17,7 @@ Item {
   property bool current: false
   property string fontFamily: Style.font.family
   property bool editing: false
+  property int replay: 0
 
   signal openRequested()
   signal removeRequested()
@@ -39,6 +40,7 @@ Item {
   implicitHeight: body.implicitHeight + Style.space(24)
 
   Component.onCompleted: if (fresh) flash.start()
+  onReplayChanged: if (fresh) flash.restart()
 
   Rectangle {
     id: background
