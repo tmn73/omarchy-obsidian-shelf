@@ -196,6 +196,13 @@ has "Panel.qml" "clearUnseen" "Panel.qml never clears unseen items"
 has "ListStateFrame.qml" "property int openCount" "lists cannot replay the arrival flash on open"
 has "FolderRow.qml" "onReplayChanged" "FolderRow.qml does not replay its flash when the popup opens"
 
+# ---- Thumbnails
+has "Thumbnail.qml" "ClippingRectangle" "Thumbnail.qml does not round the picture"
+has "Thumbnail.qml" "asynchronous: true" "Thumbnail.qml loads pictures on the UI thread"
+has "Thumbnail.qml" "Image.Ready" "Thumbnail.qml does not fall back while the picture loads or fails"
+has "FolderRow.qml" "Thumbnail" "FolderRow.qml shows no thumbnail"
+has "FolderList.qml" "required image" "FolderList.qml does not pass the image to the row"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

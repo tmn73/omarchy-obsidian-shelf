@@ -13,6 +13,13 @@ FRONT_MATTER_URL_KEYS = ("url", "source", "link")
 URL_RE = re.compile(r"https?://[^\s)>\]]+")
 LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 WIKILINKS_ONLY_RE = re.compile(r"^(\s*\[\[[^\]]*\]\]\s*)+$")
+IMAGE_RE = re.compile(r"!\[[^\]]*\]\((https?://[^)\s]+)\)")
+YOUTUBE_RE = re.compile(
+    r"(?:youtube\.com/(?:watch\?(?:[^\s)]*&)?v=|embed/|shorts/)|youtube-nocookie\.com/embed/|youtu\.be/)([A-Za-z0-9_-]{11})"
+)
+TAG_RE = re.compile(r"<[^>]+>")
+PIC_LINK_RE = re.compile(r"\s*\bpic\.twitter\.com/\S+")
+FRONT_MATTER_IMAGE_KEYS = ("image", "cover", "thumbnail", "banner")
 EXCERPT_MAX = 200
 
 
@@ -68,13 +75,31 @@ def note_url(meta: dict, body: str) -> str:
 def note_excerpt(body: str) -> str:
     for line in body.split("\n"):
         stripped = line.strip()
-        if not stripped or stripped.startswith("#") or WIKILINKS_ONLY_RE.match(stripped):
+        if (not stripped or stripped.startswith("#") or stripped.startswith("<")
+                or WIKILINKS_ONLY_RE.match(stripped) or IMAGE_RE.fullmatch(stripped)):
             continue
         if stripped.startswith(">"):
             stripped = stripped[1:].strip()
-        text = reduce_links(stripped).strip()
+        text = reduce_links(IMAGE_RE.sub("", stripped))
+        text = PIC_LINK_RE.sub("", TAG_RE.sub("", text))
+        text = " ".join(text.split())
         if text:
             return text[:EXCERPT_MAX]
+    return ""
+
+
+def note_image(meta: dict, body: str, url: str) -> str:
+    """A picture for the row: front matter, else the first Markdown image,
+    else the YouTube thumbnail of the video the note points to."""
+    for key in FRONT_MATTER_IMAGE_KEYS:
+        if URL_RE.match(meta.get(key, "")):
+            return meta[key]
+    match = IMAGE_RE.search(body)
+    if match:
+        return match.group(1)
+    video = YOUTUBE_RE.search(url) or YOUTUBE_RE.search(body)
+    if video:
+        return f"https://i.ytimg.com/vi/{video.group(1)}/mqdefault.jpg"
     return ""
 
 
@@ -99,6 +124,7 @@ def folder_item(vault_root: Path, path: Path) -> dict:
         "excerpt": note_excerpt(body),
         "url": url,
         "domain": url_domain(url),
+        "image": note_image(meta, body, url),
         "modifiedAt": iso_mtime(path),
     }
 

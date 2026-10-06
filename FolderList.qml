@@ -75,6 +75,7 @@ ListStateFrame {
       required excerpt
       required url
       required domain
+      required image
       required modifiedAt
 
       width: view.width

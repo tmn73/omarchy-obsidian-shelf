@@ -12,6 +12,7 @@ Item {
   property string excerpt: ""
   property string url: ""
   property string domain: ""
+  property string image: ""
   property string modifiedAt: ""
   property bool fresh: false
   property bool current: false
@@ -80,24 +81,19 @@ Item {
     width: parent.width - Style.space(24)
     spacing: Style.space(12)
 
-    Rectangle {
-      width: Style.space(38)
-      height: width
-      radius: Style.space(9)
-      color: Util.alpha(Color.popups.text, 0.08)
+    Thumbnail {
+      id: thumb
 
-      Text {
-        anchors.centerIn: parent
-        text: root.platformGlyph
-        textFormat: Text.PlainText
-        color: Color.popups.text
-        font.family: root.fontFamily
-        font.pixelSize: Style.font.title
-      }
+      width: root.image !== "" ? Style.space(112) : Style.space(38)
+      height: root.image !== "" ? Style.space(63) : Style.space(38)
+      source: root.image
+      glyph: root.platformGlyph
+      video: root.platformGlyph === "\uf04b"
+      fontFamily: root.fontFamily
     }
 
     Column {
-      width: body.width - Style.space(38) - actions.width - body.spacing * 2
+      width: body.width - thumb.width - actions.width - body.spacing * 2
       spacing: Style.space(4)
 
       Row {
@@ -123,6 +119,8 @@ Item {
           width: Math.min(implicitWidth, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0))
           text: root.title
           textFormat: Text.PlainText
+          wrapMode: Text.Wrap
+          maximumLineCount: root.excerpt === "" ? 2 : 1
           elide: Text.ElideRight
           color: Color.popups.text
           font.family: root.fontFamily

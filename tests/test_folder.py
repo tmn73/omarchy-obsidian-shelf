@@ -43,7 +43,8 @@ class FolderReadTest(FolderCase):
         item = out["items"][0]
         self.assertEqual(item["title"], "WitcherHour")
         self.assertEqual(item["url"], "https://x.com/WitcherHour/status/2107244538465231193")
-        self.assertEqual(item["excerpt"], "Roach noooo! pic.twitter.com/y0nddS1RLR")
+        self.assertEqual(item["excerpt"], "Roach noooo!")
+        self.assertEqual(item["image"], "")
         self.assertEqual(item["domain"], "x.com")
         self.assertEqual(item["key"], "Read Later/Tweet from WitcherHour.md")
         self.assertRegex(item["modifiedAt"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$")
@@ -131,6 +132,41 @@ class FolderDoneTest(FolderCase):
             self.assertEqual(out["error"], "invalid", key)
         self.assertTrue((self.vault / "Todo.md").exists())
 
+
+
+YOUTUBE = """[[ReadItLater]] [[Youtube]]
+
+# [France 4-1 Belgique](https://youtube.com/watch?v=pg5PZk_PhP4)
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/pg5PZk_PhP4" allowfullscreen></iframe>
+"""
+
+
+class FolderImageTest(FolderCase):
+    def test_youtube_note_gets_its_thumbnail_and_no_html_excerpt(self):
+        self.note("v.md", YOUTUBE)
+        item = self.items()[0]
+        self.assertEqual(item["image"], "https://i.ytimg.com/vi/pg5PZk_PhP4/mqdefault.jpg")
+        self.assertEqual(item["excerpt"], "")
+        self.assertEqual(item["domain"], "youtube.com")
+
+    def test_short_youtube_link_gets_its_thumbnail(self):
+        self.note("v.md", "# Clip\n\nhttps://youtu.be/abcDEF12345\n")
+        self.assertEqual(self.items()[0]["image"], "https://i.ytimg.com/vi/abcDEF12345/mqdefault.jpg")
+
+    def test_first_markdown_image_is_used(self):
+        self.note("a.md", "# A\n\n![cover](https://example.org/cover.png)\n\nText https://example.org/a\n")
+        item = self.items()[0]
+        self.assertEqual(item["image"], "https://example.org/cover.png")
+        self.assertEqual(item["excerpt"], "Text https://example.org/a")
+
+    def test_front_matter_image_wins(self):
+        self.note("a.md", "---\nimage: https://example.org/fm.jpg\n---\n![x](https://example.org/b.png)\n")
+        self.assertEqual(self.items()[0]["image"], "https://example.org/fm.jpg")
+
+    def test_inline_html_tags_are_removed_from_the_excerpt(self):
+        self.note("a.md", "# A\n\nSome <b>bold</b> text\n")
+        self.assertEqual(self.items()[0]["excerpt"], "Some bold text")
 
 
 class FolderEditTest(FolderCase):
