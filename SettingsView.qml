@@ -97,7 +97,7 @@ FocusScope {
 
       Text {
         width: parent.width
-        text: qsTr("Notify: a new item from your phone makes the bar chip ping and show a count.")
+        text: qsTr("Notify: the items of the list count on the bar chip, and a new one from your phone pings it.")
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
         color: Util.alpha(Color.popups.text, 0.65)

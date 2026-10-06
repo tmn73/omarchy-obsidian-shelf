@@ -53,7 +53,9 @@ Item {
 
     anchors.fill: parent
     radius: Style.space(10)
-    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.05) : "transparent"
+    // Every row sits on its own faint card, like the board cards, so the
+    // rows read apart without lines.
+    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.07) : Util.alpha(Color.popups.text, 0.03)
 
     Behavior on color { ColorAnimation { duration: Style.duration(150) } }
   }
@@ -130,11 +132,21 @@ Item {
           fontFamily: root.fontFamily
         }
 
+        // The natural width of the title. A Text that elides reports the
+        // elided width as its implicitWidth, so binding to it shrinks the
+        // title a little more on each layout.
+        TextMetrics {
+          id: titleMetrics
+
+          font: titleText.font
+          text: root.title
+        }
+
         Text {
           id: titleText
 
           visible: !root.editing
-          width: Math.min(implicitWidth, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0) - (miniAvatar.visible ? miniAvatar.width + parent.spacing : 0))
+          width: Math.min(Math.ceil(titleMetrics.advanceWidth) + 1, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0) - (miniAvatar.visible ? miniAvatar.width + parent.spacing : 0))
           text: root.title
           textFormat: Text.PlainText
           wrapMode: Text.Wrap
