@@ -23,20 +23,16 @@ Item {
   signal settingsToggled()
   signal settingChanged(string name, var value)
 
-  readonly property bool inputFocused: addBarItem.inputFocused || settingsView.inputFocused || (listLoader.item ? listLoader.item.editing === true : false)
+  readonly property bool inputFocused: addBarItem.inputFocused || settingsView.inputFocused || (listLoader.item ? listLoader.item.editing === true || listLoader.item.typing === true : false)
 
   readonly property var lists: service ? service.config.lists : []
   readonly property bool configured: service ? service.configured : false
   readonly property var activeConfig: lists.length > 0 ? lists[Math.min(activeIndex, lists.length - 1)] : null
   readonly property var activePayload: activeConfig && service ? Model.findList(service.payload, activeConfig.id) : null
   readonly property real maxListHeight: Style.space(470)
-  readonly property var listSources: ({ folder: "FolderList.qml", checklist: "ChecklistList.qml", sections: "SectionsList.qml" })
+  readonly property var listSources: ({ folder: "FolderList.qml", checklist: "ChecklistList.qml", sections: "SectionsList.qml", board: "BoardList.qml" })
   readonly property bool canAdd: activeConfig !== null && activeConfig.type !== "folder" && !settingsOpen && !adding
-  readonly property var sectionNames: {
-    if (!activeConfig || activeConfig.type !== "sections" || !activePayload)
-      return []
-    return (Model.toArray(activePayload.sections) || []).map(function (s) { return s.heading })
-  }
+  readonly property var sectionNames: Model.addTargets(activeConfig, activePayload)
 
   implicitWidth: Style.space(440)
   implicitHeight: content.implicitHeight
@@ -91,6 +87,12 @@ Item {
   function removeCurrent() {
     if (listLoader.item && listLoader.item.removeCurrent)
       listLoader.item.removeCurrent()
+  }
+
+  // A list action that only some list kinds have (a board moves cards).
+  function forward(name, arg) {
+    if (listLoader.item && listLoader.item[name])
+      listLoader.item[name](arg)
   }
 
   function focusAdd() {
@@ -265,11 +267,11 @@ Item {
       width: parent.width
       visible: root.canAdd
       sections: root.sectionNames
-      placeholder: root.sectionNames.length > 0 ? qsTr("New %1 topic").arg(section.toLowerCase()) : qsTr("New todo")
+      placeholder: root.activeConfig && root.activeConfig.type === "board" ? qsTr("New card") : root.sectionNames.length > 0 ? qsTr("New %1 topic").arg(section.toLowerCase()) : qsTr("New todo")
       fontFamily: root.fontFamily
       onSubmitted: function (text, section) {
         if (root.service && root.activeConfig)
-          root.service.act("add", root.activeConfig.id, { text: text, section: root.activeConfig.type === "sections" ? section : "" })
+          root.service.act("add", root.activeConfig.id, { text: text, section: root.sectionNames.length > 0 ? section : "" })
       }
     }
 

@@ -262,6 +262,25 @@ for file in "${qml_files[@]}"; do
   fi
 done
 
+# Boards
+has "ShelfPopup.qml" 'board: "BoardList.qml"' "the popup cannot show a board"
+has "BoardList.qml" "model: root.laneKeys" "a read rebuilds every lane and closes open editors"
+has "BoardList.qml" "readonly property bool typing" "the popup keys fire while the date panel has focus"
+has "ShelfPopup.qml" "listLoader.item.typing === true" "the popup ignores a list that is typing"
+has "Service.qml" 'action === "move" \|\| action === "date"' "the service cannot move or date a card"
+has "Reminders.qml" '"remind", "--vault"' "nothing asks the helper for reminders"
+has "Panel.qml" "late: shelf.lateCount > 0" "a late card does not show on the chip"
+has "Panel.qml" 'popup.forward\("moveCard", dx\)' "Left and Right do not move a card"
+
+# Syntax: qmllint, when the machine has it, parses every file. It refuses the
+# typed functions an IpcHandler needs, so files with one are left out.
+if command -v qmllint >/dev/null 2>&1; then
+  for file in "$ROOT"/*.qml; do
+    grep -q "IpcHandler {" "$file" && continue
+    qmllint "$file" >/dev/null 2>&1 || fail "$(basename "$file") does not parse (qmllint)"
+  done
+fi
+
 if (( failures > 0 )); then
   echo "$failures check(s) failed" >&2
   exit 1

@@ -4,7 +4,7 @@
 // helper owns the vault, the QML owns rendering and scheduling; this file owns
 // what the settings and the payload mean.
 
-var TYPES = ['folder', 'checklist', 'sections']
+var TYPES = ['folder', 'checklist', 'sections', 'board']
 var ID_RE = /^[a-z0-9-]{1,32}$/
 var KEY_SEPARATOR = '\u0000'
 
@@ -39,7 +39,7 @@ function normalizeList (entry, position, seen, errors) {
   var path = text(entry.path)
   if (path === '') { errors.push(label + ' has no path'); return null }
   seen[id] = true
-  return {
+  var out = {
     id: id,
     name: name,
     type: type,
@@ -47,6 +47,8 @@ function normalizeList (entry, position, seen, errors) {
     badge: typeof entry.badge === 'boolean' ? entry.badge : type !== 'sections',
     onDone: entry.onDone === 'check' ? 'check' : 'delete'
   }
+  if (type === 'board') out.remind = entry.remind !== false && entry.remind !== 'false'
+  return out
 }
 
 function normalizeSettings (raw) {
@@ -79,9 +81,19 @@ function normalizeSettings (raw) {
     obsidianSync: raw.obsidianSync !== false && raw.obsidianSync !== 'false',
     tweetPreviews: raw.tweetPreviews === true || raw.tweetPreviews === 'true',
     linkPreviews: raw.linkPreviews !== false && raw.linkPreviews !== 'false',
+    reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(text(raw.reminderTime)) ? text(raw.reminderTime) : '09:00',
     lists: lists,
     errors: errors
   }
+}
+
+// Where a new line can go: the headings of a notes list, the open lanes of
+// a board, nothing for the other kinds.
+function addTargets (cfg, listPayload) {
+  if (!cfg || !listPayload) return []
+  if (cfg.type === 'sections') return (toArray(listPayload.sections) || []).map(function (s) { return s.heading })
+  if (cfg.type !== 'board') return []
+  return (toArray(listPayload.lanes) || []).filter(function (l) { return !l.complete }).map(function (l) { return l.title })
 }
 
 function findList (payload, id) {
@@ -354,6 +366,7 @@ if (typeof module !== 'undefined') {
     toArray: toArray,
     normalizeSettings: normalizeSettings,
     findList: findList,
+    addTargets: addTargets,
     listItemCount: listItemCount,
     badgeCount: badgeCount,
     itemKeys: itemKeys,

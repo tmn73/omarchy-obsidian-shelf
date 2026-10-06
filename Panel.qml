@@ -84,6 +84,7 @@ Panel {
     count: shelf.badge
     pinging: shelf.freshBadge > 0
     marked: shelf.unseenBadge > 0 && !root.opened
+    late: shelf.lateCount > 0
     urgent: syncGuide.active ? syncGuide.syncState === "stopped" : !shelf.syncHealthy
     tooltipText: shelf.tooltip
     onPressed: function (buttonCode) {
@@ -110,7 +111,7 @@ Panel {
 
       anchors.fill: parent
       blocked: popup.inputFocused
-      onMoveRequested: function (dx, dy) { if (dy !== 0) popup.moveHighlight(dy) }
+      onMoveRequested: function (dx, dy) { if (dy !== 0) popup.moveHighlight(dy); else if (dx !== 0) popup.forward("moveCard", dx) }
       onActivateRequested: popup.activateCurrent()
       onDeleteRequested: popup.removeCurrent()
       onCloseRequested: root.close()
@@ -127,6 +128,8 @@ Panel {
           Qt.callLater(popup.focusAdd)
         else if (key === "r")
           shelf.refresh()
+        else if (key === "t")
+          Qt.callLater(popup.forward, "dateCurrent")
       }
 
       ShelfPopup {

@@ -307,3 +307,21 @@ test('a board row counts cards and its phone how-to names the Kanban plugin', ()
   assert.match(Model.phoneHowTo(cfg), /Kanban plugin.*Todo\.md/)
   assert.match(Model.phoneHowTo(cfg), /## To do/)
 })
+
+test('normalizeSettings accepts boards, their reminder switch and the summary time', () => {
+  const s = Model.normalizeSettings({ lists: [{ id: 'b', name: 'Board', type: 'board', path: 'B.md' }, { id: 'c', name: 'C', type: 'board', path: 'C.md', remind: false }] })
+  assert.deepEqual(s.errors, [])
+  assert.equal(s.lists[0].remind, true)
+  assert.equal(s.lists[1].remind, false)
+  assert.equal(s.lists[0].badge, true)
+  assert.equal(s.reminderTime, '09:00')
+  assert.equal(Model.normalizeSettings({ reminderTime: '07:30' }).reminderTime, '07:30')
+  assert.equal(Model.normalizeSettings({ reminderTime: '7h' }).reminderTime, '09:00')
+})
+
+test('addTargets gives the headings of a notes list and the open lanes of a board', () => {
+  assert.deepEqual(Model.addTargets({ type: 'board' }, BOARD), ['To do', 'In progress'])
+  assert.deepEqual(Model.addTargets({ type: 'sections' }, { sections: [{ heading: 'Good' }, { heading: 'Bad' }] }), ['Good', 'Bad'])
+  assert.deepEqual(Model.addTargets({ type: 'checklist' }, { items: [] }), [])
+  assert.deepEqual(Model.addTargets(null, null), [])
+})

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import qs.Commons
 import "Model.js" as Model
+import "Board.js" as Board
 
 // Shelf data service. The helper owns every vault read and write; this item
 // schedules it and exposes one stable model to the panel.
@@ -32,6 +33,7 @@ Item {
   readonly property int badge: Model.badgeCount(payload, config.lists)
   readonly property int freshBadge: Model.freshInBadgeLists(fresh, config.lists)
   readonly property int unseenBadge: Model.freshInBadgeLists(unseen, config.lists)
+  readonly property int lateCount: Board.lateCount(payload, config.lists, reminders.today)
   readonly property string tooltip: {
     if (!configured)
       return qsTr("Obsidian Shelf: choose a vault folder")
@@ -124,10 +126,11 @@ Item {
     } else if (action === "edit") {
       call.command = ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath(), "edit"].concat(base, ["--item", String(args.item)])
       call.text = String(args.text || "")
-    } else if (action === "done") {
-      call.command = [helperPath(), "done"].concat(base, ["--item", String(args.item)])
-    } else if (action === "remove") {
-      call.command = [helperPath(), "remove"].concat(base, ["--item", String(args.item)])
+    } else if (action === "done" || action === "remove") {
+      call.command = [helperPath(), action].concat(base, ["--item", String(args.item)])
+    } else if (action === "move" || action === "date") {
+      var more = action === "move" ? ["--lane", String(args.lane)] : ["--date", String(args.date || ""), "--time", String(args.time || "")]
+      call.command = [helperPath(), action].concat(base, ["--item", String(args.item)], more)
     } else if (action === "clear") {
       call.command = [helperPath(), "clear"].concat(base)
     } else {
@@ -172,6 +175,13 @@ Item {
   }
 
   onConfigChanged: Qt.callLater(refresh)
+
+  Reminders {
+    id: reminders
+
+    helper: root.helperPath()
+    config: root.config
+  }
 
   SeenState {
     id: seenState

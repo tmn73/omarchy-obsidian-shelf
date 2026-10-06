@@ -2,12 +2,13 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 
-// The bar chip: the shelf glyph, and the number of new items.
+// The bar chip: the shelf glyph, and what waits in the lists that notify.
 //
-// The count is the number of new items from lists that notify, and the glyph
-// stands alone at rest. A new item makes the count enter from above and an
-// accent dot ping three times; the dot then stays until the popup opens. A
-// dot in the urgent color means the sync stopped, the only alarm state.
+// The count is a reminder: it stays while the items exist, and the glyph
+// stands alone when nothing waits. A new item makes the count enter from
+// above and an accent dot ping three times; the dot then stays until the
+// popup has been seen. The count turns the urgent color while a board card
+// is late. A dot in the urgent color means the sync stopped.
 WidgetButton {
   id: root
 
@@ -15,6 +16,7 @@ WidgetButton {
   property bool pinging: false
   property bool marked: false
   property bool urgent: false
+  property bool late: false
 
   readonly property string glyph: ""
 
@@ -82,7 +84,7 @@ WidgetButton {
       visible: root.count > 0
       text: String(root.count)
       textFormat: Text.PlainText
-      color: root.foreground
+      color: root.late ? Color.urgent : root.foreground
       font.family: root.fontFamily
       font.pixelSize: root.fontSize
       font.bold: true
