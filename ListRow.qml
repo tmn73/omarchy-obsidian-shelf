@@ -24,7 +24,7 @@ Rectangle {
   signal changed(string field, var value)
   signal removeRequested()
 
-  readonly property string glyph: cfg.type === "folder" ? "" : (cfg.type === "checklist" ? "" : "")
+  readonly property string glyph: cfg.type === "folder" ? "" : cfg.type === "checklist" ? "" : cfg.type === "board" ? "\uf181" : ""
 
   implicitHeight: column.implicitHeight + Style.space(4)
   radius: Style.space(10)

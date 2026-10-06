@@ -8,10 +8,14 @@ without opening Obsidian.
 
 ## What it does
 
-- **Three kinds of lists**, read from plain Markdown files: links to read or
-  watch (a folder, one note per link), checklists, and notes by section.
-- **Act from the bar**: open a link, tick a task, add a line, edit or remove
-  an item, clear a notes file after a meeting.
+- **Four kinds of lists**, read from plain Markdown files: links to read or
+  watch (a folder, one note per link), checklists, boards (the file of the
+  Obsidian Kanban plugin) and notes by section.
+- **Act from the bar**: open a link, tick a task, move a card to another
+  lane, give it a date, add a line, edit or remove an item, clear a notes
+  file after a meeting.
+- **Reminders**: a card with a date and a time rings at that time, and a
+  morning summary lists the cards due today and the late ones.
 - **Previews**: YouTube thumbnails, tweet pictures, and the preview image and
   title of most other pages, Instagram and Reddit included.
 - **A chip so you do not forget**: it shows how many items wait in the lists
@@ -57,12 +61,13 @@ The plugin never changes your notes when you remove it. Two things can stay:
   systemctl --user daemon-reload
   ```
 
-## The three kinds of lists
+## The four kinds of lists
 
 | Kind | What it reads | One item is | Actions |
 | --- | --- | --- | --- |
 | Links to read or watch | every `.md` file directly in a folder | one note | open its link, edit its title, remove it |
 | A checklist | one file | one `- [ ] text` line | tick, add, edit, remove |
+| A board | one Kanban plugin file | one `- [ ] text` card under a `## ` lane | tick, move, date, add to a lane, edit, remove, clear Done |
 | Notes by section | one file | one `- text` bullet under a heading | add under a heading, edit, remove, clear all |
 
 Details:
@@ -76,6 +81,12 @@ Details:
 - **Checklists**: a tick removes the line by default. A list can write `[x]`
   instead. Lines ticked on the phone (`- [x]`) do not show, and the plugin
   removes them at its next write to the file.
+- **Boards**: the file of the Obsidian Kanban plugin, so the phone shows the
+  same board. The lane closest to Done shows first, and the Complete lane
+  (the one with `**Complete**` under its heading) folds at the bottom. A tick
+  moves a card to the Complete lane. A date is `@{2026-10-20}` and a time is
+  `@@{14:30}` at the end of the card, as the plugin writes them. The chip
+  count turns red while a card is late.
 - **Notes by section**: a section starts at a heading (`#` to `######`). Use
   it for a meeting agenda (To discuss / Decided), a list by status (This
   week / Later) or a retrospective (Good / Bad). Clear removes every bullet
@@ -93,6 +104,9 @@ list in the settings has an "Add from your phone: how" note. In short:
 - **Links**: install the ReadItLater community plugin in Obsidian mobile and
   set its inbox folder to the folder of your links list. Then share any link
   to Obsidian and pick ReadItLater.
+- **Boards**: install the Kanban community plugin to see the board on the
+  phone. To add from the pull-down, give QuickAdd a Capture to the board
+  file with "Insert after" set to your first lane, such as `## To do`.
 - **Checklists and notes**: install the QuickAdd community plugin and add a
   Capture to the file: `- [ ] {{VALUE}}` for a checklist, "Choose heading when
   capturing" for notes by section. Then pick "QuickAdd: Run" in Settings >
@@ -115,6 +129,20 @@ app still opens and edits the vault, and Obsidian Headless sends your changes.
 If you sync another way (Syncthing, git, the Obsidian app left open), turn
 the guide off in the settings. An optional command can tell the chip when
 your own sync stops.
+
+## Reminders
+
+Each board has a "Remind me" setting, on by default.
+
+- A card with a date and a time rings once, at that time, as an Omarchy
+  notification. A click on it opens the shelf. When the PC was off at that
+  time, it rings when the shelf starts again that same day.
+- The morning summary rings once a day at the summary time (09:00, a
+  setting). It lists the cards due today without a time and every late card.
+  A day with nothing due sends nothing.
+- With a bar on each screen, one notification still goes out: the helper
+  works under a lock and keeps what it sent in
+  `~/.local/state/obsidian-shelf/reminders.json`.
 
 ## Previews and privacy
 
@@ -153,7 +181,9 @@ keeps the files it takes out. A folder goes only when it is empty.
 | --- | --- |
 | Tab, Shift+Tab | next or previous list |
 | Up, Down | move in the list |
-| Enter | open the link, or tick the task |
+| Enter | open the link, or tick the task or the card |
+| Left, Right | move a card to the lane before or after |
+| `t` | give a card a date |
 | `e` | edit the item |
 | `x`, `Del` | remove the item |
 | `d` | done: tick a task, remove a link |

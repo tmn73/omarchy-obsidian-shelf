@@ -29,6 +29,7 @@ Column {
   readonly property var kinds: ({
     folder: { glyph: "", title: qsTr("Links to read or watch"), name: qsTr("Read later"), description: qsTr("Articles, videos, posts. A folder with one note per link, shared from the phone.") },
     checklist: { glyph: "", title: qsTr("A checklist"), name: qsTr("Checklist"), description: qsTr("Tasks, groceries, ideas. One file; a ticked line leaves it.") },
+    board: { glyph: "\uf181", title: qsTr("A board"), name: qsTr("Board"), description: qsTr("Cards in lanes, with dates and reminders. The same file as the Kanban plugin on your phone.") },
     sections: { glyph: "", title: qsTr("Notes by section"), name: qsTr("Notes"), description: qsTr("One file with headings: a meeting agenda (To discuss / Decided), a list by status (This week / Later), a retrospective (Good / Bad).") }
   })
   readonly property var info: kind !== "" ? kinds[kind] : null
@@ -50,7 +51,7 @@ Column {
     name = kinds[k].name
     path = ""
     pathIsNew = false
-    sections = k === "sections" ? [qsTr("To discuss"), qsTr("Decided")] : []
+    sections = k === "sections" ? [qsTr("To discuss"), qsTr("Decided")] : k === "board" ? [qsTr("To do"), qsTr("In progress"), qsTr("Done")] : []
     notify = k !== "sections"
     error = ""
     step = "details"
@@ -72,7 +73,7 @@ Column {
   function finish(spec, badge) {
     var list = { id: Model.newListId(config.lists, spec.name), name: spec.name.slice(0, 24), type: spec.type, path: spec.path, badge: badge, onDone: "delete" }
     var args = ["create", "--vault", config.vaultPath, "--list", JSON.stringify(list)]
-    if (spec.type === "sections")
+    if (spec.type === "sections" || spec.type === "board")
       args = args.concat(["--sections", sections.join(",")])
     helper.run(args, function (data) {
       if (!data.ok) {
@@ -138,7 +139,7 @@ Column {
 
         width: parent.width
         label: "+ " + modelData.path
-        detail: (modelData.type === "folder" ? qsTr("links") : modelData.type === "checklist" ? qsTr("checklist") : qsTr("sections")) + " · " + modelData.count
+        detail: (modelData.type === "folder" ? qsTr("links") : modelData.type === "checklist" ? qsTr("checklist") : modelData.type === "board" ? qsTr("board") : qsTr("sections")) + " · " + modelData.count
         fontFamily: root.fontFamily
         onClicked: root.addSuggestion(modelData)
       }
@@ -147,7 +148,7 @@ Column {
     SettingsCaption { text: qsTr("OR START A NEW ONE"); fontFamily: root.fontFamily }
 
     Repeater {
-      model: ["folder", "checklist", "sections"]
+      model: ["folder", "checklist", "board", "sections"]
 
       delegate: KindCard {
         required property string modelData
@@ -205,7 +206,7 @@ Column {
     }
 
     SectionChips {
-      visible: root.kind === "sections"
+      visible: root.kind === "sections" || root.kind === "board"
       width: parent.width
       sections: root.sections
       fontFamily: root.fontFamily

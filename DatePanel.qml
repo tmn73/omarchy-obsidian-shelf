@@ -29,6 +29,10 @@ Rectangle {
   border.width: 1
   border.color: Util.alpha(Color.popups.text, 0.14)
 
+  // The popup keys are off while the panel is open, so the date field takes
+  // the focus at once: Escape then closes the panel, Enter sets the date.
+  Component.onCompleted: dateField.forceActiveFocus()
+
   function apply() {
     var d = dateField.text.trim()
     var t = timeField.text.trim()

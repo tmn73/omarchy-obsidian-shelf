@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "tmn73",
   "license": "MIT",
-  "description": "Lists from your Obsidian vault in the bar: links to read later, checklists and notes by section, captured on your phone and handled from the desktop.",
+  "description": "Lists from your Obsidian vault in the bar: links to read later, checklists, boards with dates and reminders, and notes by section, captured on your phone and handled from the desktop.",
   "kinds": [
     "bar-widget"
   ],
@@ -15,7 +15,7 @@
   },
   "barWidget": {
     "displayName": "Obsidian Shelf",
-    "description": "Links to read later, checklists and notes from a Markdown vault. Open, tick, add, edit and clear them without opening Obsidian.",
+    "description": "Links to read later, checklists, Kanban boards and notes from a Markdown vault. Open, tick, move, date, add and clear them without opening Obsidian.",
     "category": "Productivity",
     "aliases": [
       "obsidian",
@@ -27,7 +27,10 @@
       "retrospective",
       "inbox",
       "capture",
-      "markdown"
+      "markdown",
+      "kanban",
+      "board",
+      "reminder"
     ],
     "allowMultiple": false,
     "defaultSection": "right",
@@ -37,7 +40,8 @@
       "syncCheckCommand": "",
       "obsidianSync": true,
       "tweetPreviews": false,
-      "linkPreviews": true
+      "linkPreviews": true,
+      "reminderTime": "09:00"
     },
     "schema": [
       {
@@ -83,6 +87,13 @@
         "label": "Link previews",
         "defaultValue": true,
         "description": "For a saved link without a picture or a title, read the page once and use its preview image and title. Only the site itself sees the request."
+      },
+      {
+        "key": "reminderTime",
+        "type": "string",
+        "label": "Morning summary time",
+        "defaultValue": "09:00",
+        "description": "When the board summary rings each day, as HH:MM. It lists the cards due today without a time and the late cards."
       }
     ]
   }

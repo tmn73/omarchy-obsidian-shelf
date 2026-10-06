@@ -97,10 +97,22 @@ Column {
     }
   }
 
-  Text {
-    visible: root.cfg.type === "sections"
+  Toggle {
+    visible: root.cfg.type === "board"
     width: root.innerWidth
-    text: qsTr("Sections are the ## headings of the file. Add or rename them in the file.")
+    label: qsTr("Remind me")
+    description: qsTr("A card with a time rings at that time; the others are in the morning summary.")
+    checked: root.cfg.remind !== false
+    fontFamily: root.fontFamily
+    onClicked: root.changed("remind", !(root.cfg.remind !== false))
+  }
+
+  Text {
+    visible: root.cfg.type === "sections" || root.cfg.type === "board"
+    width: root.innerWidth
+    text: root.cfg.type === "board"
+      ? qsTr("Lanes are the ## headings of the board. Add or rename them in Obsidian.")
+      : qsTr("Sections are the ## headings of the file. Add or rename them in the file.")
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     color: Util.alpha(Color.popups.text, 0.65)
