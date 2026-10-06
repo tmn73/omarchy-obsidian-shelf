@@ -96,8 +96,9 @@ Rules:
   card with only a date rings in the morning summary.
 - The add bar picks the lane, like the heading picker of the notes lists. It
   offers the open lanes; the first is the default.
-- Keys: Enter ticks, Shift+Left and Shift+Right move, `t` opens the date
-  panel, `e` edits, `x` removes, `a` adds.
+- Keys: Enter ticks, Left and Right move (the popup key catcher gives no
+  modifiers, and Left and Right have no other use in a list), `t` opens the
+  date panel, `e` edits, `x` removes, `a` adds.
 - The tab count and the chip count the cards of the open lanes.
 
 ## 5. Reminders
