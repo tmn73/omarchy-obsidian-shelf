@@ -31,6 +31,31 @@ Click the chip in the bar. The first time, the popup asks for your vault (it
 lists the vaults Obsidian knows), then helps you add your first list. It
 suggests the lists it finds in the vault.
 
+### Requirements
+
+- Omarchy Quattro, with its Quickshell shell.
+- `python3` (standard library only) and `xdg-open`. Omarchy has both.
+- Optional: Obsidian Headless (`ob`), to sync the vault while the Obsidian app
+  does not run. The sync guide installs it with `bun` or `npm`. See [Sync](#sync).
+
+## Remove
+
+```bash
+omarchy plugin remove tmn73.obsidian
+```
+
+The plugin never changes your notes when you remove it. Two things can stay:
+
+- The preview cache. Remove it with `rm -r ~/.cache/obsidian-shelf`.
+- The background sync, if the guide started it. It does not need the plugin,
+  so it keeps your vault in sync. To stop it:
+
+  ```bash
+  systemctl --user disable --now obsidian-headless.service
+  rm ~/.config/systemd/user/obsidian-headless.service
+  systemctl --user daemon-reload
+  ```
+
 ## The three kinds of lists
 
 | Kind | What it reads | One item is | Actions |

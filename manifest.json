@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "tmn73",
   "license": "MIT",
-  "description": "Lists from your Obsidian vault in the bar: links to read later, todos and retro topics, captured on your phone and handled from the desktop.",
+  "description": "Lists from your Obsidian vault in the bar: links to read later, checklists and notes by section, captured on your phone and handled from the desktop.",
   "kinds": [
     "bar-widget"
   ],
@@ -15,7 +15,7 @@
   },
   "barWidget": {
     "displayName": "Obsidian Shelf",
-    "description": "Read later links, todos and retro topics from a Markdown vault. Open, tick, add and clear without opening Obsidian.",
+    "description": "Links to read later, checklists and notes from a Markdown vault. Open, tick, add, edit and clear them without opening Obsidian.",
     "category": "Productivity",
     "aliases": [
       "obsidian",
