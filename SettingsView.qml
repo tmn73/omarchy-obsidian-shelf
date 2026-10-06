@@ -120,6 +120,15 @@ FocusScope {
       onEditingFinished: if (text.trim() !== root.config.syncCheckCommand) root.settingChanged("syncCheckCommand", text.trim())
     }
 
+    Toggle {
+      width: parent.width
+      label: qsTr("Guide the Obsidian Sync setup")
+      description: qsTr("Shows the steps to keep the vault in sync while the Obsidian app is closed.")
+      checked: root.config.obsidianSync !== false
+      fontFamily: root.fontFamily
+      onClicked: root.settingChanged("obsidianSync", !checked)
+    }
+
     SettingsCaption { text: qsTr("Lists"); fontFamily: root.fontFamily }
 
     Repeater {

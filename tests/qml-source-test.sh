@@ -175,6 +175,16 @@ has "Panel.qml" 'key === "e"' "the e key does not edit"
 has "Panel.qml" 'key === "x"' "the x key does not remove"
 has "ListStateFrame.qml" "property bool editing" "lists do not report an open editor"
 
+# ---- Obsidian Sync guide
+has "SyncGuide.qml" '"sync-state"' "SyncGuide.qml does not ask the helper for the sync state"
+has "SyncGuide.qml" '"sync-service"' "SyncGuide.qml cannot start the background sync"
+has "SyncGuide.qml" "omarchy-launch-floating-terminal-with-presentation" "SyncGuide.qml does not open setup steps in a terminal"
+has "SyncGuide.qml" "function runSyncStep\(" "SyncGuide.qml has no runSyncStep()"
+has "SyncCard.qml" "Obsidian Sync on this PC" "SyncCard.qml lost its title"
+has "SyncCard.qml" "Turn off Sync in the Obsidian app" "SyncCard.qml does not warn about the desktop client"
+has "ShelfPopup.qml" "SyncCard" "ShelfPopup.qml does not show the sync card"
+has "manifest.json" '"obsidianSync"' "manifest.json has no obsidianSync setting"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

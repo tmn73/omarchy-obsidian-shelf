@@ -6,12 +6,14 @@ object, so the tests drive it directly and bin/obsidian-shelf only prints.
 
 import argparse
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 
 from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_checklist, remove_checklist
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
+import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 
 READERS = {"folder": read_folder, "checklist": read_checklist, "sections": read_sections}
@@ -32,6 +34,9 @@ def build_parser() -> Parser:
     read = commands.add_parser("read", add_help=False)
     read.add_argument("--vault", required=True)
     read.add_argument("--lists", required=True)
+    for name in ("sync-state", "sync-service"):
+        sub = commands.add_parser(name, add_help=False)
+        sub.add_argument("--vault", required=True)
     for name in ("add", "done", "clear", "edit", "remove"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
@@ -78,12 +83,26 @@ def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
     raise ArgumentError(f"{args.command} does not apply to a {cfg.get('type')} list")
 
 
+def run_sync(command: str, vault: Path) -> tuple:
+    env = dict(os.environ)
+    home = Path(env.get("HOME", str(Path.home())))
+    config_home = Path(env.get("XDG_CONFIG_HOME") or home / ".config")
+    ob = shelf_sync.find_ob(env, home)
+    if command == "sync-state":
+        return 0, shelf_sync.sync_state(vault, ob, config_home, shelf_sync.service_active, env)
+    if not ob:
+        raise ArgumentError("Obsidian Headless is not installed")
+    return 0, shelf_sync.install_service(ob, vault, config_home, shelf_sync.run_quietly)
+
+
 def main(argv: list, stdin) -> tuple:
     try:
         args = build_parser().parse_args(argv)
         if args.command is None:
             raise ArgumentError("a command is required")
         vault = Path(args.vault).expanduser()
+        if args.command in ("sync-state", "sync-service"):
+            return run_sync(args.command, vault)
         if args.command == "read":
             lists = json.loads(args.lists)
             if not isinstance(lists, list):

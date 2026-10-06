@@ -79,6 +79,7 @@ function normalizeSettings (raw) {
     vaultPath: text(raw.vaultPath),
     refreshIntervalSec: interval,
     syncCheckCommand: text(raw.syncCheckCommand),
+    obsidianSync: raw.obsidianSync !== false && raw.obsidianSync !== 'false',
     lists: lists,
     errors: errors
   }
@@ -197,6 +198,19 @@ function keyedSyncPlan (currentKeys, nextKeys) {
   return { remove: remove, insert: insert }
 }
 
+// The Obsidian Sync setup step for a helper sync state, or null when there is
+// nothing to do (running) or nothing known yet.
+var SYNC_STEPS = {
+  'no-client': { title: 'Install the sync client', text: 'Obsidian Headless keeps this vault in sync while the Obsidian app is closed.', button: 'Install Obsidian Headless' },
+  'logged-out': { title: 'Log in to Obsidian Sync', text: 'A terminal opens. Type your Obsidian email, password and 2FA code there. The plugin never sees them.', button: 'Log in' },
+  unlinked: { title: 'Link this vault', text: 'A terminal lists your remote vaults. Type the name of the one to sync into this folder.', button: 'Link this vault' },
+  stopped: { title: 'Start the background sync', text: 'A user service runs the sync now and at every login.', button: 'Start background sync' }
+}
+
+function syncStep (state) {
+  return SYNC_STEPS[state] || null
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     DEFAULT_LISTS: DEFAULT_LISTS,
@@ -212,6 +226,7 @@ if (typeof module !== 'undefined') {
     relativeAge: relativeAge,
     clockText: clockText,
     tooltipText: tooltipText,
-    keyedSyncPlan: keyedSyncPlan
+    keyedSyncPlan: keyedSyncPlan,
+    syncStep: syncStep
   }
 }

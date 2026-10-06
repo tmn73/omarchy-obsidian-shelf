@@ -77,6 +77,23 @@ class CliTest(VaultCase):
         self.assertEqual(json.loads(result.stdout)["lists"][0]["items"][0]["text"], "a")
 
 
+class CliSyncTest(VaultCase):
+    def test_sync_state_reports_the_next_step(self):
+        from unittest import mock
+        env = {"PATH": "/nonexistent", "HOME": str(self.vault), "XDG_CONFIG_HOME": str(self.vault / "cfg")}
+        with mock.patch.dict("os.environ", env, clear=True):
+            code, out = main(["sync-state", "--vault", str(self.vault)], io.StringIO(""))
+        self.assertEqual(code, 0)
+        self.assertEqual(out, {"ok": True, "state": "no-client", "client": ""})
+
+    def test_sync_service_without_client_is_invalid(self):
+        from unittest import mock
+        env = {"PATH": "/nonexistent", "HOME": str(self.vault), "XDG_CONFIG_HOME": str(self.vault / "cfg")}
+        with mock.patch.dict("os.environ", env, clear=True):
+            code, out = main(["sync-service", "--vault", str(self.vault)], io.StringIO(""))
+        self.assertEqual(out["error"], "invalid")
+
+
 class ScriptHygieneTest(VaultCase):
     def test_script_does_not_write_bytecode_into_the_plugin(self):
         import shutil

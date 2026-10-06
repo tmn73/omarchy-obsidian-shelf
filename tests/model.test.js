@@ -155,3 +155,20 @@ test('freshInBadgeLists counts only fresh keys of badge lists', () => {
   assert.equal(Model.freshInBadgeLists(fresh, lists), 2)
   assert.equal(Model.freshInBadgeLists([], lists), 0)
 })
+
+// ---- Obsidian Sync guide
+
+test('normalizeSettings turns the Obsidian Sync guide on by default', () => {
+  assert.equal(Model.normalizeSettings({}).obsidianSync, true)
+  assert.equal(Model.normalizeSettings({ obsidianSync: false }).obsidianSync, false)
+  assert.equal(Model.normalizeSettings({ obsidianSync: 'false' }).obsidianSync, false)
+})
+
+test('syncStep names the next step and its button', () => {
+  assert.equal(Model.syncStep('no-client').button, 'Install Obsidian Headless')
+  assert.equal(Model.syncStep('logged-out').button, 'Log in')
+  assert.equal(Model.syncStep('unlinked').button, 'Link this vault')
+  assert.equal(Model.syncStep('stopped').button, 'Start background sync')
+  assert.equal(Model.syncStep('running'), null)
+  assert.equal(Model.syncStep(''), null)
+})

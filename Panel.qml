@@ -49,6 +49,15 @@ Panel {
     settings: root.settings
   }
 
+  SyncGuide {
+    id: syncGuide
+
+    vaultPath: shelf.config.vaultPath
+    active: shelf.config.obsidianSync
+    watching: root.opened
+    onRunningChanged: if (running) shelf.refresh()
+  }
+
   IpcHandler {
     target: root.ipcTarget
 
@@ -72,7 +81,7 @@ Panel {
     bar: root.bar
     count: shelf.badge
     pinging: shelf.freshBadge > 0
-    urgent: !shelf.syncHealthy
+    urgent: syncGuide.active ? syncGuide.syncState === "stopped" : !shelf.syncHealthy
     tooltipText: shelf.tooltip
     onPressed: function (buttonCode) {
       if (buttonCode === Qt.RightButton || buttonCode === Qt.MiddleButton)
@@ -122,6 +131,7 @@ Panel {
 
         anchors.fill: parent
         service: shelf
+        syncGuide: syncGuide
         settingsOpen: root.showSettings
         fontFamily: root.fontFamily
         onSettingsToggled: root.showSettings = !root.showSettings

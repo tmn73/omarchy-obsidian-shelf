@@ -34,7 +34,8 @@
     "defaults": {
       "vaultPath": "",
       "refreshIntervalSec": 30,
-      "syncCheckCommand": ""
+      "syncCheckCommand": "",
+      "obsidianSync": true
     },
     "schema": [
       {
@@ -59,6 +60,13 @@
         "label": "Sync check command",
         "defaultValue": "",
         "description": "Optional. A shell command that exits 0 while your sync works. The chip shows a dot when it fails."
+      },
+      {
+        "key": "obsidianSync",
+        "type": "boolean",
+        "label": "Guide the Obsidian Sync setup",
+        "defaultValue": true,
+        "description": "Show the steps to keep the vault in sync with Obsidian Headless while the Obsidian app is closed."
       }
     ]
   }

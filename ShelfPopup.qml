@@ -12,6 +12,7 @@ Item {
   id: root
 
   property var service: null
+  property var syncGuide: null
   property int activeIndex: 0
   property bool settingsOpen: false
   property Item addBar: addBarItem
@@ -54,7 +55,8 @@ Item {
     if (!service.payload)
       return qsTr("reading the vault")
     var vault = service.config.vaultPath.replace(/\/+$/, "").split("/").pop()
-    return qsTr("synced %1 · %2").arg(Model.clockText(service.payload.readAt)).arg(vault)
+    var line = qsTr("synced %1 · %2").arg(Model.clockText(service.payload.readAt)).arg(vault)
+    return syncGuide && syncGuide.running ? qsTr("Obsidian Sync on · ") + line : line
   }
 
   function nextTab(direction) {
@@ -141,6 +143,14 @@ Item {
         fontFamily: root.fontFamily
         onSettingChanged: function (name, value) { root.settingChanged(name, value) }
       }
+    }
+
+    SyncCard {
+      width: parent.width
+      visible: !root.settingsOpen && root.syncGuide !== null && root.syncGuide.needsAction
+      guide: root.syncGuide
+      fontFamily: root.fontFamily
+      onHideRequested: root.settingChanged("obsidianSync", false)
     }
 
     TabBar {
