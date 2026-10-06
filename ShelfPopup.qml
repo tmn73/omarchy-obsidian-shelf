@@ -1,0 +1,166 @@
+import QtQuick
+import qs.Commons
+import "Model.js" as Model
+
+// Popup layout: header, tabs, the active list, then the key hints.
+//
+// The active list is loaded by type. Every list component answers the same
+// small contract (service, listConfig, listPayload, contentHeightHint,
+// moveHighlight, activateCurrent, doneCurrent), so this file never needs to
+// know what a row looks like.
+Item {
+  id: root
+
+  property var service: null
+  property int activeIndex: 0
+  property bool settingsOpen: false
+  property Item addBar: null
+  property string fontFamily: Style.font.family
+
+  signal settingsToggled()
+
+  readonly property var lists: service ? service.config.lists : []
+  readonly property var activeConfig: lists.length > 0 ? lists[Math.min(activeIndex, lists.length - 1)] : null
+  readonly property var activePayload: activeConfig && service ? Model.findList(service.payload, activeConfig.id) : null
+  readonly property real maxListHeight: Style.space(470)
+  readonly property var listSources: ({ folder: "FolderList.qml", checklist: "ChecklistList.qml", sections: "SectionsList.qml" })
+
+  implicitWidth: Style.space(440)
+  implicitHeight: content.implicitHeight
+
+  function tabModel() {
+    var payload = service ? service.payload : null
+    return lists.map(function (cfg) {
+      return { name: cfg.name, count: Model.listItemCount(Model.findList(payload, cfg.id)) }
+    })
+  }
+
+  function syncText() {
+    if (!service)
+      return ""
+    if (!service.configured)
+      return qsTr("choose a vault folder")
+    if (service.error !== "")
+      return service.error
+    if (!service.payload)
+      return qsTr("reading the vault")
+    var vault = service.config.vaultPath.replace(/\/+$/, "").split("/").pop()
+    return qsTr("synced %1 · %2").arg(Model.clockText(service.payload.readAt)).arg(vault)
+  }
+
+  function nextTab(direction) {
+    if (lists.length === 0)
+      return
+    activeIndex = (activeIndex + direction + lists.length) % lists.length
+  }
+
+  function moveHighlight(dy) {
+    if (listLoader.item && listLoader.item.moveHighlight)
+      listLoader.item.moveHighlight(dy)
+  }
+
+  function activateCurrent() {
+    if (listLoader.item && listLoader.item.activateCurrent)
+      listLoader.item.activateCurrent()
+  }
+
+  function doneCurrent() {
+    if (listLoader.item && listLoader.item.doneCurrent)
+      listLoader.item.doneCurrent()
+  }
+
+  function focusAdd() {
+    if (root.addBar && root.addBar.visible)
+      root.addBar.focusInput()
+  }
+
+  function playOpen() {
+    dropIn.restart()
+  }
+
+  Column {
+    id: content
+
+    width: root.width
+    spacing: Style.space(14)
+    transform: Translate { id: dropShift }
+
+    PopupHeader {
+      width: parent.width
+      syncText: root.syncText()
+      failing: root.service ? root.service.error !== "" : false
+      settingsOpen: root.settingsOpen
+      fontFamily: root.fontFamily
+      onSettingsToggled: root.settingsToggled()
+    }
+
+    Text {
+      width: parent.width
+      visible: root.service && root.service.notice !== ""
+      text: root.service ? root.service.notice : ""
+      textFormat: Text.PlainText
+      color: Color.accent
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.bodySmall
+      wrapMode: Text.Wrap
+    }
+
+    TabBar {
+      width: parent.width
+      visible: !root.settingsOpen && root.lists.length > 0
+      tabs: root.tabModel()
+      currentIndex: root.activeIndex
+      fontFamily: root.fontFamily
+      onActivated: function (index) { root.activeIndex = index }
+    }
+
+    Item {
+      id: listArea
+
+      width: parent.width
+      visible: !root.settingsOpen
+      height: Math.min(listLoader.item ? listLoader.item.contentHeightHint : Style.space(120), root.maxListHeight)
+
+      Loader {
+        id: listLoader
+
+        anchors.fill: parent
+        source: root.activeConfig ? root.listSources[root.activeConfig.type] : ""
+        onLoaded: {
+          item.service = Qt.binding(function () { return root.service })
+          item.listConfig = Qt.binding(function () { return root.activeConfig })
+          item.listPayload = Qt.binding(function () { return root.activePayload })
+          item.fontFamily = Qt.binding(function () { return root.fontFamily })
+        }
+      }
+
+      Text {
+        anchors.centerIn: parent
+        visible: listLoader.status === Loader.Error
+        text: qsTr("This list type cannot be shown yet")
+        textFormat: Text.PlainText
+        color: Util.alpha(Color.popups.text, 0.65)
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.body
+      }
+    }
+
+    Rectangle {
+      width: parent.width
+      height: 1
+      color: Util.alpha(Color.popups.text, 0.08)
+    }
+
+    KeyHints {
+      fontFamily: root.fontFamily
+    }
+  }
+
+  ParallelAnimation {
+    id: dropIn
+
+    NumberAnimation { target: content; property: "opacity"; from: 0; to: 1; duration: Style.duration(450); easing.type: Easing.OutCubic }
+    NumberAnimation { target: dropShift; property: "y"; from: -Style.space(10); to: 0; duration: Style.duration(450); easing.type: Easing.OutCubic }
+    NumberAnimation { target: content; property: "scale"; from: 0.98; to: 1; duration: Style.duration(450); easing.type: Easing.OutCubic }
+  }
+}

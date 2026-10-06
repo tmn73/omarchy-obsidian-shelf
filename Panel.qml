@@ -31,7 +31,17 @@ Panel {
       root.bar.shell.updateEntryInline(root.moduleName, entry)
   }
 
-  onOpenedChanged: if (opened) shelf.refresh()
+  property bool showSettings: false
+  readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
+
+  onOpenedChanged: {
+    if (!opened)
+      return
+    shelf.refresh()
+    showSettings = !shelf.configured
+    popup.playOpen()
+    Qt.callLater(function () { keyCatcher.forceActiveFocus() })
+  }
 
   Service {
     id: shelf
@@ -79,17 +89,39 @@ Panel {
     owner: root
     bar: root.bar
     open: root.opened
+    focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(440))
-    contentHeight: panel.fittedContentHeight(placeholder.implicitHeight, Style.space(716))
+    contentHeight: panel.fittedContentHeight(popup.implicitHeight, Style.space(716))
 
-    Text {
-      id: placeholder
+    PanelKeyCatcher {
+      id: keyCatcher
 
-      width: parent.width
-      text: qsTr("%1 open").arg(shelf.badge)
-      color: Color.popups.text
-      font.family: Style.font.family
-      font.pixelSize: Style.font.body
+      anchors.fill: parent
+      blocked: popup.addBar ? popup.addBar.inputFocused : false
+      onMoveRequested: function (dx, dy) { if (dy !== 0) popup.moveHighlight(dy) }
+      onActivateRequested: popup.activateCurrent()
+      onDeleteRequested: popup.doneCurrent()
+      onCloseRequested: root.close()
+      onTabRequested: function (direction) { popup.nextTab(direction) }
+      onTextKey: function (character) {
+        var key = String(character || "").toLowerCase()
+        if (key === "d")
+          popup.doneCurrent()
+        else if (key === "a")
+          Qt.callLater(popup.focusAdd)
+        else if (key === "r")
+          shelf.refresh()
+      }
+
+      ShelfPopup {
+        id: popup
+
+        anchors.fill: parent
+        service: shelf
+        settingsOpen: root.showSettings
+        fontFamily: root.fontFamily
+        onSettingsToggled: root.showSettings = !root.showSettings
+      }
     }
   }
 }

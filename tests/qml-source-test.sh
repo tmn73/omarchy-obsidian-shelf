@@ -81,6 +81,18 @@ for property in count pinging urgent; do
 done
 has "ShelfChip.qml" "Color\.urgent" "ShelfChip.qml does not use Color.urgent for the sync dot"
 
+# ---- Popup frame and tabs (direction A)
+has "PopupHeader.qml" '"SHELF"' "PopupHeader.qml does not show the SHELF title"
+has "ShelfPopup.qml" "Style\.space\(440\)" "the popup width is not Style.space(440)"
+has "ShelfPopup.qml" "Style\.duration\(450\)" "the popup drop-in is not 450 ms"
+has "TabBar.qml" "Style\.duration\(380\)" "the tab indicator does not slide in 380 ms"
+has "TabBar.qml" "Easing\.OutBack" "the tab indicator has no spring"
+for method in moveHighlight activateCurrent doneCurrent focusAdd nextTab; do
+  has "ShelfPopup.qml" "function $method\(" "ShelfPopup.qml has no $method()"
+done
+has "Panel.qml" "PanelKeyCatcher" "Panel.qml does not catch keys"
+has "Panel.qml" "ShelfPopup" "Panel.qml does not host ShelfPopup"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
