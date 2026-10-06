@@ -129,6 +129,15 @@ FocusScope {
       onClicked: root.settingChanged("obsidianSync", !checked)
     }
 
+    Toggle {
+      width: parent.width
+      label: qsTr("Tweet previews (fxtwitter.com)")
+      description: qsTr("Author picture and first photo of saved tweets. fxtwitter sees the tweet links you save, once per tweet.")
+      checked: root.config.tweetPreviews === true
+      fontFamily: root.fontFamily
+      onClicked: root.settingChanged("tweetPreviews", !checked)
+    }
+
     SettingsCaption { text: qsTr("Lists"); fontFamily: root.fontFamily }
 
     Repeater {

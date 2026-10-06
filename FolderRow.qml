@@ -13,6 +13,7 @@ Item {
   property string url: ""
   property string domain: ""
   property string image: ""
+  property string avatar: ""
   property string modifiedAt: ""
   property bool fresh: false
   property bool current: false
@@ -86,7 +87,8 @@ Item {
 
       width: root.image !== "" ? Style.space(112) : Style.space(38)
       height: root.image !== "" ? Style.space(63) : Style.space(38)
-      source: root.image
+      source: root.image !== "" ? root.image : root.avatar
+      round: root.image === "" && root.avatar !== ""
       glyph: root.platformGlyph
       video: root.platformGlyph === "\uf04b"
       fontFamily: root.fontFamily
@@ -112,11 +114,23 @@ Item {
           }
         }
 
+        Thumbnail {
+          id: miniAvatar
+
+          visible: root.image !== "" && root.avatar !== "" && !root.editing
+          anchors.verticalCenter: titleText.verticalCenter
+          width: Style.space(18)
+          height: width
+          round: true
+          source: visible ? root.avatar : ""
+          fontFamily: root.fontFamily
+        }
+
         Text {
           id: titleText
 
           visible: !root.editing
-          width: Math.min(implicitWidth, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0))
+          width: Math.min(implicitWidth, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0) - (miniAvatar.visible ? miniAvatar.width + parent.spacing : 0))
           text: root.title
           textFormat: Text.PlainText
           wrapMode: Text.Wrap

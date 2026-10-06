@@ -10,11 +10,12 @@ ClippingRectangle {
   property string source: ""
   property string glyph: ""
   property bool video: false
+  property bool round: false
   property string fontFamily: Style.font.family
 
   readonly property bool hasPicture: picture.status === Image.Ready
 
-  radius: Style.space(9)
+  radius: round ? width / 2 : Style.space(9)
   color: Util.alpha(Color.popups.text, 0.08)
 
   Text {

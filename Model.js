@@ -80,6 +80,7 @@ function normalizeSettings (raw) {
     refreshIntervalSec: interval,
     syncCheckCommand: text(raw.syncCheckCommand),
     obsidianSync: raw.obsidianSync !== false && raw.obsidianSync !== 'false',
+    tweetPreviews: raw.tweetPreviews === true || raw.tweetPreviews === 'true',
     lists: lists,
     errors: errors
   }
@@ -128,6 +129,15 @@ function freshKeys (previousPayload, nextPayload) {
   var before = {}
   itemKeys(previousPayload).forEach(function (k) { before[k] = true })
   return itemKeys(nextPayload).filter(function (k) { return !before[k] })
+}
+
+// Whether a folder item still waits for its tweet preview. The helper marks
+// an item pending only until a fetch succeeded or failed, so asking for the
+// previews again never loops.
+function previewsPending (payload) {
+  return (toArray(payload && payload.lists) || []).some(function (list) {
+    return (toArray(list.items) || []).some(function (item) { return item.previewPending === true })
+  })
 }
 
 // Unseen items: what arrived since the popup was last opened. Keys that left
@@ -240,6 +250,7 @@ if (typeof module !== 'undefined') {
     freshKeys: freshKeys,
     freshInBadgeLists: freshInBadgeLists,
     mergeUnseen: mergeUnseen,
+    previewsPending: previewsPending,
     relativeAge: relativeAge,
     clockText: clockText,
     tooltipText: tooltipText,

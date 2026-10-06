@@ -35,7 +35,8 @@
       "vaultPath": "",
       "refreshIntervalSec": 10,
       "syncCheckCommand": "",
-      "obsidianSync": true
+      "obsidianSync": true,
+      "tweetPreviews": false
     },
     "schema": [
       {
@@ -67,6 +68,13 @@
         "label": "Guide the Obsidian Sync setup",
         "defaultValue": true,
         "description": "Show the steps to keep the vault in sync with Obsidian Headless while the Obsidian app is closed."
+      },
+      {
+        "key": "tweetPreviews",
+        "type": "boolean",
+        "label": "Tweet previews (fxtwitter.com)",
+        "defaultValue": false,
+        "description": "Show the author picture and the first photo of saved tweets. The plugin asks api.fxtwitter.com once per tweet, so that service sees the tweet links you save."
       }
     ]
   }

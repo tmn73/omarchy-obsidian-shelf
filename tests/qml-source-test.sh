@@ -203,6 +203,14 @@ has "Thumbnail.qml" "Image.Ready" "Thumbnail.qml does not fall back while the pi
 has "FolderRow.qml" "Thumbnail" "FolderRow.qml shows no thumbnail"
 has "FolderList.qml" "required image" "FolderList.qml does not pass the image to the row"
 
+# ---- Tweet previews
+has "Service.qml" '"enrich"' "Service.qml never asks the helper for tweet previews"
+has "Service.qml" "previewsPending" "Service.qml asks for previews without checking what is pending"
+has "Service.qml" "tweetPreviews" "Service.qml ignores the tweet previews setting"
+has "Thumbnail.qml" "property bool round" "Thumbnail.qml cannot draw a round avatar"
+has "FolderRow.qml" "property string avatar" "FolderRow.qml has no avatar"
+has "FolderList.qml" "required avatar" "FolderList.qml does not pass the avatar to the row"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

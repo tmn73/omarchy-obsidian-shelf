@@ -76,6 +76,7 @@ ListStateFrame {
       required url
       required domain
       required image
+      required avatar
       required modifiedAt
 
       width: view.width

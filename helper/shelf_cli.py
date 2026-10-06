@@ -13,6 +13,7 @@ from pathlib import Path
 from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_checklist, remove_checklist
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
+import shelf_previews
 import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 
@@ -31,9 +32,10 @@ class Parser(argparse.ArgumentParser):
 def build_parser() -> Parser:
     parser = Parser(prog="obsidian-shelf", add_help=False)
     commands = parser.add_subparsers(dest="command", parser_class=Parser)
-    read = commands.add_parser("read", add_help=False)
-    read.add_argument("--vault", required=True)
-    read.add_argument("--lists", required=True)
+    for name in ("read", "enrich"):
+        sub = commands.add_parser(name, add_help=False)
+        sub.add_argument("--vault", required=True)
+        sub.add_argument("--lists", required=True)
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
@@ -48,12 +50,20 @@ def build_parser() -> Parser:
     return parser
 
 
+def preview_cache() -> Path:
+    home = Path(os.environ.get("HOME", str(Path.home())))
+    return Path(os.environ.get("XDG_CACHE_HOME") or home / ".cache") / "obsidian-shelf" / "previews.json"
+
+
 def read_lists(vault: Path, lists: list) -> dict:
+    previews = shelf_previews.load_cache(preview_cache())
     out = []
     for cfg in lists:
         reader = READERS.get(cfg.get("type"))
         if reader is None:
             out.append({"id": cfg.get("id", ""), "state": "error", "message": "Unknown list type"})
+        elif cfg.get("type") == "folder":
+            out.append(reader(vault, cfg, previews))
         else:
             out.append(reader(vault, cfg))
     stamp = datetime.now().astimezone().isoformat(timespec="seconds")
@@ -103,10 +113,12 @@ def main(argv: list, stdin) -> tuple:
         vault = Path(args.vault).expanduser()
         if args.command in ("sync-state", "sync-service"):
             return run_sync(args.command, vault)
-        if args.command == "read":
+        if args.command in ("read", "enrich"):
             lists = json.loads(args.lists)
             if not isinstance(lists, list):
                 raise ArgumentError("--lists must be a JSON array")
+            if args.command == "enrich":
+                return 0, shelf_previews.enrich(vault, lists, preview_cache())
             return 0, read_lists(vault, lists)
         cfg = json.loads(args.list)
         if not isinstance(cfg, dict) or not cfg.get("path"):

@@ -184,3 +184,17 @@ test('mergeUnseen adds new keys and keeps unseen keys that still exist', () => {
 test('mergeUnseen starts empty', () => {
   assert.deepEqual(Model.mergeUnseen(null, [], payload(['a'], [], [])), [])
 })
+
+test('normalizeSettings keeps tweet previews off unless asked', () => {
+  assert.equal(Model.normalizeSettings({}).tweetPreviews, false)
+  assert.equal(Model.normalizeSettings({ tweetPreviews: true }).tweetPreviews, true)
+  assert.equal(Model.normalizeSettings({ tweetPreviews: 'true' }).tweetPreviews, true)
+})
+
+test('previewsPending is true when a folder item still waits for its preview', () => {
+  const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a', previewPending: false }, { key: 'b', previewPending: true }] }] }
+  assert.equal(Model.previewsPending(p), true)
+  p.lists[0].items[1].previewPending = false
+  assert.equal(Model.previewsPending(p), false)
+  assert.equal(Model.previewsPending(null), false)
+})

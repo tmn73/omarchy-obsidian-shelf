@@ -97,6 +97,10 @@ Item {
     unseen = Model.mergeUnseen(unseen, added, data)
     payload = data
     error = ""
+    if (config.tweetPreviews && Model.previewsPending(data) && !enrichProcess.running) {
+      enrichProcess.command = [helperPath(), "enrich", "--vault", config.vaultPath, "--lists", JSON.stringify(config.lists)]
+      enrichProcess.running = true
+    }
     if (added.length > 0) {
       fresh = added
       freshTimer.restart()
@@ -238,6 +242,16 @@ Item {
       root.refresh()
       Qt.callLater(root.runNextAction)
     }
+  }
+
+  // Tweet previews come from the network, so they load after the lists: the
+  // rows show at once and pick up their pictures on the read that follows.
+  Process {
+    id: enrichProcess
+
+    running: false
+    command: []
+    onExited: function (exitCode) { root.refresh() }
   }
 
   Process {

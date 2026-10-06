@@ -94,6 +94,28 @@ class CliSyncTest(VaultCase):
         self.assertEqual(out["error"], "invalid")
 
 
+class CliPreviewTest(VaultCase):
+    def env(self):
+        return {"PATH": "/nonexistent", "HOME": str(self.vault), "XDG_CACHE_HOME": str(self.vault / "cache")}
+
+    def test_read_uses_the_preview_cache(self):
+        from unittest import mock
+        self.write("Read Later/w.md", "# [W](https://x.com/wesbos/status/1)\n")
+        cache = self.vault / "cache" / "obsidian-shelf" / "previews.json"
+        cache.parent.mkdir(parents=True)
+        cache.write_text(json.dumps({"https://api.fxtwitter.com/wesbos/status/1": {"avatar": "https://a/x.jpg", "image": ""}}), encoding="utf-8")
+        with mock.patch.dict("os.environ", self.env(), clear=True):
+            code, out = main(["read", "--vault", str(self.vault), "--lists", json.dumps([LATER])], io.StringIO(""))
+        self.assertEqual(out["lists"][0]["items"][0]["avatar"], "https://a/x.jpg")
+
+    def test_enrich_without_tweets_fetches_nothing(self):
+        from unittest import mock
+        self.write("Read Later/a.md", "# A\nhttps://example.org\n")
+        with mock.patch.dict("os.environ", self.env(), clear=True):
+            code, out = main(["enrich", "--vault", str(self.vault), "--lists", json.dumps([LATER])], io.StringIO(""))
+        self.assertEqual((code, out), (0, {"ok": True, "fetched": 0}))
+
+
 class ScriptHygieneTest(VaultCase):
     def test_script_does_not_write_bytecode_into_the_plugin(self):
         import shutil
