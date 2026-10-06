@@ -57,7 +57,7 @@ Open them with the gear in the popup.
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Vault folder | empty | The root folder of your lists. |
-| Refresh every | 30 s | Time between two reads, from 10 to 600 seconds. |
+| Refresh every | 10 s | Time between two reads, from 10 to 600 seconds. |
 | Sync check command | empty | A shell command that exits 0 while your sync works. When it fails, the chip shows a dot in the urgent color. |
 | Lists | the three above | Name, type, path, and whether the list counts in the bar. |
 

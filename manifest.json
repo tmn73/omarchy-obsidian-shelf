@@ -33,7 +33,7 @@
     "defaultSection": "right",
     "defaults": {
       "vaultPath": "",
-      "refreshIntervalSec": 30,
+      "refreshIntervalSec": 10,
       "syncCheckCommand": "",
       "obsidianSync": true
     },
@@ -52,7 +52,7 @@
         "min": 10,
         "max": 600,
         "step": 10,
-        "defaultValue": 30
+        "defaultValue": 10
       },
       {
         "key": "syncCheckCommand",

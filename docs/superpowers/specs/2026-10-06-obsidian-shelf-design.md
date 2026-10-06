@@ -64,7 +64,7 @@ own settings view.
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `vaultPath` | path | empty | Root folder. When empty, the settings view proposes the open vault from `~/.config/obsidian/obsidian.json`, and the user accepts it. |
-| `refreshIntervalSec` | integer, 10 to 600 | 30 | Time between two reads. |
+| `refreshIntervalSec` | integer, 10 to 600 | 10 | Time between two reads. |
 | `syncCheckCommand` | string | empty | Optional shell command. Exit code 0 means "sync is healthy". Empty means "no check". |
 | `lists` | JSON array | the three default lists | The tabs, in order. |
 

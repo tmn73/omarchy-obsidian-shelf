@@ -58,7 +58,7 @@ function normalizeSettings (raw) {
   raw = raw || {}
   var errors = []
   var interval = Math.round(Number(raw.refreshIntervalSec))
-  if (!isFinite(interval) || raw.refreshIntervalSec === '' || raw.refreshIntervalSec === undefined) interval = 30
+  if (!isFinite(interval) || raw.refreshIntervalSec === "" || raw.refreshIntervalSec === undefined) interval = 10
   interval = Math.min(600, Math.max(10, interval))
 
   var lists = []

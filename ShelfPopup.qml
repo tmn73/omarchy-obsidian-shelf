@@ -141,7 +141,7 @@ Item {
         id: settingsView
 
         width: parent.width
-        config: root.service ? root.service.config : ({ vaultPath: "", refreshIntervalSec: 30, syncCheckCommand: "", lists: [], errors: [] })
+        config: root.service ? root.service.config : ({ vaultPath: "", refreshIntervalSec: 10, syncCheckCommand: "", lists: [], errors: [] })
         fontFamily: root.fontFamily
         onSettingChanged: function (name, value) { root.settingChanged(name, value) }
       }

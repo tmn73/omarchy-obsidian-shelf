@@ -10,7 +10,7 @@ import qs.Ui
 FocusScope {
   id: root
 
-  property var config: ({ vaultPath: "", refreshIntervalSec: 30, syncCheckCommand: "", lists: [], errors: [] })
+  property var config: ({ vaultPath: "", refreshIntervalSec: 10, syncCheckCommand: "", lists: [], errors: [] })
   property string fontFamily: Style.font.family
   readonly property bool inputFocused: activeFocus
 

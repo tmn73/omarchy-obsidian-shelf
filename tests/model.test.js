@@ -27,7 +27,7 @@ test('normalizeSettings uses the default lists when lists is absent', () => {
   const config = Model.normalizeSettings({ vaultPath: '/v' })
   assert.deepEqual(config.lists.map(l => l.id), ['read-later', 'retro', 'todo'])
   assert.equal(config.vaultPath, '/v')
-  assert.equal(config.refreshIntervalSec, 30)
+  assert.equal(config.refreshIntervalSec, 10)
   assert.equal(config.syncCheckCommand, '')
   assert.deepEqual(config.errors, [])
 })
@@ -58,7 +58,7 @@ test('normalizeSettings drops duplicate ids and bad ids', () => {
 test('normalizeSettings clamps refreshIntervalSec to 10..600', () => {
   assert.equal(Model.normalizeSettings({ refreshIntervalSec: 2 }).refreshIntervalSec, 10)
   assert.equal(Model.normalizeSettings({ refreshIntervalSec: 9999 }).refreshIntervalSec, 600)
-  assert.equal(Model.normalizeSettings({ refreshIntervalSec: 'x' }).refreshIntervalSec, 30)
+  assert.equal(Model.normalizeSettings({ refreshIntervalSec: 'x' }).refreshIntervalSec, 10)
 })
 
 test('normalizeSettings defaults badge by type and onDone to delete', () => {
