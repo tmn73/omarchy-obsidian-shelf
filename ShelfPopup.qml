@@ -16,6 +16,7 @@ Item {
   property int activeIndex: 0
   property int openCount: 0
   property bool settingsOpen: false
+  property bool adding: false
   property Item addBar: addBarItem
   property string fontFamily: Style.font.family
 
@@ -29,7 +30,7 @@ Item {
   readonly property var activePayload: activeConfig && service ? Model.findList(service.payload, activeConfig.id) : null
   readonly property real maxListHeight: Style.space(470)
   readonly property var listSources: ({ folder: "FolderList.qml", checklist: "ChecklistList.qml", sections: "SectionsList.qml" })
-  readonly property bool canAdd: activeConfig !== null && activeConfig.type !== "folder" && !settingsOpen
+  readonly property bool canAdd: activeConfig !== null && activeConfig.type !== "folder" && !settingsOpen && !adding
   readonly property var sectionNames: {
     if (!activeConfig || activeConfig.type !== "sections" || !activePayload)
       return []
@@ -96,7 +97,19 @@ Item {
       root.addBar.focusInput()
   }
 
+  function openList(listId) {
+    adding = false
+    if (settingsOpen)
+      settingsToggled()
+    Qt.callLater(function () {
+      for (var i = 0; i < root.lists.length; i++)
+        if (root.lists[i].id === listId)
+          root.activeIndex = i
+    })
+  }
+
   function playOpen() {
+    adding = false
     openCount++
     dropIn.restart()
   }
@@ -130,7 +143,31 @@ Item {
 
     Flickable {
       width: parent.width
-      visible: root.settingsOpen
+      visible: root.adding
+      height: Math.min(addSheet.implicitHeight, Style.space(600))
+      contentHeight: addSheet.implicitHeight
+      clip: true
+      boundsBehavior: Flickable.StopAtBounds
+      interactive: contentHeight > height
+
+      Loader {
+        id: addSheet
+
+        width: parent.width
+        active: root.adding
+        sourceComponent: AddListSheet {
+          config: root.service ? root.service.config : ({ vaultPath: "", lists: [] })
+          fontFamily: root.fontFamily
+          onAdded: function (list) { root.settingChanged("lists", root.service.config.lists.concat([list])) }
+          onCancelled: root.adding = false
+          onOpenRequested: function (listId) { root.openList(listId) }
+        }
+      }
+    }
+
+    Flickable {
+      width: parent.width
+      visible: root.settingsOpen && !root.adding
       height: Math.min(settingsView.implicitHeight, Style.space(560))
       contentHeight: settingsView.implicitHeight
       clip: true
@@ -146,6 +183,7 @@ Item {
         syncGuide: root.syncGuide
         fontFamily: root.fontFamily
         onSettingChanged: function (name, value) { root.settingChanged(name, value) }
+        onAddListRequested: root.adding = true
       }
     }
 
@@ -159,7 +197,7 @@ Item {
 
     TabBar {
       width: parent.width
-      visible: !root.settingsOpen && root.lists.length > 0
+      visible: !root.settingsOpen && !root.adding && root.lists.length > 0
       tabs: root.tabModel()
       currentIndex: root.activeIndex
       fontFamily: root.fontFamily
@@ -170,7 +208,7 @@ Item {
       id: listArea
 
       width: parent.width
-      visible: !root.settingsOpen
+      visible: !root.settingsOpen && !root.adding
       height: Math.min(listLoader.item ? listLoader.item.contentHeightHint : Style.space(120), root.maxListHeight)
 
       Loader {

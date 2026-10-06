@@ -222,6 +222,17 @@ has "SettingsView.qml" "UndoToast" "SettingsView.qml offers no undo"
 has "SettingsView.qml" "stays in the vault" "SettingsView.qml does not say the file stays"
 has "VaultCard.qml" '"vaults"' "VaultCard.qml does not list the known vaults"
 
+# ---- Add a list (board 2)
+has "AddListSheet.qml" "Links to read or watch" "AddListSheet.qml lost the links kind"
+has "AddListSheet.qml" "A checklist" "AddListSheet.qml lost the checklist kind"
+has "AddListSheet.qml" "Notes by section" "AddListSheet.qml lost the sections kind"
+has "AddListSheet.qml" '"scan"' "AddListSheet.qml does not suggest lists found in the vault"
+has "AddListSheet.qml" '"create"' "AddListSheet.qml does not create the folder or file"
+has "AddListSheet.qml" "Model\\.newListId" "AddListSheet.qml does not make a unique id"
+has "AddListSheet.qml" "signal added" "AddListSheet.qml does not report the new list"
+has "AddListSheet.qml" "is on the shelf" "AddListSheet.qml has no done screen"
+has "ShelfPopup.qml" "AddListSheet" "ShelfPopup.qml does not open the add sheet"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
