@@ -7,6 +7,8 @@ object, so the tests drive it directly and bin/obsidian-shelf only prints.
 import argparse
 import json
 import os
+import shutil
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -15,6 +17,7 @@ from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
 import shelf_previews
+import shelf_reminders
 import shelf_seen
 import shelf_settings
 import shelf_sync
@@ -42,6 +45,10 @@ def build_parser() -> Parser:
         if name == "enrich":
             sub.add_argument("--previews", default="", help="comma list: tweets, links")
     commands.add_parser("vaults", add_help=False)
+    remind = commands.add_parser("remind", add_help=False)
+    remind.add_argument("--vault", required=True)
+    remind.add_argument("--lists", required=True)
+    remind.add_argument("--summary-time", default="09:00")
     seen = commands.add_parser("seen", add_help=False)
     seen.add_argument("--lists", required=True)
     scan = commands.add_parser("scan", add_help=False)
@@ -87,6 +94,34 @@ def preview_cache() -> Path:
 
 def seen_file() -> Path:
     return shelf_seen.state_file(os.environ, Path(os.environ.get("HOME", str(Path.home()))))
+
+
+def reminder_clock() -> datetime:
+    return datetime.now()
+
+
+def send_notification(message: dict) -> None:
+    try:
+        subprocess.run(shelf_reminders.notify_command(message, shutil.which), stdin=subprocess.DEVNULL,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def remind(vault: Path, lists: list, summary_time: str) -> dict:
+    if not shelf_reminders.CLOCK.match(summary_time):
+        raise ArgumentError("--summary-time is HH:MM")
+    boards = [cfg for cfg in lists if isinstance(cfg, dict) and cfg.get("type") == "board"]
+    payloads = [shelf_board.read_board(vault, cfg) for cfg in boards]
+    now = reminder_clock()
+    path = seen_file().parent / "reminders.json"
+
+    def compute(state):
+        return shelf_reminders.due(payloads, boards, state, now, summary_time)
+    try:
+        return shelf_reminders.run(path, compute, send_notification)
+    except OSError as err:
+        return fail("io", str(err))
 
 
 def settle_seen(lists: list, payloads: list) -> tuple:
@@ -214,6 +249,11 @@ def main(argv: list, stdin) -> tuple:
             return 0, shelf_settings.trash_list(vault, cfg)
         if args.command in ("sync-state", "sync-service"):
             return run_sync(args.command, vault)
+        if args.command == "remind":
+            lists = json.loads(args.lists)
+            if not isinstance(lists, list):
+                raise ArgumentError("--lists must be a JSON array")
+            return 0, remind(vault, lists, args.summary_time)
         if args.command in ("read", "enrich"):
             lists = json.loads(args.lists)
             if not isinstance(lists, list):
