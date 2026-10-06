@@ -61,6 +61,16 @@ class SettleTest(unittest.TestCase):
         self.assertEqual(seen["retro"]["keys"], ["Good\n- x"])
 
 
+class BoardKeysTest(unittest.TestCase):
+    def test_board_cards_are_keyed_in_every_lane(self):
+        board = {"id": "b", "type": "board", "path": "B.md"}
+        payload = {"id": "b", "state": "ok", "lanes": [
+            {"title": "To do", "complete": False, "items": [{"key": "a"}]},
+            {"title": "Done", "complete": True, "items": [{"key": "z"}]}]}
+        seen, _ = settle({}, [board], [payload])
+        self.assertEqual(seen["b"]["keys"], ["a", "z"])
+
+
 class LoadAndMarkTest(VaultCase):
     def test_a_missing_or_broken_file_loads_empty(self):
         path = self.vault / "state" / "seen.json"

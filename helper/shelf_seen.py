@@ -36,9 +36,8 @@ def load(path: Path) -> dict:
 
 def list_keys(payload: dict) -> list:
     """The item keys of one list, in the order the reader gave them."""
-    groups = [section.get("items") or [] for section in payload.get("sections") or []]
-    if "sections" not in payload:
-        groups = [payload.get("items") or []]
+    nested = "sections" if "sections" in payload else "lanes" if "lanes" in payload else ""
+    groups = [group.get("items") or [] for group in payload.get(nested) or []] if nested else [payload.get("items") or []]
     return [item["key"] for items in groups for item in items]
 
 

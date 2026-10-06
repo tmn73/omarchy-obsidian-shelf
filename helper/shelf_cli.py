@@ -10,6 +10,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import shelf_board
 from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_checklist, remove_checklist
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
@@ -19,7 +20,7 @@ import shelf_settings
 import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 
-READERS = {"folder": read_folder, "checklist": read_checklist, "sections": read_sections}
+READERS = {"folder": read_folder, "checklist": read_checklist, "sections": read_sections, "board": shelf_board.read_board}
 
 
 class ArgumentError(ValueError):
@@ -58,14 +59,19 @@ def build_parser() -> Parser:
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
-    for name in ("add", "done", "clear", "edit", "remove"):
+    for name in ("add", "done", "clear", "edit", "remove", "move", "date"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
         sub.add_argument("--list", required=True)
         if name == "add":
             sub.add_argument("--section", default=None)
-        if name in ("done", "edit", "remove"):
+        if name in ("done", "edit", "remove", "move", "date"):
             sub.add_argument("--item", required=True)
+        if name == "move":
+            sub.add_argument("--lane", required=True)
+        if name == "date":
+            sub.add_argument("--date", default="")
+            sub.add_argument("--time", default="")
     return parser
 
 
@@ -114,7 +120,29 @@ def read_lists(vault: Path, lists: list) -> dict:
     return {"ok": True, "readAt": stamp, "lists": out, "seen": seen, "seenPath": str(path)}
 
 
+def run_board(args, vault: Path, cfg: dict, stdin) -> dict:
+    if args.command == "add":
+        if not args.section:
+            raise ArgumentError("add on a board needs --section, the lane")
+        return shelf_board.add_board(vault, cfg, args.section, stdin.read())
+    if args.command == "move":
+        return shelf_board.move_board(vault, cfg, args.item, args.lane)
+    if args.command == "date":
+        today = datetime.now().astimezone().date().isoformat()
+        return shelf_board.date_board(vault, cfg, args.item, args.date, args.time, today)
+    if args.command == "edit":
+        return shelf_board.edit_board(vault, cfg, args.item, stdin.read())
+    if args.command == "clear":
+        return shelf_board.clear_board(vault, cfg)
+    actions = {"done": shelf_board.done_board, "remove": shelf_board.remove_board}
+    return actions[args.command](vault, cfg, args.item)
+
+
 def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
+    if cfg.get("type") == "board":
+        return run_board(args, vault, cfg, stdin)
+    if args.command in ("move", "date"):
+        raise ArgumentError(f"{args.command} applies to a board only")
     kind = (args.command, cfg.get("type"))
     if kind == ("add", "checklist"):
         return add_checklist(vault, cfg, stdin.read())

@@ -93,6 +93,13 @@ function findList (payload, id) {
 
 function listItemCount (listPayload) {
   if (!listPayload || listPayload.state !== 'ok') return 0
+  var lanes = toArray(listPayload.lanes)
+  if (lanes) {
+    // A board counts what waits: the cards of the lanes that are not Complete.
+    return lanes.reduce(function (sum, lane) {
+      return sum + (lane.complete ? 0 : (toArray(lane.items) || []).length)
+    }, 0)
+  }
   var sections = toArray(listPayload.sections)
   if (sections) {
     var total = 0
@@ -112,7 +119,7 @@ function badgeCount (payload, lists) {
 
 // The item keys of one list, without its id.
 function listKeys (list) {
-  var sections = toArray(list.sections)
+  var sections = toArray(list.sections) || toArray(list.lanes)
   var groups = sections ? sections.map(function (s) { return toArray(s.items) || [] }) : [toArray(list.items) || []]
   var keys = []
   groups.forEach(function (items) {

@@ -279,3 +279,24 @@ test('phoneHowTo gives the setting that makes each capture land right', () => {
   assert.match(Model.phoneHowTo(THREE[1]), /Choose heading when capturing/)
   assert.match(Model.phoneHowTo(THREE[1]), /Settings > Interface > Configure mobile Quick Action/)
 })
+
+// ---- Boards
+
+const BOARD = {
+  id: 'b',
+  state: 'ok',
+  datesOn: true,
+  lanes: [
+    { title: 'To do', complete: false, items: [{ key: 'a', text: 'a', date: '', time: '', checked: false }] },
+    { title: 'In progress', complete: false, items: [{ key: 'b', text: 'b', date: '2026-10-06', time: '14:00', checked: false }] },
+    { title: 'Done', complete: true, items: [{ key: 'z', text: 'z', date: '', time: '', checked: true }] }
+  ]
+}
+
+test('a board counts the cards of its open lanes', () => {
+  assert.equal(Model.listItemCount(BOARD), 2)
+})
+
+test('board cards have keys in every lane', () => {
+  assert.deepEqual(Model.itemKeys({ lists: [BOARD] }), ['b\u0000a', 'b\u0000b', 'b\u0000z'])
+})

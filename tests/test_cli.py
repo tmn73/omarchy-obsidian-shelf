@@ -77,6 +77,34 @@ class CliTest(VaultCase):
         self.assertEqual(json.loads(result.stdout)["lists"][0]["items"][0]["text"], "a")
 
 
+
+class CliBoardTest(VaultCase):
+    BOARD_CFG = {"id": "b", "name": "B", "type": "board", "path": "B.md"}
+
+    def run_cli(self, *argv, stdin=""):
+        return main(list(argv), io.StringIO(stdin))
+
+    def base(self):
+        return ["--vault", str(self.vault), "--list", json.dumps(self.BOARD_CFG)]
+
+    def test_read_gives_the_lanes(self):
+        self.write("B.md", "## To do\n- [ ] a\n")
+        code, out = self.run_cli("read", "--vault", str(self.vault), "--lists", json.dumps([self.BOARD_CFG]))
+        self.assertEqual(out["lists"][0]["lanes"][0]["items"][0]["key"], "a")
+
+    def test_add_move_date_and_done_dispatch(self):
+        self.write("B.md", "## To do\n\n## Doing\n\n## Done\n**Complete**\n")
+        self.assertEqual(self.run_cli("add", *self.base(), "--section", "To do", stdin="a")[1], {"ok": True})
+        self.assertEqual(self.run_cli("move", *self.base(), "--item", "a", "--lane", "Doing")[1], {"ok": True})
+        self.assertEqual(self.run_cli("date", *self.base(), "--item", "a", "--date", "2026-10-09", "--time", "")[1], {"ok": True})
+        self.assertEqual(self.run_cli("done", *self.base(), "--item", "a")[1], {"ok": True})
+        self.assertEqual(self.read("B.md"), "## To do\n\n## Doing\n\n## Done\n**Complete**\n- [x] a @{2026-10-09}\n")
+
+    def test_move_on_a_checklist_is_invalid(self):
+        self.write("Todo.md", "- [ ] a\n")
+        code, out = self.run_cli("move", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a", "--lane", "x")
+        self.assertEqual((code, out["error"]), (2, "invalid"))
+
 class CliSyncTest(VaultCase):
     def test_sync_state_reports_the_next_step(self):
         from unittest import mock
