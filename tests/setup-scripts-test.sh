@@ -23,7 +23,7 @@ exit "${code:-0}"
 EOF
 chmod 755 "$WORK/ob"
 export OB_CALLS="$WORK/calls" OB_CODES="$WORK/codes" OB_REMOTE="$WORK/remote"
-ONE='{"vaults":[{"id":"a8c4","name":"Tommy'"'"'s Vault","region":"North America"}],"shared":[]}'
+ONE='{"vaults":[{"id":"v1","name":"Sam'"'"'s Vault","region":"North America"}],"shared":[]}'
 TWO='{"vaults":[{"id":"v1","name":"Work","region":"Europe"},{"id":"v2","name":"Home","region":"Europe"}],"shared":[]}'
 NONE='{"vaults":[],"shared":[]}'
 
@@ -56,8 +56,8 @@ run obsidian-shelf-login '' 1
 echo "$ONE" > "$OB_REMOTE"
 run obsidian-shelf-link 'y\n' 0
 [[ $status -eq 0 ]] || fail "link: confirming the only vault should exit 0, got $status"
-[[ $output == *"Tommy's Vault"* ]] || fail "link: the only vault is not named in the question"
-grep -q -- "sync-setup --vault a8c4 --path $WORK/vault dir" "$OB_CALLS" || fail "link: sync-setup did not get the vault id and the folder"
+[[ $output == *"Sam's Vault"* ]] || fail "link: the only vault is not named in the question"
+grep -q -- "sync-setup --vault v1 --path $WORK/vault dir" "$OB_CALLS" || fail "link: sync-setup did not get the vault id and the folder"
 
 run obsidian-shelf-link 'n\n' 0
 [[ $status -eq 130 ]] || fail "link: answering no should stop with 130, got $status"

@@ -4,7 +4,6 @@ Obsidian Shelf puts lists from your Obsidian vault in the Omarchy bar. You save
 links, tasks and notes on your phone, and you handle them from the desktop
 without opening Obsidian.
 
-![Obsidian Shelf](preview.png)
 
 ## What it does
 

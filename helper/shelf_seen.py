@@ -5,7 +5,10 @@ so closing the popup on one screen clears the chip on all of them, and a shell
 restart keeps it. The file holds, for each list, the vault path the keys were
 read from and the item keys:
 
-    {"todo": {"path": "Todo.md", "keys": ["- [ ] a"]}}
+    {"todo": {"path": "Todo.md", "type": "checklist", "keys": ["- [ ] a"]}}
+
+A list read from another path, or as another type, starts over: its keys
+mean something else.
 """
 
 import json
@@ -31,6 +34,8 @@ def load(path: Path) -> dict:
     for list_id, entry in data.items():
         if isinstance(entry, dict) and isinstance(entry.get("path"), str) and isinstance(entry.get("keys"), list):
             out[list_id] = {"path": entry["path"], "keys": [str(k) for k in entry["keys"]]}
+            if isinstance(entry.get("type"), str):
+                out[list_id]["type"] = entry["type"]
     return out
 
 
@@ -57,8 +62,12 @@ def settle(seen: dict, lists: list, payloads: list) -> tuple:
         if payload is None or payload.get("state") != "ok":
             continue
         entry = out.get(cfg["id"])
-        if entry is None or entry["path"] != cfg.get("path"):
-            out[cfg["id"]] = {"path": cfg.get("path", ""), "keys": list_keys(payload)}
+        kind = cfg.get("type", "")
+        if entry is None or entry["path"] != cfg.get("path") or entry.get("type", kind) != kind:
+            out[cfg["id"]] = {"path": cfg.get("path", ""), "type": kind, "keys": list_keys(payload)}
+            changed = True
+        elif "type" not in entry:
+            out[cfg["id"]] = dict(entry, type=kind)
             changed = True
     return out, changed
 
@@ -71,10 +80,11 @@ def save(path: Path, seen: dict) -> None:
 
 def mark(path: Path, lists: list, keys_by_list: dict) -> dict:
     """Store the keys the user has just seen, for the lists on the shelf."""
-    paths = {cfg.get("id"): cfg.get("path", "") for cfg in lists}
+    configs = {cfg.get("id"): cfg for cfg in lists}
     seen = load(path)
     for list_id, keys in keys_by_list.items():
-        if list_id in paths:
-            seen[list_id] = {"path": paths[list_id], "keys": [str(k) for k in keys]}
+        if list_id in configs:
+            cfg = configs[list_id]
+            seen[list_id] = {"path": cfg.get("path", ""), "type": cfg.get("type", ""), "keys": [str(k) for k in keys]}
     save(path, seen)
     return ok()
