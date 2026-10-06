@@ -32,16 +32,34 @@ ListStateFrame {
   }
 
   function doneCurrent() {
-    var item = currentItem()
-    if (item)
-      markSeen(item.key)
+    removeCurrent()
   }
 
-  function markSeen(key) {
+  function removeCurrent() {
+    var item = currentItem()
+    if (item)
+      removeNote(item.key)
+  }
+
+  function editCurrent() {
+    if (view.currentItem && view.currentItem.startEdit)
+      view.currentItem.startEdit()
+  }
+
+  function removeNote(key) {
     if (!service || !listConfig)
       return
     view.keyedModel.removeKey(key)
-    service.act("done", listConfig.id, { item: key })
+    service.act("remove", listConfig.id, { item: key })
+  }
+
+  function saveTitle(key, text) {
+    editingKey = ""
+    for (var i = 0; i < view.count; i++) {
+      if (view.keyedModel.get(i).key === key)
+        view.keyedModel.setProperty(i, "title", text)
+    }
+    service.act("edit", listConfig.id, { item: key, text: text })
   }
 
   ShelfListView {
@@ -63,8 +81,12 @@ ListStateFrame {
       current: index === view.currentIndex
       fresh: root.service ? root.service.fresh.indexOf(root.listConfig.id + Model.KEY_SEPARATOR + key) >= 0 : false
       fontFamily: root.fontFamily
+      editing: root.editingKey === key
       onOpenRequested: root.service.openUrl(url)
-      onDoneRequested: root.markSeen(key)
+      onRemoveRequested: root.removeNote(key)
+      onEditRequested: root.editingKey = key
+      onSaved: function (text) { root.saveTitle(key, text) }
+      onCancelled: root.editingKey = ""
     }
   }
 }

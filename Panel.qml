@@ -100,13 +100,17 @@ Panel {
       blocked: popup.inputFocused
       onMoveRequested: function (dx, dy) { if (dy !== 0) popup.moveHighlight(dy) }
       onActivateRequested: popup.activateCurrent()
-      onDeleteRequested: popup.doneCurrent()
+      onDeleteRequested: popup.removeCurrent()
       onCloseRequested: root.close()
       onTabRequested: function (direction) { popup.nextTab(direction) }
       onTextKey: function (character) {
         var key = String(character || "").toLowerCase()
         if (key === "d")
           popup.doneCurrent()
+        else if (key === "e")
+          Qt.callLater(popup.editCurrent)
+        else if (key === "x")
+          popup.removeCurrent()
         else if (key === "a")
           Qt.callLater(popup.focusAdd)
         else if (key === "r")

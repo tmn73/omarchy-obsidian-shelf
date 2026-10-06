@@ -1,12 +1,13 @@
 """The `folder` list type: one note in a folder is one item."""
 
+import json
 import os
 import re
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-from shelf_io import OutsideVault, fail, locate, locate_for_write, ok, read_text, resolve_in_vault
+from shelf_io import OutsideVault, atomic_write, fail, locate, locate_for_write, ok, one_line, read_text, resolve_in_vault
 
 FRONT_MATTER_URL_KEYS = ("url", "source", "link")
 URL_RE = re.compile(r"https?://[^\s)>\]]+")
@@ -26,16 +27,28 @@ def split_front_matter(text: str):
             for line in lines[1:end]:
                 key, sep, value = line.partition(":")
                 if sep:
-                    meta[key.strip().lower()] = value.strip().strip("\"'")
+                    meta[key.strip().lower()] = front_matter_value(value)
             return meta, "\n".join(lines[end + 1:])
     return {}, text
+
+
+def front_matter_value(raw: str) -> str:
+    value = raw.strip()
+    if value.startswith('"'):
+        try:
+            return str(json.loads(value))
+        except ValueError:
+            pass
+    return value.strip("\"'")
 
 
 def reduce_links(text: str) -> str:
     return LINK_RE.sub(lambda m: m.group(1), text)
 
 
-def note_title(body: str, fallback: str) -> str:
+def note_title(meta: dict, body: str, fallback: str) -> str:
+    if meta.get("title"):
+        return meta["title"]
     for line in body.split("\n"):
         if line.startswith("# "):
             title = reduce_links(line[2:]).strip()
@@ -82,7 +95,7 @@ def folder_item(vault_root: Path, path: Path) -> dict:
     url = note_url(meta, body)
     return {
         "key": path.relative_to(vault_root).as_posix(),
-        "title": note_title(body, path.stem),
+        "title": note_title(meta, body, path.stem),
         "excerpt": note_excerpt(body),
         "url": url,
         "domain": url_domain(url),
@@ -114,19 +127,27 @@ def trash_target(trash: Path, name: str) -> Path:
     return candidate
 
 
-def done_folder(vault: Path, cfg: dict, key: str) -> dict:
-    """Move one note of the folder to the Obsidian trash of the vault."""
+def locate_note(vault: Path, cfg: dict, key: str):
+    """Return (note path, None), or (None, an action failure)."""
     folder, problem = locate_for_write(vault, cfg, want_dir=True)
     if problem:
-        return problem
+        return None, problem
     try:
         note = resolve_in_vault(vault, key)
     except OutsideVault as err:
-        return fail("invalid", str(err))
+        return None, fail("invalid", str(err))
     if note.parent != folder or note.suffix != ".md":
-        return fail("invalid", f"{key} is not a note of {cfg['path']}")
+        return None, fail("invalid", f"{key} is not a note of {cfg['path']}")
     if not note.is_file():
-        return fail("changed", f"{key} is no longer there")
+        return None, fail("changed", f"{key} is no longer there")
+    return note, None
+
+
+def done_folder(vault: Path, cfg: dict, key: str) -> dict:
+    """Move one note of the folder to the Obsidian trash of the vault."""
+    note, problem = locate_note(vault, cfg, key)
+    if problem:
+        return problem
     trash = Path(vault).resolve() / ".trash"
     try:
         trash.mkdir(exist_ok=True)
@@ -134,3 +155,40 @@ def done_folder(vault: Path, cfg: dict, key: str) -> dict:
     except OSError as err:
         return fail("io", str(err))
     return ok()
+
+
+def edit_folder(vault: Path, cfg: dict, key: str, text: str) -> dict:
+    """Set the title shown for a note in the `title` key of its front matter.
+
+    The body stays as it is: a ReadItLater heading is a link, and rewriting it
+    would lose the link.
+    """
+    text = one_line(text)
+    if not text:
+        return fail("invalid", "The text is empty")
+    note, problem = locate_note(vault, cfg, key)
+    if problem:
+        return problem
+    title_line = "title: " + json.dumps(text, ensure_ascii=False)
+    try:
+        lines = read_text(note).split("\n")
+        end = front_matter_end(lines)
+        if end is None:
+            lines = ["---", title_line, "---"] + lines
+        else:
+            kept = [line for line in lines[1:end] if line.partition(":")[0].strip().lower() != "title"]
+            lines = ["---", title_line] + kept + lines[end:]
+        atomic_write(note, "\n".join(lines))
+    except OSError as err:
+        return fail("io", str(err))
+    return ok()
+
+
+def front_matter_end(lines: list):
+    """The index of the closing `---` of a leading front matter block, or None."""
+    if not lines or lines[0].strip() != "---":
+        return None
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return index
+    return None

@@ -79,3 +79,39 @@ def clear_sections(vault: Path, cfg: dict) -> dict:
             continue
         kept.append(line)
     return write_lines(path, kept)
+
+
+def rewrite_topic(vault: Path, cfg: dict, key: str, change) -> dict:
+    """Re-read the file, find the topic in its section by text, apply change(lines, index)."""
+    heading, sep, line = str(key).partition("\n")
+    if not sep:
+        return fail("invalid", "A topic key is the heading, a newline, then the line")
+    path, problem = locate_for_write(vault, cfg)
+    if problem:
+        return problem
+    try:
+        lines = read_text(path).split("\n")
+    except OSError as err:
+        return fail("io", str(err))
+    section = next((s for s in parse_sections(lines) if s["heading"] == heading), None)
+    match = next((i for i in section["items"] if lines[i["line"]] == line), None) if section else None
+    if match is None:
+        return fail("changed", "The topic is no longer there")
+    return write_lines(path, change(lines, match["line"], line))
+
+
+def remove_sections(vault: Path, cfg: dict, key: str) -> dict:
+    def change(lines, index, line):
+        del lines[index]
+        return lines
+    return rewrite_topic(vault, cfg, key, change)
+
+
+def edit_sections(vault: Path, cfg: dict, key: str, text: str) -> dict:
+    text = one_line(text)
+    if not text:
+        return fail("invalid", "The text is empty")
+    def change(lines, index, line):
+        lines[index] = line[:2] + text
+        return lines
+    return rewrite_topic(vault, cfg, key, change)

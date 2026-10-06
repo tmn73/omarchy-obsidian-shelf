@@ -39,4 +39,16 @@ ListModel {
     }
     return false
   }
+
+  // An edit keeps the row in place: swap its key and roles, so the next sync
+  // finds the new key already there and plays no motion.
+  function replaceKey(oldKey, item) {
+    for (var i = 0; i < count; i++) {
+      if (get(i).key === oldKey) {
+        set(i, item)
+        return true
+      }
+    }
+    return false
+  }
 }

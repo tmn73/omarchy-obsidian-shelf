@@ -26,6 +26,21 @@ ListStateFrame {
   function moveHighlight(dy) {}
   function activateCurrent() {}
   function doneCurrent() {}
+  function editCurrent() {}
+  function removeCurrent() {}
+
+  function removeTopic(column, key) {
+    if (!service || !listConfig)
+      return
+    column.removeKey(key)
+    service.act("remove", listConfig.id, { item: key })
+  }
+
+  function saveTopic(column, key, oldText, text) {
+    editingKey = ""
+    column.replaceKey(key, { key: editedKey(key, oldText, text), text: text })
+    service.act("edit", listConfig.id, { item: key, text: text })
+  }
 
   function clearAll() {
     if (!service || !listConfig)
@@ -69,6 +84,14 @@ ListStateFrame {
 
             function sweep() {
               view.syncItems([])
+            }
+
+            function removeKey(key) {
+              view.keyedModel.removeKey(key)
+            }
+
+            function replaceKey(key, item) {
+              view.keyedModel.replaceKey(key, item)
             }
 
             width: (body.width - root.gap * (root.columnCount - 1)) / root.columnCount
@@ -118,27 +141,17 @@ ListStateFrame {
               interactive: false
               spacing: Style.space(8)
 
-              delegate: Rectangle {
-                required property string text
+              delegate: TopicCard {
+                required property string key
+                required text
 
                 width: view.width
-                height: topic.implicitHeight + Style.space(16)
-                radius: Style.space(8)
-                color: Util.alpha(Color.popups.text, 0.05)
-
-                Text {
-                  id: topic
-
-                  x: Style.space(10)
-                  width: parent.width - Style.space(20)
-                  anchors.verticalCenter: parent.verticalCenter
-                  text: parent.text
-                  textFormat: Text.PlainText
-                  wrapMode: Text.Wrap
-                  color: Color.popups.text
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.body
-                }
+                fontFamily: root.fontFamily
+                editing: root.editingKey === key
+                onRemoveRequested: root.removeTopic(column, key)
+                onEditRequested: root.editingKey = key
+                onSaved: function (newText) { root.saveTopic(column, key, text, newText) }
+                onCancelled: root.editingKey = ""
               }
             }
 

@@ -3,6 +3,7 @@ import qs.Commons
 
 // One todo. A tick fills the box, draws the check and strikes the text; the
 // row then asks the list to remove it, so the leave motion follows the tick.
+// Edit and remove show on hover.
 Item {
   id: root
 
@@ -10,8 +11,17 @@ Item {
   property bool current: false
   property string fontFamily: Style.font.family
   property bool ticking: false
+  property bool editing: false
 
   signal tickRequested()
+  signal removeRequested()
+  signal editRequested()
+  signal saved(string text)
+  signal cancelled()
+
+  function startEdit() {
+    root.editRequested()
+  }
 
   implicitHeight: Math.max(label.implicitHeight, box.height) + Style.space(18)
 
@@ -25,17 +35,13 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Style.space(9)
-    color: hover.containsMouse || root.current ? Util.alpha(Color.popups.text, 0.05) : "transparent"
+    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.05) : "transparent"
 
     Behavior on color { ColorAnimation { duration: Style.duration(150) } }
   }
 
-  MouseArea {
+  HoverHandler {
     id: hover
-
-    anchors.fill: parent
-    hoverEnabled: true
-    acceptedButtons: Qt.NoButton
   }
 
   MouseArea {
@@ -85,13 +91,42 @@ Item {
     }
   }
 
+  HoverActions {
+    id: actions
+
+    anchors.right: parent.right
+    anchors.rightMargin: Style.space(6)
+    anchors.verticalCenter: parent.verticalCenter
+    shown: (hover.hovered || root.current) && !root.ticking && !root.editing
+    fontFamily: root.fontFamily
+    onEditClicked: root.startEdit()
+    onRemoveClicked: root.removeRequested()
+  }
+
+  Loader {
+    anchors.left: box.right
+    anchors.leftMargin: Style.space(12)
+    anchors.right: actions.left
+    anchors.rightMargin: Style.space(8)
+    anchors.verticalCenter: parent.verticalCenter
+    active: root.editing
+    visible: active
+    sourceComponent: InlineEditor {
+      initialText: root.text
+      font.family: root.fontFamily
+      onSaved: function (text) { root.saved(text) }
+      onCancelled: root.cancelled()
+    }
+  }
+
   Text {
     id: label
 
+    visible: !root.editing
     anchors.left: box.right
     anchors.leftMargin: Style.space(12)
-    anchors.right: parent.right
-    anchors.rightMargin: Style.space(10)
+    anchors.right: actions.left
+    anchors.rightMargin: Style.space(8)
     anchors.verticalCenter: parent.verticalCenter
     text: root.text
     textFormat: Text.PlainText

@@ -16,6 +16,8 @@ Item {
   property bool showRows: false
   property string emptyTitle: ""
   property string emptyText: ""
+  property string editingKey: ""
+  readonly property bool editing: editingKey !== ""
 
   signal settingsRequested()
 
@@ -25,6 +27,13 @@ Item {
   function moveHighlight(dy) {}
   function activateCurrent() {}
   function doneCurrent() {}
+  function editCurrent() {}
+  function removeCurrent() {}
+
+  // The key a line gets after an edit: the same prefix, the new text.
+  function editedKey(key, oldText, newText) {
+    return key.slice(0, key.length - oldText.length) + newText
+  }
 
   Component.onCompleted: paneIn.start()
 

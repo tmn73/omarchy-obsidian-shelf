@@ -20,7 +20,7 @@ Item {
   signal settingsToggled()
   signal settingChanged(string name, var value)
 
-  readonly property bool inputFocused: addBarItem.inputFocused || settingsView.inputFocused
+  readonly property bool inputFocused: addBarItem.inputFocused || settingsView.inputFocused || (listLoader.item ? listLoader.item.editing === true : false)
 
   readonly property var lists: service ? service.config.lists : []
   readonly property var activeConfig: lists.length > 0 ? lists[Math.min(activeIndex, lists.length - 1)] : null
@@ -76,6 +76,16 @@ Item {
   function doneCurrent() {
     if (listLoader.item && listLoader.item.doneCurrent)
       listLoader.item.doneCurrent()
+  }
+
+  function editCurrent() {
+    if (listLoader.item && listLoader.item.editCurrent)
+      listLoader.item.editCurrent()
+  }
+
+  function removeCurrent() {
+    if (listLoader.item && listLoader.item.removeCurrent)
+      listLoader.item.removeCurrent()
   }
 
   function focusAdd() {

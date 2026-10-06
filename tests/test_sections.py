@@ -1,6 +1,6 @@
 import unittest
 
-from shelf_sections import add_sections, clear_sections, read_sections
+from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 from tests.vault_case import VaultCase
 
 RETRO = "## Good\n\n## Bad\n- canal payments-sandbox-staging-errors\n- Meilleur logs payment-service car pas d'accès aws\n"
@@ -80,6 +80,29 @@ class SectionsActionTest(VaultCase):
     def test_clear_missing_file_returns_missing(self):
         self.assertEqual(clear_sections(self.vault, CFG)["error"], "missing")
 
+
+
+class SectionsEditRemoveTest(VaultCase):
+    TWO = "## Good\n- same\n\n## Bad\n- same\n- other\n"
+
+    def test_remove_topic_of_the_given_section_only(self):
+        self.write("Retrospective.md", self.TWO)
+        self.assertEqual(remove_sections(self.vault, CFG, "Bad\n- same"), {"ok": True})
+        self.assertEqual(self.read("Retrospective.md"), "## Good\n- same\n\n## Bad\n- other\n")
+
+    def test_remove_unknown_topic_returns_changed(self):
+        self.write("Retrospective.md", self.TWO)
+        self.assertEqual(remove_sections(self.vault, CFG, "Bad\n- gone")["error"], "changed")
+        self.assertEqual(remove_sections(self.vault, CFG, "Ugly\n- same")["error"], "changed")
+
+    def test_edit_topic_of_the_given_section_only(self):
+        self.write("Retrospective.md", self.TWO)
+        self.assertEqual(edit_sections(self.vault, CFG, "Good\n- same", "better"), {"ok": True})
+        self.assertEqual(self.read("Retrospective.md"), "## Good\n- better\n\n## Bad\n- same\n- other\n")
+
+    def test_edit_key_without_newline_is_invalid(self):
+        self.write("Retrospective.md", self.TWO)
+        self.assertEqual(edit_sections(self.vault, CFG, "same", "x")["error"], "invalid")
 
 if __name__ == "__main__":
     unittest.main()

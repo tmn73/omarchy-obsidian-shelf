@@ -9,10 +9,10 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from shelf_checklist import add_checklist, done_checklist, read_checklist
-from shelf_folder import done_folder, read_folder
+from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_checklist, remove_checklist
+from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
-from shelf_sections import add_sections, clear_sections, read_sections
+from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 
 READERS = {"folder": read_folder, "checklist": read_checklist, "sections": read_sections}
 
@@ -32,13 +32,13 @@ def build_parser() -> Parser:
     read = commands.add_parser("read", add_help=False)
     read.add_argument("--vault", required=True)
     read.add_argument("--lists", required=True)
-    for name in ("add", "done", "clear"):
+    for name in ("add", "done", "clear", "edit", "remove"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
         sub.add_argument("--list", required=True)
         if name == "add":
             sub.add_argument("--section", default=None)
-        if name == "done":
+        if name in ("done", "edit", "remove"):
             sub.add_argument("--item", required=True)
     return parser
 
@@ -69,6 +69,12 @@ def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
         return done_checklist(vault, cfg, args.item)
     if kind == ("clear", "sections"):
         return clear_sections(vault, cfg)
+    removers = {"folder": done_folder, "checklist": remove_checklist, "sections": remove_sections}
+    editors = {"folder": edit_folder, "checklist": edit_checklist, "sections": edit_sections}
+    if args.command == "remove" and cfg.get("type") in removers:
+        return removers[cfg["type"]](vault, cfg, args.item)
+    if args.command == "edit" and cfg.get("type") in editors:
+        return editors[cfg["type"]](vault, cfg, args.item, stdin.read())
     raise ArgumentError(f"{args.command} does not apply to a {cfg.get('type')} list")
 
 

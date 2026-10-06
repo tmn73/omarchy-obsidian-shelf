@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from shelf_folder import done_folder, read_folder
+from shelf_folder import done_folder, edit_folder, read_folder
 
 TWEET = """[[ReadItLater]] [[Tweet]]
 
@@ -131,6 +131,34 @@ class FolderDoneTest(FolderCase):
             self.assertEqual(out["error"], "invalid", key)
         self.assertTrue((self.vault / "Todo.md").exists())
 
+
+
+class FolderEditTest(FolderCase):
+    def test_read_prefers_front_matter_title(self):
+        self.note("a.md", "---\ntitle: Witcher armor guide\n---\n" + TWEET)
+        self.assertEqual(self.items()[0]["title"], "Witcher armor guide")
+
+    def test_edit_adds_front_matter_title_and_keeps_body(self):
+        self.note("a.md", TWEET)
+        self.assertEqual(edit_folder(self.vault, CFG, "Read Later/a.md", "Roach"), {"ok": True})
+        text = (self.folder / "a.md").read_text(encoding="utf-8")
+        self.assertTrue(text.startswith('---\ntitle: "Roach"\n---\n'))
+        self.assertTrue(text.endswith(TWEET))
+        self.assertEqual(self.items()[0]["title"], "Roach")
+
+    def test_edit_replaces_existing_title_and_keeps_other_keys(self):
+        self.note("a.md", "---\nurl: https://example.org/a\ntitle: Old\n---\nBody\n")
+        edit_folder(self.vault, CFG, "Read Later/a.md", 'New "quoted": title')
+        item = self.items()[0]
+        self.assertEqual(item["title"], 'New "quoted": title')
+        self.assertEqual(item["url"], "https://example.org/a")
+
+    def test_edit_unknown_key_returns_changed(self):
+        self.assertEqual(edit_folder(self.vault, CFG, "Read Later/gone.md", "x")["error"], "changed")
+
+    def test_edit_empty_text_is_invalid(self):
+        self.note("a.md", "# A\n")
+        self.assertEqual(edit_folder(self.vault, CFG, "Read Later/a.md", "  ")["error"], "invalid")
 
 if __name__ == "__main__":
     unittest.main()

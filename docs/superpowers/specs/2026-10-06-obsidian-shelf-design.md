@@ -27,7 +27,7 @@ The default configuration is the author's: Read later, Retro, Todo.
 Goals:
 
 - Show three list types from a vault: `folder`, `checklist`, `sections`.
-- Act on items from the popup: open, mark as seen, tick, add, clear.
+- Act on items from the popup: open, tick, add, edit, remove, clear.
 - Never lose a capture that arrives from the phone during a write.
 - Follow the active Omarchy theme. Use no hardcoded colors.
 - Feel alive: animated arrival, removal, tick and tab change, as in direction A.
@@ -37,8 +37,7 @@ Non-goals for v1:
 - Sync. The README recommends a setup, but the plugin only reads and writes
   local files.
 - Adding a `folder` item from the PC (it needs a title and preview fetcher).
-- Deleting one retro topic.
-- Search, note editing, or any feature of the other "Obsidian X" plugins.
+- Search, note body editing, or any feature of the other "Obsidian X" plugins.
 - Publishing to the marketplace. The code stays generic so that a later
   release needs no rewrite.
 
@@ -106,8 +105,9 @@ Source: every `.md` file directly in the folder. The helper ignores subfolders.
 
 One note is one item:
 
-- Title: the text of the first `# ` heading, with Markdown links reduced to
-  their text. Fallback: the file name without `.md`.
+- Title: the `title` key of the front matter. Fallback: the text of the first
+  `# ` heading, with Markdown links reduced to their text. Last fallback: the
+  file name without `.md`.
 - URL: the `url`, `source` or `link` key of the front matter. Fallback: the first
   `http://` or `https://` URL in the body. No URL means the item has no "open"
   action.
@@ -121,7 +121,10 @@ One note is one item:
 Actions:
 
 - Open: `xdg-open <url>`, so the system default browser opens it.
-- Mark as seen: move the note to `<vault>/.trash/`, the Obsidian trash folder.
+- Edit: write the new title in the `title` key of the front matter, and add a
+  front matter block when the note has none. The body of the note does not
+  change, so the heading link stays intact.
+- Remove: move the note to `<vault>/.trash/`, the Obsidian trash folder.
   On a name conflict there, the helper adds a numeric suffix. Sync tools treat the move as a
   deletion, and the local copy stays recoverable.
 
@@ -136,6 +139,8 @@ Actions:
 - Tick, with `onDone: delete`: remove the line.
 - Tick, with `onDone: check`: write `[x]` in place of `[ ]`.
 - Add: append `- [ ] <text>` at the end of the file.
+- Edit: replace the text of the line, and keep its bullet and its box.
+- Remove: remove the line, also with `onDone: check`.
 
 Ticked lines (`[x]` or `[X]`) are never shown. With `onDone: delete`, the helper
 also removes them at the next write it makes to that file. This keeps the file
@@ -152,6 +157,8 @@ Actions:
 - Add: the user picks a section, then types the text. The helper inserts
   `- <text>` after the last item of that section, before its trailing blank
   lines. This matches the QuickAdd "choose heading" capture on the phone.
+- Edit: replace the text of the topic.
+- Remove: remove the topic line.
 - Clear: remove every item of every section. Headings, the text before the first
   heading and one blank line between sections stay.
 
@@ -166,10 +173,12 @@ Commands:
 obsidian-shelf read  --vault <path> --lists <json>
 obsidian-shelf add   --vault <path> --list <json> [--section <heading>]   (text on stdin)
 obsidian-shelf done  --vault <path> --list <json> --item <key>
+obsidian-shelf edit  --vault <path> --list <json> --item <key>              (text on stdin)
+obsidian-shelf remove --vault <path> --list <json> --item <key>
 obsidian-shelf clear --vault <path> --list <json>
 ```
 
-The `add` text comes on stdin. This avoids quoting problems, and it keeps the
+The `add` and `edit` text comes on stdin. This avoids quoting problems, and it keeps the
 text out of the process list.
 
 Item keys:
@@ -265,15 +274,19 @@ The tooltip lists the count per list, for example "3 read later, 7 todo".
   07:22", from the last good read), and a settings button.
 - Tab bar: one segment per list with its count. The accent indicator slides
   between tabs with a spring (380 ms).
-- Footer: key hints. Enter opens, `d` marks as seen or ticks, Tab switches
-  tabs, `a` focuses the add field.
+- Footer: key hints. Enter opens or ticks, `e` edits, `x` removes, Tab
+  switches tabs, `a` focuses the add field.
+- Every row shows an edit and a remove button on hover or when it has the
+  keyboard highlight. Edit turns the text into a field: Enter saves, Escape
+  cancels.
 
 ### 8.3 Item motion
 
 | Event | Motion |
 | --- | --- |
 | New item arrives | Slides down 16 px and scales from 0.96 (700 ms, overshoot), then a background flash in the accent color fades over 2.6 s. A "NEW" tag shows while the item is fresh. |
-| Marked as seen | Slides 48 px to the right and fades, then the row height collapses (400 ms total). |
+| Removed | Slides 48 px to the right and fades, then the row height collapses (400 ms total). |
+| Edited | The row keeps its place. The text changes in place, with no motion. |
 | Todo ticked | The checkbox fills and the check mark draws (350 ms). A strike line grows over the text from left to right. Then the row leaves as above. |
 | Item added | Same entry as a new item, without the flash. |
 | Retro cleared | First click arms the button: it takes the `Color.urgent` color and a bar drains over 3 s. A second click within 3 s sweeps every item out. No second click: the button disarms. |
@@ -331,5 +344,4 @@ and its install steps.
 
 - A design pass on the closed bar state.
 - Adding a `folder` item from the PC (paste a URL, fetch its title).
-- Deleting one retro topic.
 - Marketplace release: README with previews, a `[Verify]` issue, the listing.

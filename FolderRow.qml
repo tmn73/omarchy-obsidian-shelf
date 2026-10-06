@@ -3,8 +3,8 @@ import qs.Commons
 import "Model.js" as Model
 
 // One saved link: platform glyph, title, domain and age, a two-line excerpt,
-// then the open and seen actions. A fresh row flashes in the accent color and
-// wears a NEW tag while it is fresh.
+// then open, plus edit and remove on hover. A fresh row flashes in the accent
+// color and wears a NEW tag while it is fresh.
 Item {
   id: root
 
@@ -16,9 +16,17 @@ Item {
   property bool fresh: false
   property bool current: false
   property string fontFamily: Style.font.family
+  property bool editing: false
 
   signal openRequested()
-  signal doneRequested()
+  signal removeRequested()
+  signal editRequested()
+  signal saved(string text)
+  signal cancelled()
+
+  function startEdit() {
+    root.editRequested()
+  }
 
   readonly property string platformGlyph: {
     if (/(^|\.)(youtube\.com|youtu\.be|vimeo\.com|twitch\.tv)$/.test(domain))
@@ -37,7 +45,7 @@ Item {
 
     anchors.fill: parent
     radius: Style.space(10)
-    color: hover.containsMouse || root.current ? Util.alpha(Color.popups.text, 0.05) : "transparent"
+    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.05) : "transparent"
 
     Behavior on color { ColorAnimation { duration: Style.duration(150) } }
   }
@@ -58,12 +66,8 @@ Item {
     }
   }
 
-  MouseArea {
+  HoverHandler {
     id: hover
-
-    anchors.fill: parent
-    hoverEnabled: true
-    acceptedButtons: Qt.NoButton
   }
 
   Row {
@@ -98,10 +102,23 @@ Item {
         width: parent.width
         spacing: Style.space(8)
 
+        Loader {
+          active: root.editing
+          visible: active
+          width: parent.width
+          sourceComponent: InlineEditor {
+            initialText: root.title
+            font.family: root.fontFamily
+            onSaved: function (text) { root.saved(text) }
+            onCancelled: root.cancelled()
+          }
+        }
+
         Text {
           id: titleText
 
-          width: Math.min(implicitWidth, parent.width - age.implicitWidth - (newTag.visible ? newTag.width + parent.spacing : 0) - parent.spacing)
+          visible: !root.editing
+          width: Math.min(implicitWidth, parent.width - (newTag.visible ? newTag.width + parent.spacing : 0))
           text: root.title
           textFormat: Text.PlainText
           elide: Text.ElideRight
@@ -114,7 +131,7 @@ Item {
         Rectangle {
           id: newTag
 
-          visible: root.fresh
+          visible: root.fresh && !root.editing
           anchors.verticalCenter: titleText.verticalCenter
           width: newLabel.implicitWidth + Style.space(10)
           height: newLabel.implicitHeight + Style.space(2)
@@ -166,19 +183,19 @@ Item {
       spacing: Style.space(4)
 
       RowButton {
+        anchors.right: parent.right
         visible: root.url !== ""
-        glyph: ""
+        glyph: "\uf08e"
         label: qsTr("Open in browser")
         fontFamily: root.fontFamily
         onClicked: root.openRequested()
       }
 
-      RowButton {
-        glyph: ""
-        label: qsTr("Mark as seen")
-        primary: true
+      HoverActions {
+        shown: hover.hovered || root.current
         fontFamily: root.fontFamily
-        onClicked: root.doneRequested()
+        onEditClicked: root.startEdit()
+        onRemoveClicked: root.removeRequested()
       }
     }
   }

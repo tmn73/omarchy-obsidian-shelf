@@ -5,7 +5,7 @@ import qs.Commons
 Row {
   id: root
 
-  property var hints: [["↵", "open"], ["d", "done"], ["tab", "switch"], ["a", "add"]]
+  property var hints: [["↵", "open"], ["e", "edit"], ["x", "remove"], ["tab", "switch"], ["a", "add"]]
   property string fontFamily: Style.font.family
 
   spacing: Style.space(14)

@@ -111,8 +111,13 @@ Item {
       var extra = args.section ? ["--section", String(args.section)] : []
       call.command = ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath(), "add"].concat(base, extra)
       call.text = String(args.text || "")
+    } else if (action === "edit") {
+      call.command = ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath(), "edit"].concat(base, ["--item", String(args.item)])
+      call.text = String(args.text || "")
     } else if (action === "done") {
       call.command = [helperPath(), "done"].concat(base, ["--item", String(args.item)])
+    } else if (action === "remove") {
+      call.command = [helperPath(), "remove"].concat(base, ["--item", String(args.item)])
     } else if (action === "clear") {
       call.command = [helperPath(), "clear"].concat(base)
     } else {

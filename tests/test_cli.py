@@ -77,5 +77,27 @@ class CliTest(VaultCase):
         self.assertEqual(json.loads(result.stdout)["lists"][0]["items"][0]["text"], "a")
 
 
+class CliEditRemoveTest(VaultCase):
+    def run_cli(self, *argv, stdin=""):
+        return main(list(argv), io.StringIO(stdin))
+
+    def test_edit_reads_text_from_stdin(self):
+        self.write("Todo.md", "- [ ] a\n")
+        code, out = self.run_cli("edit", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a", stdin="b\n")
+        self.assertEqual((code, out), (0, {"ok": True}))
+        self.assertEqual(self.read("Todo.md"), "- [ ] b\n")
+
+    def test_remove_dispatches_by_type(self):
+        self.write("Todo.md", "- [ ] a\n")
+        self.write("Retrospective.md", "## Good\n- a\n")
+        self.write("Read Later/n.md", "# N\n")
+        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a")[1], {"ok": True})
+        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(RETRO), "--item", "Good\n- a")[1], {"ok": True})
+        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(LATER), "--item", "Read Later/n.md")[1], {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "")
+        self.assertEqual(self.read("Retrospective.md"), "## Good\n")
+        self.assertTrue((self.vault / ".trash" / "n.md").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

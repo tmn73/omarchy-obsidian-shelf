@@ -31,11 +31,31 @@ ListStateFrame {
       view.currentItem.tick()
   }
 
+  function editCurrent() {
+    if (view.currentItem && view.currentItem.startEdit)
+      view.currentItem.startEdit()
+  }
+
+  function removeCurrent() {
+    if (view.currentIndex >= 0 && view.currentIndex < view.count)
+      removeLine(view.keyedModel.get(view.currentIndex).key, "remove")
+  }
+
   function finishTick(key) {
+    removeLine(key, "done")
+  }
+
+  function removeLine(key, action) {
     if (!service || !listConfig)
       return
     view.keyedModel.removeKey(key)
-    service.act("done", listConfig.id, { item: key })
+    service.act(action, listConfig.id, { item: key })
+  }
+
+  function saveText(key, oldText, text) {
+    editingKey = ""
+    view.keyedModel.replaceKey(key, { key: editedKey(key, oldText, text), text: text })
+    service.act("edit", listConfig.id, { item: key, text: text })
   }
 
   ShelfListView {
@@ -52,7 +72,12 @@ ListStateFrame {
       width: view.width
       current: index === view.currentIndex
       fontFamily: root.fontFamily
+      editing: root.editingKey === key
       onTickRequested: root.finishTick(key)
+      onRemoveRequested: root.removeLine(key, "remove")
+      onEditRequested: root.editingKey = key
+      onSaved: function (newText) { root.saveText(key, text, newText) }
+      onCancelled: root.editingKey = ""
     }
   }
 }

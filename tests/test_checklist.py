@@ -1,6 +1,6 @@
 import unittest
 
-from shelf_checklist import add_checklist, done_checklist, read_checklist
+from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_checklist, remove_checklist
 from tests.vault_case import VaultCase
 
 CFG = {"id": "todo", "type": "checklist", "path": "Todo.md"}
@@ -105,6 +105,36 @@ class ChecklistActionTest(VaultCase):
         add_checklist(self.vault, CFG, "a\nb")
         self.assertEqual(self.read("Todo.md"), "- [ ] a b\n")
 
+
+
+class ChecklistEditRemoveTest(VaultCase):
+    def test_remove_deletes_line_even_in_check_mode(self):
+        self.write("Todo.md", "- [ ] a\n- [ ] b\n")
+        self.assertEqual(remove_checklist(self.vault, dict(CFG, onDone="check"), "- [ ] a"), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "- [ ] b\n")
+
+    def test_remove_unknown_key_returns_changed(self):
+        self.write("Todo.md", "- [ ] a\n")
+        self.assertEqual(remove_checklist(self.vault, CFG, "- [ ] gone")["error"], "changed")
+
+    def test_edit_keeps_bullet_and_box(self):
+        self.write("Todo.md", "* [ ] old text\n- [ ] b\n")
+        self.assertEqual(edit_checklist(self.vault, CFG, "* [ ] old text", "new text"), {"ok": True})
+        self.assertEqual(self.read("Todo.md"), "* [ ] new text\n- [ ] b\n")
+
+    def test_edit_keeps_line_added_after_read(self):
+        self.write("Todo.md", "- [ ] a\n")
+        self.write("Todo.md", "- [ ] a\n- [ ] from phone\n")
+        edit_checklist(self.vault, CFG, "- [ ] a", "A")
+        self.assertEqual(self.read("Todo.md"), "- [ ] A\n- [ ] from phone\n")
+
+    def test_edit_unknown_key_returns_changed(self):
+        self.write("Todo.md", "- [ ] a\n")
+        self.assertEqual(edit_checklist(self.vault, CFG, "- [ ] gone", "x")["error"], "changed")
+
+    def test_edit_empty_text_is_invalid(self):
+        self.write("Todo.md", "- [ ] a\n")
+        self.assertEqual(edit_checklist(self.vault, CFG, "- [ ] a", "")["error"], "invalid")
 
 if __name__ == "__main__":
     unittest.main()

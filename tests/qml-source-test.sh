@@ -151,6 +151,30 @@ has "ListStateFrame.qml" "Open settings" "a missing list does not offer the sett
 has "ShelfPopup.qml" "SettingsView" "ShelfPopup.qml does not host the settings view"
 has "Panel.qml" "popup\.inputFocused" "the key catcher ignores focused fields"
 
+# ---- Edit and remove on every list
+has "Service.qml" 'action === "edit"' "Service.qml cannot send an edit"
+has "Service.qml" 'action === "remove"' "Service.qml cannot send a remove"
+has "KeyedListModel.qml" "function replaceKey\(" "KeyedListModel.qml cannot update a row in place"
+has "InlineEditor.qml" "signal saved" "InlineEditor.qml does not report a save"
+has "InlineEditor.qml" "signal cancelled" "InlineEditor.qml does not report a cancel"
+has "InlineEditor.qml" "Escape" "InlineEditor.qml does not cancel on Escape"
+for file in FolderRow.qml ChecklistRow.qml TopicCard.qml; do
+  has "$file" "InlineEditor" "$file cannot edit in place"
+  has "$file" "signal removeRequested" "$file cannot ask for a removal"
+  has "$file" "function startEdit\(" "$file has no startEdit()"
+done
+for file in FolderList.qml ChecklistList.qml SectionsList.qml; do
+  for method in editCurrent removeCurrent; do
+    has "$file" "function $method\(" "$file has no $method()"
+  done
+done
+for method in editCurrent removeCurrent; do
+  has "ShelfPopup.qml" "function $method\(" "ShelfPopup.qml has no $method()"
+done
+has "Panel.qml" 'key === "e"' "the e key does not edit"
+has "Panel.qml" 'key === "x"' "the x key does not remove"
+has "ListStateFrame.qml" "property bool editing" "lists do not report an open editor"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
