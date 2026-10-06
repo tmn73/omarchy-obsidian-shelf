@@ -116,6 +116,17 @@ has "FolderList.qml" "Share a link to Obsidian from your phone\. It lands here\.
 has "FolderList.qml" "All caught up" "FolderList.qml lost the empty-state title"
 has "FolderList.qml" "removeKey" "FolderList.qml does not remove the row before the helper answers"
 
+# ---- Checklist rows and the add bar (spec 8.3)
+has "ChecklistRow.qml" "Style\.duration\(350\)" "the check does not draw in 350 ms"
+has "ChecklistRow.qml" "signal tickRequested" "ChecklistRow.qml does not ask the list to tick"
+has "ChecklistList.qml" "Nothing left\." "ChecklistList.qml lost the empty-state copy"
+has "ChecklistList.qml" "removeKey" "ChecklistList.qml does not remove the row before the helper answers"
+has "AddBar.qml" "TextField" "AddBar.qml has no text field"
+has "AddBar.qml" '"Add"' "AddBar.qml has no Add button"
+has "AddBar.qml" "signal submitted" "AddBar.qml does not report submissions"
+has "AddBar.qml" "property bool inputFocused" "AddBar.qml does not report input focus"
+has "ShelfPopup.qml" "AddBar" "ShelfPopup.qml does not host the add bar"
+
 # Every animation respects the shell's reduce-motion switch.
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")

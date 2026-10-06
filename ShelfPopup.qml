@@ -14,7 +14,7 @@ Item {
   property var service: null
   property int activeIndex: 0
   property bool settingsOpen: false
-  property Item addBar: null
+  property Item addBar: addBarItem
   property string fontFamily: Style.font.family
 
   signal settingsToggled()
@@ -24,6 +24,12 @@ Item {
   readonly property var activePayload: activeConfig && service ? Model.findList(service.payload, activeConfig.id) : null
   readonly property real maxListHeight: Style.space(470)
   readonly property var listSources: ({ folder: "FolderList.qml", checklist: "ChecklistList.qml", sections: "SectionsList.qml" })
+  readonly property bool canAdd: activeConfig !== null && activeConfig.type !== "folder" && !settingsOpen
+  readonly property var sectionNames: {
+    if (!activeConfig || activeConfig.type !== "sections" || !activePayload)
+      return []
+    return (Model.toArray(activePayload.sections) || []).map(function (s) { return s.heading })
+  }
 
   implicitWidth: Style.space(440)
   implicitHeight: content.implicitHeight
@@ -142,6 +148,20 @@ Item {
         color: Util.alpha(Color.popups.text, 0.65)
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
+      }
+    }
+
+    AddBar {
+      id: addBarItem
+
+      width: parent.width
+      visible: root.canAdd
+      sections: root.sectionNames
+      placeholder: root.sectionNames.length > 0 ? qsTr("New %1 topic").arg(section.toLowerCase()) : qsTr("New todo")
+      fontFamily: root.fontFamily
+      onSubmitted: function (text, section) {
+        if (root.service && root.activeConfig)
+          root.service.act("add", root.activeConfig.id, { text: text, section: root.activeConfig.type === "sections" ? section : "" })
       }
     }
 
