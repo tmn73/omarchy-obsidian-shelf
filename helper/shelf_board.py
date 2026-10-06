@@ -121,6 +121,25 @@ def parse_board(lines: list) -> dict:
             "datesOn": date_format in (None, "", "YYYY-MM-DD")}
 
 
+def is_board(lines: list) -> bool:
+    """A board has the key `kanban-plugin` in its front matter."""
+    end = front_matter_end(lines)
+    return any(line.startswith("kanban-plugin:") for line in lines[1:max(0, end - 1)])
+
+
+def open_card_count(lines: list) -> int:
+    return sum(len(lane["cards"]) for lane in parse_board(lines)["lanes"] if not lane["complete"])
+
+
+def skeleton(lanes: list) -> str:
+    """A new board as the Kanban plugin writes it; the last lane is Complete."""
+    lanes = [name.strip() for name in lanes if name.strip()] or ["To do", "In progress", "Done"]
+    body = "".join(f"## {name}\n\n" + ("**Complete**\n\n\n\n" if i == len(lanes) - 1 else "\n\n")
+                   for i, name in enumerate(lanes))
+    return "---\n\nkanban-plugin: board\n\n---\n\n" + body + "%% kanban:settings\n```\n" + \
+        json.dumps({"kanban-plugin": "board"}, separators=(",", ":")) + "\n```\n%%\n"
+
+
 def read_board(vault: Path, cfg: dict) -> dict:
     path, problem = locate(vault, cfg)
     if problem:

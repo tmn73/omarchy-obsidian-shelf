@@ -80,6 +80,17 @@ class CreateListTest(VaultCase):
         self.assertEqual(out["error"], "invalid")
 
 
+class BoardSettingsTest(VaultCase):
+    def test_scan_suggests_a_board_and_not_a_checklist(self):
+        self.write("Plan.md", "---\nkanban-plugin: board\n---\n\n## To do\n- [ ] a\n- [ ] b\n\n## Done\n**Complete**\n- [x] c\n")
+        self.assertEqual(scan(self.vault), [{"type": "board", "path": "Plan.md", "count": 2}])
+
+    def test_create_writes_a_board_with_the_last_lane_complete(self):
+        out = create_list(self.vault, {"id": "b", "type": "board", "path": "Plan.md"}, ["To do", "In progress", "Done"])
+        self.assertEqual(out, {"ok": True, "created": True})
+        self.assertEqual(self.read("Plan.md"), "---\n\nkanban-plugin: board\n\n---\n\n## To do\n\n\n\n## In progress\n\n\n\n## Done\n\n**Complete**\n\n\n\n%% kanban:settings\n```\n{\"kanban-plugin\":\"board\"}\n```\n%%\n")
+
+
 class TrashListTest(VaultCase):
     def test_moves_the_file_to_the_vault_trash(self):
         self.write("Todo.md", "- [ ] a\n")

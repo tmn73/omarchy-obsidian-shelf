@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 
+from shelf_board import is_board, open_card_count, skeleton
 from shelf_checklist import OPEN_RE
 from shelf_folder import URL_RE, trash_target
 from shelf_io import OutsideVault, atomic_write, fail, read_text, resolve_in_vault
@@ -50,6 +51,9 @@ def scan(vault: Path) -> list:
         for name, text in texts.items():
             lines = text.split("\n")
             rel = (folder / name).relative_to(root).as_posix()
+            if is_board(lines):
+                found.append({"type": "board", "path": rel, "count": open_card_count(lines)})
+                continue
             open_items = sum(1 for line in lines if OPEN_RE.match(line))
             topics = sum(len(s["items"]) for s in parse_sections(lines))
             if open_items:
@@ -85,6 +89,8 @@ def create_list(vault: Path, cfg: dict, sections: list) -> dict:
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             text = "\n".join(f"## {name}\n" for name in sections if name.strip()) if cfg.get("type") == "sections" else ""
+            if cfg.get("type") == "board":
+                text = skeleton(sections)
             atomic_write(path, text)
     except OSError as err:
         return fail("io", str(err))
