@@ -41,7 +41,9 @@
       "obsidianSync": true,
       "tweetPreviews": false,
       "linkPreviews": true,
-      "reminderTime": "09:00"
+      "reminderTime": "09:00",
+      "reminderSound": true,
+      "reminderSoundFile": ""
     },
     "schema": [
       {
@@ -94,6 +96,20 @@
         "label": "Morning summary time",
         "defaultValue": "09:00",
         "description": "When the board summary rings each day, as HH:MM. It lists the cards due today without a time and the late cards."
+      },
+      {
+        "key": "reminderSound",
+        "type": "boolean",
+        "label": "Reminder sound",
+        "defaultValue": true,
+        "description": "Play a sound when a card is due and with the morning summary."
+      },
+      {
+        "key": "reminderSoundFile",
+        "type": "path",
+        "label": "Reminder sound file",
+        "defaultValue": "",
+        "description": "A sound from the system sound themes. Empty: the alarm sound of the freedesktop theme."
       }
     ]
   }

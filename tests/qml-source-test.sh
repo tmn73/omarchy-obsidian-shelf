@@ -291,6 +291,9 @@ has "Service.qml" '\["add", "edit", "done", "remove", "move", "date", "lane", "c
 hasnt "Service.qml" "\"--item\"|\"--lane\"|\"--title\"|\"--section\"" "vault text goes into a command line"
 has "Service.qml" "text: JSON.stringify\(payload\)" "the action payload does not go on stdin"
 hasnt "AddListSheet.qml" "\"--sections\"" "new lane names go into a command line"
+has "Reminders.qml" "Model.soundArgument\(config\)" "a reminder never plays the chosen sound"
+has "ReminderSettings.qml" "\"sounds\"" "the sound list does not come from the system"
+has "SettingsView.qml" "ReminderSettings \\{" "the settings have no reminder section"
 
 # Syntax: qmllint, when the machine has it, parses every file. It refuses the
 # typed functions an IpcHandler needs, so files with one are left out.

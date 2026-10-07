@@ -152,6 +152,14 @@ FocusScope {
 
     Rectangle { width: parent.width; height: 1; color: Util.alpha(Color.popups.text, 0.08) }
 
+    ReminderSettings {
+      visible: root.config.lists.some(function (l) { return l.type === "board" })
+      width: parent.width
+      config: root.config
+      fontFamily: root.fontFamily
+      onSettingChanged: function (name, value) { root.settingChanged(name, value) }
+    }
+
     SettingsCaption { text: qsTr("PREVIEWS AND REFRESH"); fontFamily: root.fontFamily }
 
     Toggle {
