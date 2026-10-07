@@ -272,6 +272,7 @@ has "Reminders.qml" '"remind", "--vault"' "nothing asks the helper for reminders
 has "Panel.qml" "late: shelf.lateCount > 0" "a late card does not show on the chip"
 has "Panel.qml" 'popup.forward\("moveCard", dx\)' "Left and Right do not move a card"
 has "DatePanel.qml" "dateField.forceActiveFocus" "Escape cannot close the date panel"
+hasnt "DatePanel.qml" "root.picked\(modelData.date" "a quick pick applies before the time can be typed"
 hasnt "BoardLane.qml" "required property string key" "a card delegate hides the key of CardRow, so every card edits at once"
 has "CardRow.qml" "root.board.toggleStatus" "a card has no status button"
 hasnt "CardRow.qml" "Move to the lane before" "the card still shows arrows instead of its status"

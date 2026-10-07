@@ -62,7 +62,12 @@ Rectangle {
           required property var modelData
 
           text: modelData.label
-          onClicked: root.picked(modelData.date, timeField.text.trim())
+          // A pick fills the date and leaves room for a time; Set applies.
+          onClicked: {
+            dateField.text = modelData.date
+            root.error = ""
+            timeField.forceActiveFocus()
+          }
         }
       }
     }
