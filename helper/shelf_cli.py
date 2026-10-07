@@ -7,8 +7,6 @@ object, so the tests drive it directly and bin/obsidian-shelf only prints.
 import argparse
 import json
 import os
-import shutil
-import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -17,6 +15,7 @@ from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
 import shelf_previews
+import shelf_notify
 import shelf_reminders
 import shelf_seen
 import shelf_settings
@@ -103,11 +102,8 @@ def reminder_clock() -> datetime:
 
 
 def send_notification(message: dict) -> None:
-    try:
-        subprocess.run(shelf_reminders.notify_command(message, shutil.which), stdin=subprocess.DEVNULL,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
-    except (OSError, subprocess.SubprocessError):
-        pass
+    """Over the session bus: the card text never goes into a command line."""
+    shelf_notify.notify(message["headline"], message["body"], shelf_reminders.GLYPH, shelf_reminders.OPEN_SHELF)
 
 
 def remind(vault: Path, lists: list, summary_time: str) -> dict:

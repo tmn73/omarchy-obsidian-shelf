@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 from shelf_cli import main
-from shelf_reminders import due, notify_command, run
+from shelf_reminders import due, run
 from tests.vault_case import VaultCase
 
 BOARD = {"id": "todo", "name": "Todo", "type": "board", "path": "Todo.md"}
@@ -88,18 +88,22 @@ class SummaryTest(unittest.TestCase):
 
 
 class SendTest(unittest.TestCase):
-    MESSAGE = {"kind": "card", "headline": "--hint=x", "body": "Todo · To do · today 14:00"}
+    MESSAGE = {"kind": "card", "headline": "Reply to the landlord", "body": "Tasks · To do · today 14:00"}
 
-    def test_uses_the_omarchy_notification_with_a_click_that_opens_the_shelf(self):
-        cmd = notify_command(self.MESSAGE, lambda name: "/usr/bin/" + name)
-        self.assertEqual(cmd[0], "omarchy-notification-send")
-        self.assertEqual(cmd[-4:], ["--exec", "omarchy-shell", "tmn73.obsidian", "open"])
-        self.assertIn("--hint=x", cmd)
+    def test_goes_over_the_bus_with_a_click_that_opens_the_shelf(self):
+        import shelf_cli
+        with mock.patch("shelf_notify.notify", return_value=True) as sent:
+            shelf_cli.send_notification(self.MESSAGE)
+        args = sent.call_args[0]
+        self.assertEqual(args[:2], ("Reply to the landlord", "Tasks · To do · today 14:00"))
+        self.assertEqual(args[3], ["omarchy-shell", "tmn73.obsidian", "open"])
 
-    def test_falls_back_to_notify_send_with_the_text_as_data(self):
-        cmd = notify_command(self.MESSAGE, lambda name: None if name == "omarchy-notification-send" else "/usr/bin/" + name)
-        self.assertEqual(cmd[0], "notify-send")
-        self.assertEqual(cmd[-3:], ["--", "--hint=x", "Todo · To do · today 14:00"])
+    def test_never_puts_the_text_in_a_process(self):
+        import shelf_cli
+        with mock.patch("subprocess.run", side_effect=AssertionError("a process got the text")), \
+             mock.patch("subprocess.Popen", side_effect=AssertionError("a process got the text")), \
+             mock.patch("shelf_notify.bus_address", return_value=""):
+            shelf_cli.send_notification(self.MESSAGE)
 
 
 class RunTest(VaultCase):

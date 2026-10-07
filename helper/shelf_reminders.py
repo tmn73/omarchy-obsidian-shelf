@@ -20,7 +20,6 @@ from shelf_io import atomic_write
 
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 CLOCK = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
-APP_NAME = "Obsidian Shelf"
 GLYPH = "\U000f00ed"
 OPEN_SHELF = ["omarchy-shell", "tmn73.obsidian", "open"]
 
@@ -81,14 +80,6 @@ def due(payloads: list, lists: list, state: dict, now, summary_time: str) -> tup
             messages.append({"kind": "summary", "headline": summary_headline(len(today_cards), len(late_cards)),
                              "body": "\n".join(body)})
     return messages, {"fired": fired, "summary": summary}
-
-
-def notify_command(message: dict, which) -> list:
-    """The command for one notification. Text from the vault stays one argument."""
-    if which("omarchy-notification-send"):
-        return ["omarchy-notification-send", "--app-name", APP_NAME, "-g", GLYPH, "-u", "normal",
-                message["headline"], message["body"], "--exec"] + OPEN_SHELF
-    return ["notify-send", "--app-name", APP_NAME, "--", message["headline"], message["body"]]
 
 
 def load_state(path: Path) -> dict:
