@@ -9,26 +9,27 @@ A failure is remembered for a day, so a dead site never causes a fetch on
 every refresh. Notes in the vault are never changed.
 """
 
+import hashlib
 import html
 import ipaddress
 import json
 import re
 import time
-import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
 
+import shelf_net
 from shelf_io import atomic_write
 
 STATUS_RE = re.compile(r"^https?://(?:www\.|mobile\.)?(?:x|twitter)\.com/([A-Za-z0-9_]{1,15})/status/(\d+)")
 META_RE = re.compile(r"<meta\b[^>]*>", re.IGNORECASE)
 ATTR_RE = re.compile(r'([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\')', re.DOTALL)
 RETRY_AFTER = 86400
-TIMEOUT = 5
 PAGE_LIMIT = 1_500_000
+IMAGE_LIMIT = 3_000_000
+IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
 # Many sites, Instagram among them, give their preview tags only to link
 # preview crawlers; this is the agent chat apps use for the same purpose.
-PAGE_AGENT = "facebookexternalhit/1.1 (compatible; obsidian-shelf)"
 
 
 def tweet_api_url(url: str) -> str:
@@ -110,9 +111,50 @@ def page_preview(url: str, page: str) -> dict:
 
 
 def fetch_html(url: str) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": PAGE_AGENT})
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-        return response.read(PAGE_LIMIT).decode("utf-8", errors="replace")
+    """The page of a public link; every hop is checked by shelf_net."""
+    ctype, data = shelf_net.get(url, "text/html,application/xhtml+xml", PAGE_LIMIT)
+    if "html" not in ctype.lower():
+        raise ValueError("not a web page")
+    charset = re.search(r"charset=([\w-]+)", ctype, re.I)
+    try:
+        return data.decode(charset.group(1) if charset else "utf-8", errors="replace")
+    except LookupError:
+        return data.decode("utf-8", errors="replace")
+
+
+def download_image(url: str, folder: Path) -> Path:
+    """Save a public image in the cache and return its file."""
+    ctype, data = shelf_net.get(url, "image/*", IMAGE_LIMIT)
+    extension = IMAGE_TYPES.get(ctype.split(";")[0].strip().lower())
+    if not extension or not data:
+        raise ValueError("not an image")
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / (hashlib.sha256(url.encode("utf-8")).hexdigest()[:24] + extension)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_bytes(data)
+    tmp.replace(path)
+    return path
+
+
+def localize(item: dict, cache: dict, now=None) -> dict:
+    """Swap remote images for their downloaded copies; list what is still to fetch."""
+    now = time.time() if now is None else now
+    pending = []
+    for field in ("image", "avatar"):
+        url = item.get(field, "")
+        if not re.match(r"^https?://", url or ""):
+            continue
+        entry = cache.get("img:" + url)
+        if entry and entry.get("file") and Path(entry["file"]).is_file():
+            item[field] = Path(entry["file"]).as_uri()
+            continue
+        item[field] = ""
+        if entry is None or ("failedAt" in entry and now - entry["failedAt"] >= RETRY_AFTER):
+            pending.append(url)
+    item["pendingImages"] = pending
+    item["imagePending"] = bool(pending)
+    return item
 
 
 def small(photo_url: str) -> str:
@@ -142,13 +184,12 @@ def load_cache(path: Path) -> dict:
 
 
 def fetch_json(url: str) -> dict:
-    request = urllib.request.Request(url, headers={"User-Agent": "obsidian-shelf"})
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-        return json.loads(response.read().decode("utf-8"))
+    ctype, data = shelf_net.get(url, "application/json", 1_000_000)
+    return json.loads(data.decode("utf-8"))
 
 
 def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=None,
-           fetch_page=fetch_html, tweets=True, links=True) -> dict:
+           fetch_page=fetch_html, tweets=True, links=True, fetch_image=None) -> dict:
     """Fetch the preview of every link that still needs one, and save the cache."""
     from shelf_folder import read_folder
 
@@ -159,7 +200,7 @@ def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=Non
     for cfg in lists:
         if cfg.get("type") != "folder":
             continue
-        for item in read_folder(vault, cfg, cache).get("items", []):
+        for item in read_folder(vault, cfg, cache, local=False).get("items", []):
             kind = needed_kind(item)
             key = preview_key(item["url"])
             entry = cache.get(key)
@@ -177,6 +218,18 @@ def enrich(vault: Path, lists: list, cache_path: Path, fetch=fetch_json, now=Non
                 fetched += 1
             except (OSError, ValueError):
                 cache[key] = {"failedAt": now}
+    if fetch_image is not None:
+        folder = Path(cache_path).parent / "images"
+        for cfg in lists:
+            if cfg.get("type") != "folder":
+                continue
+            for item in read_folder(vault, cfg, cache, now=now).get("items", []):
+                for url in item.get("pendingImages", []):
+                    try:
+                        cache["img:" + url] = {"file": str(fetch_image(url, folder))}
+                        fetched += 1
+                    except (OSError, ValueError):
+                        cache["img:" + url] = {"failedAt": now}
     Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
     atomic_write(Path(cache_path), json.dumps(cache, ensure_ascii=False))
     return {"ok": True, "fetched": fetched}

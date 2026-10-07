@@ -148,9 +148,15 @@ class CliPreviewTest(VaultCase):
         cache = self.vault / "cache" / "obsidian-shelf" / "previews.json"
         cache.parent.mkdir(parents=True)
         cache.write_text(json.dumps({"https://api.fxtwitter.com/wesbos/status/1": {"avatar": "https://a/x.jpg", "image": ""}}), encoding="utf-8")
+        copy = self.vault / "cache" / "obsidian-shelf" / "images" / "x.jpg"
+        copy.parent.mkdir(parents=True)
+        copy.write_bytes(b"jpg")
+        cached = json.loads(cache.read_text(encoding="utf-8"))
+        cached["img:https://a/x.jpg"] = {"file": str(copy)}
+        cache.write_text(json.dumps(cached), encoding="utf-8")
         with mock.patch.dict("os.environ", self.env(), clear=True):
             code, out = main(["read", "--vault", str(self.vault), "--lists", json.dumps([LATER])], io.StringIO(""))
-        self.assertEqual(out["lists"][0]["items"][0]["avatar"], "https://a/x.jpg")
+        self.assertEqual(out["lists"][0]["items"][0]["avatar"], copy.as_uri())
 
     def test_enrich_without_tweets_fetches_nothing(self):
         from unittest import mock
