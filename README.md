@@ -154,8 +154,15 @@ Each board has a "Remind me" setting, on by default.
   no title, the plugin reads the page once and keeps its preview image and
   title in a local cache. It asks with the user agent that chat apps use for
   link previews, because many sites give their preview tags only to those.
-  Only the site sees the request. Local and private addresses (`localhost`,
-  your home network) are never read.
+  Only the site sees the request.
+- **Only public addresses**: every request of the helper, each redirect
+  included, resolves the name first and stops when an address is not on the
+  public internet (`localhost`, your home network, link-local, CGNAT). It
+  then connects to the address it checked, so a second lookup cannot change
+  the target.
+- **Pictures** (thumbnails, author pictures) go through the same checks: the
+  helper downloads them into `~/.cache/obsidian-shelf/images`, and the bar
+  shows only those local files. The shell never loads a web address itself.
 - **Tweet previews** (off by default): the author picture and first photo of
   a tweet come from api.fxtwitter.com, once per tweet. That service sees the
   links of the tweets you save.

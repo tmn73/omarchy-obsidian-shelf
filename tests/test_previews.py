@@ -2,7 +2,8 @@ import json
 import unittest
 
 from shelf_folder import read_folder
-from shelf_previews import enrich, is_public_url, load_cache, og_from_html, page_preview, preview_from_fxtwitter, preview_key, tweet_api_url
+from unittest import mock
+from shelf_previews import download_image, enrich, fetch_html, is_public_url, load_cache, og_from_html, page_preview, preview_from_fxtwitter, preview_key, tweet_api_url
 from tests.vault_case import VaultCase
 
 CFG = {"id": "read-later", "type": "folder", "path": "Read Later"}
@@ -71,7 +72,7 @@ class EnrichTest(VaultCase):
 
     def test_read_merges_the_cached_preview(self):
         enrich(self.vault, [CFG], self.cache, self.fetch, now=1000)
-        item = read_folder(self.vault, CFG, load_cache(self.cache))["items"][0]
+        item = read_folder(self.vault, CFG, load_cache(self.cache), local=False)["items"][0]
         self.assertEqual(item["avatar"], "https://pbs.twimg.com/profile_images/1/a_200x200.jpg")
         self.assertEqual(item["image"], "https://pbs.twimg.com/media/HT857.jpg?name=small")
         self.assertFalse(item["previewPending"])
@@ -166,7 +167,7 @@ class LinkPreviewTest(VaultCase):
         self.write("Read Later/Article 2026-10-06 09-49-32.md", IG_NOTE)
         self.assertEqual(read_folder(self.vault, CFG, {})["items"][0]["previewKind"], "link")
         enrich(self.vault, [CFG], self.cache, fetch_page=self.page, now=1000)
-        item = read_folder(self.vault, CFG, load_cache(self.cache))["items"][0]
+        item = read_folder(self.vault, CFG, load_cache(self.cache), local=False)["items"][0]
         self.assertTrue(item["title"].startswith("ana beatriz on Instagram"))
         self.assertEqual(item["excerpt"], "457 likes, 26 comments")
         self.assertTrue(item["image"].startswith("https://scontent.cdninstagram.com/"))
@@ -176,7 +177,7 @@ class LinkPreviewTest(VaultCase):
     def test_a_note_heading_keeps_its_title(self):
         self.write("Read Later/a.md", "# My own title\n\nhttps://www.instagram.com/reel/X/\n")
         enrich(self.vault, [CFG], self.cache, fetch_page=self.page, now=1000)
-        item = read_folder(self.vault, CFG, load_cache(self.cache))["items"][0]
+        item = read_folder(self.vault, CFG, load_cache(self.cache), local=False)["items"][0]
         self.assertEqual(item["title"], "My own title")
         self.assertTrue(item["image"].startswith("https://scontent"))
 
@@ -200,3 +201,72 @@ class LinkPreviewTest(VaultCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FetchTest(unittest.TestCase):
+    def test_pages_go_through_the_public_only_fetch(self):
+        with mock.patch("shelf_net.get", return_value=("text/html; charset=utf-8", "<p>é</p>".encode())) as get:
+            self.assertEqual(fetch_html("https://example.org/a"), "<p>é</p>")
+        self.assertEqual(get.call_args[0][0], "https://example.org/a")
+
+    def test_a_page_that_is_not_html_is_refused(self):
+        with mock.patch("shelf_net.get", return_value=("application/pdf", b"%PDF")):
+            with self.assertRaises(ValueError):
+                fetch_html("https://example.org/a.pdf")
+
+    def test_no_helper_module_opens_a_url_on_its_own(self):
+        from pathlib import Path
+        helper = Path(__file__).resolve().parent.parent / "helper"
+        for path in helper.glob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("urlopen", text, path.name)
+            self.assertNotIn("urllib.request", text, path.name)
+
+
+class ImageTest(VaultCase):
+    PAGE = "---\ntitle: \"A\"\nurl: https://example.org/a\nimage: https://cdn.example.org/a.jpg\n---\n"
+
+    def setUp(self):
+        super().setUp()
+        self.write("Read Later/a.md", self.PAGE)
+        self.cache = self.vault / "cache" / "previews.json"
+        self.images = self.vault / "cache" / "images"
+
+    def test_a_remote_image_is_never_handed_to_the_shell(self):
+        item = read_folder(self.vault, CFG, {})["items"][0]
+        self.assertEqual(item["image"], "")
+        self.assertTrue(item["imagePending"])
+
+    def test_enrich_downloads_the_image_and_read_gives_the_local_file(self):
+        saved = []
+
+        def fetch_image(url, folder):
+            saved.append(url)
+            folder.mkdir(parents=True, exist_ok=True)
+            path = folder / "a.jpg"
+            path.write_bytes(b"jpg")
+            return path
+        out = enrich(self.vault, [CFG], self.cache, now=1000, links=False, tweets=False, fetch_image=fetch_image)
+        self.assertEqual(out, {"ok": True, "fetched": 1})
+        self.assertEqual(saved, ["https://cdn.example.org/a.jpg"])
+        item = read_folder(self.vault, CFG, load_cache(self.cache))["items"][0]
+        self.assertEqual(item["image"], (self.images / "a.jpg").as_uri())
+        self.assertFalse(item["imagePending"])
+
+    def test_a_failed_image_waits_a_day(self):
+        def broken(url, folder):
+            raise ValueError("not public")
+        enrich(self.vault, [CFG], self.cache, now=1000, links=False, tweets=False, fetch_image=broken)
+        item = read_folder(self.vault, CFG, load_cache(self.cache), now=1000 + 3600)["items"][0]
+        self.assertFalse(item["imagePending"])
+        item = read_folder(self.vault, CFG, load_cache(self.cache), now=1000 + 86400 + 1)["items"][0]
+        self.assertTrue(item["imagePending"])
+
+    def test_download_keeps_images_only_and_names_them_by_type(self):
+        with mock.patch("shelf_net.get", return_value=("image/png", b"\x89PNG")):
+            path = download_image("https://cdn.example.org/x", self.images)
+        self.assertEqual(path.suffix, ".png")
+        self.assertEqual(path.read_bytes(), b"\x89PNG")
+        with mock.patch("shelf_net.get", return_value=("text/html", b"<html>")):
+            with self.assertRaises(ValueError):
+                download_image("https://cdn.example.org/y", self.images)

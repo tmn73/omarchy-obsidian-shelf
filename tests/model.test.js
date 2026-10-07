@@ -340,3 +340,8 @@ test('soundArgument tells the helper which sound a reminder plays', () => {
   assert.equal(Model.soundArgument({ reminderSound: true, reminderSoundFile: '' }), 'default')
   assert.equal(Model.soundArgument({ reminderSound: true, reminderSoundFile: '/a.oga' }), '/a.oga')
 })
+
+test('previewsPending asks for images to download even with previews off', () => {
+  const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a', previewKind: '', imagePending: true }] }] }
+  assert.equal(Model.previewsPending(p, { tweetPreviews: false, linkPreviews: false }), true)
+})

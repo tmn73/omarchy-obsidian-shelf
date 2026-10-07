@@ -294,8 +294,8 @@ def main(argv: list, stdin) -> tuple:
                 raise ArgumentError("--lists must be a JSON array")
             if args.command == "enrich":
                 kinds = {k.strip() for k in args.previews.split(",") if k.strip()}
-                return 0, shelf_previews.enrich(vault, lists, preview_cache(),
-                                                tweets="tweets" in kinds, links="links" in kinds)
+                return 0, shelf_previews.enrich(vault, lists, preview_cache(), tweets="tweets" in kinds,
+                                                links="links" in kinds, fetch_image=shelf_previews.download_image)
             return 0, read_lists(vault, lists)
         cfg = json.loads(args.list)
         if not isinstance(cfg, dict) or not cfg.get("path"):

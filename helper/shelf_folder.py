@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-from shelf_previews import merge_preview
+from shelf_previews import localize, merge_preview
 from shelf_io import OutsideVault, atomic_write, fail, locate, locate_for_write, ok, one_line, read_text, resolve_in_vault
 
 FRONT_MATTER_URL_KEYS = ("url", "source", "link")
@@ -132,7 +132,9 @@ def folder_item(vault_root: Path, path: Path) -> dict:
     }
 
 
-def read_folder(vault: Path, cfg: dict, previews=None) -> dict:
+def read_folder(vault: Path, cfg: dict, previews=None, local=True, now=None) -> dict:
+    """The notes of the folder. With local, remote images give way to their
+    downloaded copies: the shell never loads a web address itself."""
     list_id = cfg["id"]
     folder, problem = locate(vault, cfg, want_dir=True)
     if problem:
@@ -142,6 +144,8 @@ def read_folder(vault: Path, cfg: dict, previews=None) -> dict:
         notes = [p for p in folder.iterdir() if p.is_file() and p.suffix == ".md"]
         notes.sort(key=lambda p: p.stat().st_mtime, reverse=True)
         items = [merge_preview(folder_item(root, p), previews or {}) for p in notes]
+        if local:
+            items = [localize(item, previews or {}, now) for item in items]
     except OSError as err:
         return {"id": list_id, "state": "error", "message": str(err)}
     return {"id": list_id, "state": "ok", "items": items}

@@ -164,13 +164,13 @@ function freshKeys (previousPayload, nextPayload) {
   return itemKeys(nextPayload).filter(function (k) { return !before[k] })
 }
 
-// Whether a folder item still waits for a preview of a kind that is on. The
-// helper marks an item only until a fetch succeeded or failed, so asking
-// again never loops.
+// Whether a folder item still waits for a preview of a kind that is on, or
+// for a picture to download. The helper marks an item only until a fetch
+// succeeded or failed, so asking again never loops.
 function previewsPending (payload, config) {
   var on = { tweet: !!(config && config.tweetPreviews), link: !!(config && config.linkPreviews) }
   return (toArray(payload && payload.lists) || []).some(function (list) {
-    return (toArray(list.items) || []).some(function (item) { return on[item.previewKind] === true })
+    return (toArray(list.items) || []).some(function (item) { return on[item.previewKind] === true || item.imagePending === true })
   })
 }
 

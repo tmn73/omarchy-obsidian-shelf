@@ -32,7 +32,9 @@ class FolderCase(unittest.TestCase):
         return path
 
     def items(self):
-        return read_folder(self.vault, CFG)["items"]
+        # The remote addresses as read from the notes; test_previews covers
+        # their local copies.
+        return read_folder(self.vault, CFG, local=False)["items"]
 
 
 class FolderReadTest(FolderCase):
