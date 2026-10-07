@@ -143,7 +143,7 @@ Each board has a "Remind me" setting, on by default.
 - A reminder plays a sound, on by default. The settings let you turn it off
   or pick another one among the sounds already on the system (the sound
   themes in `/usr/share/sounds` and `~/.local/share/sounds`). The plugin ships
-  no sound; the default is the alarm sound of the freedesktop theme.
+  no sound. The default is the alarm sound of the freedesktop theme.
 - With a bar on each screen, one notification still goes out: the helper
   works under a lock and keeps what it sent in
   `~/.local/state/obsidian-shelf/reminders.json`.
