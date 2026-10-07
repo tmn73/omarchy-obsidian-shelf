@@ -11,6 +11,15 @@ from pathlib import Path
 EXTENSIONS = {".oga", ".ogg", ".wav", ".flac"}
 DEFAULT_NAME = "alarm-clock-elapsed"
 LIMIT = 300
+# Sounds of the freedesktop sound naming spec that are no alert: speaker
+# tests, device and power events, and feedback for actions the user just did.
+NOT_ALERTS = ("audio-channel-", "audio-test-signal", "audio-volume-change", "device-", "power-",
+              "network-connectivity-", "service-", "camera-shutter", "screen-capture", "trash-empty",
+              "phone-outgoing-", "suspend-", "desktop-log", "system-", "lid-", "item-", "file-trash")
+
+
+def is_alert(name: str) -> bool:
+    return not any(name.startswith(prefix) for prefix in NOT_ALERTS)
 
 
 def sound_roots(env: dict, home: Path) -> list:
@@ -36,7 +45,7 @@ def list_sounds(roots: list) -> list:
         for theme in themes:
             for path in sorted(theme.rglob("*")):
                 key = (theme.name, path.stem)
-                if path.suffix.lower() in EXTENSIONS and path.is_file() and key not in found:
+                if path.suffix.lower() in EXTENSIONS and is_alert(path.stem) and path.is_file() and key not in found:
                     found[key] = {"name": path.stem, "theme": theme.name, "path": str(path)}
                     if len(found) >= LIMIT:
                         break

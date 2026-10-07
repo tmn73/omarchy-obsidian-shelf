@@ -37,6 +37,16 @@ class SoundsTest(VaultCase):
         sounds = list_sounds([self.vault / "user/sounds", self.vault / "sys/sounds"])
         self.assertEqual([s["theme"] for s in sounds], ["freedesktop"])
 
+    def test_only_alert_and_message_sounds_are_offered(self):
+        self.make("sys/sounds/freedesktop/index.theme")
+        for name in ("alarm-clock-elapsed", "bell", "message-new-instant", "audio-channel-front-left",
+                     "audio-test-signal", "audio-volume-change", "device-added", "power-plug",
+                     "network-connectivity-lost", "service-login", "camera-shutter", "screen-capture",
+                     "trash-empty", "phone-outgoing-busy", "suspend-error"):
+            self.make(f"sys/sounds/freedesktop/stereo/{name}.oga")
+        sounds = list_sounds([self.vault / "user/sounds", self.vault / "sys/sounds"])
+        self.assertEqual([s["name"] for s in sounds], ["alarm-clock-elapsed", "bell", "message-new-instant"])
+
     def test_a_missing_root_is_skipped(self):
         self.assertEqual(list_sounds([self.vault / "nothing"]), [])
 
