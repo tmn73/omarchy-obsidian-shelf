@@ -13,8 +13,10 @@ Item {
     return Qt.resolvedUrl("bin/obsidian-shelf").toString().replace(/^file:\/\//, "")
   }
 
-  function run(args, done) {
-    queue = queue.concat([{ args: args, done: done }])
+  // Vault text for the helper goes in `input`, never in `args`: it reaches
+  // stdin through the environment and a pipe, out of the process list.
+  function run(args, done, input) {
+    queue = queue.concat([{ args: args, done: done, input: input === undefined ? null : String(input) }])
     next()
   }
 
@@ -23,7 +25,13 @@ Item {
       return
     current = queue[0]
     queue = queue.slice(1)
-    process.command = [helperPath()].concat(current.args)
+    if (current.input !== null) {
+      process.environment = { "SHELF_TEXT": current.input }
+      process.command = ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath()].concat(current.args)
+    } else {
+      process.environment = {}
+      process.command = [helperPath()].concat(current.args)
+    }
     process.running = true
   }
 

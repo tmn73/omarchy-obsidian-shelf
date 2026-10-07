@@ -109,36 +109,23 @@ Item {
     }
   }
 
-  // Each action is one helper call. New item text goes through the
-  // environment and a pipe to stdin, never through the arguments, so it stays
-  // out of the process list.
+  // Each action is one helper call. Its arguments name the vault and the
+  // list; the item, the lane and any new text are vault text, so they go as
+  // JSON through the environment and a pipe to stdin, never through the
+  // arguments, which every local user can read in the process list.
   function act(action, listId, args) {
     var cfg = listConfig(listId)
-    if (!cfg || !configured)
+    if (!cfg || !configured || ["add", "edit", "done", "remove", "move", "date", "lane", "clear"].indexOf(action) < 0)
       return
-    args = args || {}
-    var base = ["--vault", config.vaultPath, "--list", JSON.stringify(cfg)]
-    var call = { command: [], text: "" }
-    if (action === "add") {
-      var extra = args.section ? ["--section", String(args.section)] : []
-      call.command = ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath(), "add"].concat(base, extra)
-      call.text = String(args.text || "")
-    } else if (action === "edit") {
-      call.command = ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath(), "edit"].concat(base, ["--item", String(args.item)])
-      call.text = String(args.text || "")
-    } else if (action === "done" || action === "remove") {
-      call.command = [helperPath(), action].concat(base, ["--item", String(args.item)])
-    } else if (action === "move" || action === "date") {
-      var more = action === "move" ? ["--lane", String(args.lane)] : ["--date", String(args.date || ""), "--time", String(args.time || "")]
-      call.command = [helperPath(), action].concat(base, ["--item", String(args.item)], more)
-    } else if (action === "lane") {
-      call.command = [helperPath(), "lane"].concat(base, ["--title", String(args.title)])
-    } else if (action === "clear") {
-      call.command = [helperPath(), "clear"].concat(base)
-    } else {
-      return
-    }
-    actionQueue = actionQueue.concat([call])
+    var payload = {}
+    ;["item", "text", "section", "lane", "date", "time", "title"].forEach(function (key) {
+      if (args && args[key] !== undefined && args[key] !== null && args[key] !== "")
+        payload[key] = String(args[key])
+    })
+    actionQueue = actionQueue.concat([{
+      command: ["sh", "-c", "printf '%s' \"$SHELF_TEXT\" | \"$0\" \"$@\"", helperPath(), action, "--vault", config.vaultPath, "--list", JSON.stringify(cfg)],
+      text: JSON.stringify(payload)
+    }])
     runNextAction()
   }
 

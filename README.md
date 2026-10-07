@@ -157,6 +157,11 @@ Each board has a "Remind me" setting, on by default.
   links of the tweets you save.
 - The plugin sends nothing anywhere else, and a preview never changes a note
   in the vault.
+- Text from the vault never goes into a command line, which every local user
+  can read in the process list. The helper reads items, lanes and new text on
+  stdin, and it sends reminders to the session D-Bus itself, without
+  `notify-send`. Opening a link gives its address to `xdg-open`, as any app
+  does when it opens a link.
 
 ## Settings
 

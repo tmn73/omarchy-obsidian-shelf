@@ -29,26 +29,37 @@ class CliTest(VaultCase):
         self.assertRegex(out["readAt"], r"^\d{4}-\d{2}-\d{2}T")
 
     def test_add_reads_text_from_stdin(self):
-        code, out = self.run_cli("add", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin="ship it")
+        code, out = self.run_cli("add", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin=json.dumps({"text": "ship it"}))
         self.assertEqual((code, out), (0, {"ok": True}))
         self.assertEqual(self.read("Todo.md"), "- [ ] ship it\n")
 
     def test_add_strips_trailing_newline_from_stdin(self):
-        self.run_cli("add", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin="ship it\n")
+        self.run_cli("add", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin=json.dumps({"text": "ship it\n"}))
         self.assertEqual(self.read("Todo.md"), "- [ ] ship it\n")
 
     def test_add_with_section(self):
         self.write("Retrospective.md", "## Good\n\n## Bad\n")
-        code, out = self.run_cli("add", "--vault", str(self.vault), "--list", json.dumps(RETRO), "--section", "Bad", stdin="x")
+        code, out = self.run_cli("add", "--vault", str(self.vault), "--list", json.dumps(RETRO), stdin=json.dumps({"section": "Bad", "text": "x"}))
         self.assertEqual(out, {"ok": True})
         self.assertEqual(self.read("Retrospective.md"), "## Good\n\n## Bad\n- x\n")
 
     def test_done_and_clear_dispatch(self):
         self.write("Todo.md", "- [ ] a\n")
-        self.assertEqual(self.run_cli("done", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a")[1], {"ok": True})
+        self.assertEqual(self.run_cli("done", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin=json.dumps({"item": "- [ ] a"}))[1], {"ok": True})
         self.write("Retrospective.md", "## Good\n- a\n")
         self.assertEqual(self.run_cli("clear", "--vault", str(self.vault), "--list", json.dumps(RETRO))[1], {"ok": True})
         self.assertEqual(self.read("Retrospective.md"), "## Good\n")
+
+    def test_an_action_refuses_vault_text_as_an_argument(self):
+        self.write("Todo.md", "- [ ] a\n")
+        for flag in ("--item", "--text", "--section", "--lane", "--title"):
+            code, out = self.run_cli("done", "--vault", str(self.vault), "--list", json.dumps(TODO), flag, "- [ ] a")
+            self.assertEqual((code, out["error"]), (2, "invalid"), flag)
+        self.assertEqual(self.read("Todo.md"), "- [ ] a\n")
+
+    def test_an_action_without_its_item_is_invalid(self):
+        code, out = self.run_cli("done", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin="{}")
+        self.assertEqual((code, out["error"]), (2, "invalid"))
 
     def test_bad_lists_json_is_invalid_exit_2(self):
         code, out = self.run_cli("read", "--vault", str(self.vault), "--lists", "[not json")
@@ -94,20 +105,20 @@ class CliBoardTest(VaultCase):
 
     def test_add_move_date_and_done_dispatch(self):
         self.write("B.md", "## To do\n\n## Doing\n\n## Done\n**Complete**\n")
-        self.assertEqual(self.run_cli("add", *self.base(), "--section", "To do", stdin="a")[1], {"ok": True})
-        self.assertEqual(self.run_cli("move", *self.base(), "--item", "a", "--lane", "Doing")[1], {"ok": True})
-        self.assertEqual(self.run_cli("date", *self.base(), "--item", "a", "--date", "2026-10-09", "--time", "")[1], {"ok": True})
-        self.assertEqual(self.run_cli("done", *self.base(), "--item", "a")[1], {"ok": True})
+        self.assertEqual(self.run_cli("add", *self.base(), stdin=json.dumps({"section": "To do", "text": "a"}))[1], {"ok": True})
+        self.assertEqual(self.run_cli("move", *self.base(), stdin=json.dumps({"item": "a", "lane": "Doing"}))[1], {"ok": True})
+        self.assertEqual(self.run_cli("date", *self.base(), stdin=json.dumps({"item": "a", "date": "2026-10-09", "time": ""}))[1], {"ok": True})
+        self.assertEqual(self.run_cli("done", *self.base(), stdin=json.dumps({"item": "a"}))[1], {"ok": True})
         self.assertEqual(self.read("B.md"), "## To do\n\n## Doing\n\n## Done\n**Complete**\n- [x] a @{2026-10-09}\n")
 
     def test_lane_adds_a_status(self):
         self.write("B.md", "## To do\n\n## Done\n**Complete**\n")
-        self.assertEqual(self.run_cli("lane", *self.base(), "--title", "Waiting")[1], {"ok": True})
+        self.assertEqual(self.run_cli("lane", *self.base(), stdin=json.dumps({"title": "Waiting"}))[1], {"ok": True})
         self.assertIn("## Waiting", self.read("B.md"))
 
     def test_move_on_a_checklist_is_invalid(self):
         self.write("Todo.md", "- [ ] a\n")
-        code, out = self.run_cli("move", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a", "--lane", "x")
+        code, out = self.run_cli("move", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin=json.dumps({"item": "- [ ] a", "lane": "x"}))
         self.assertEqual((code, out["error"]), (2, "invalid"))
 
 class CliSyncTest(VaultCase):
@@ -150,11 +161,11 @@ class CliPreviewTest(VaultCase):
 
 
 class CliSettingsTest(VaultCase):
-    def run_env(self, argv):
+    def run_env(self, argv, stdin=""):
         from unittest import mock
         env = {"PATH": "/nonexistent", "HOME": str(self.vault), "XDG_CONFIG_HOME": str(self.vault / "cfg")}
         with mock.patch.dict("os.environ", env, clear=True):
-            return main(argv, io.StringIO(""))
+            return main(argv, io.StringIO(stdin))
 
     def test_vaults_reads_obsidian_registry(self):
         self.write("cfg/obsidian/obsidian.json", json.dumps({"vaults": {"a": {"path": "/v/Notes", "open": True}}}))
@@ -167,7 +178,7 @@ class CliSettingsTest(VaultCase):
         code, out = self.run_env(["paths", "--vault", str(self.vault), "--kind", "file"])
         self.assertEqual(out["paths"], ["Todo.md"])
         retro = json.dumps({"id": "m", "name": "M", "type": "sections", "path": "M.md"})
-        code, out = self.run_env(["create", "--vault", str(self.vault), "--list", retro, "--sections", "Good,Bad"])
+        code, out = self.run_env(["create", "--vault", str(self.vault), "--list", retro], stdin=json.dumps({"sections": ["Good", "Bad"]}))
         self.assertEqual(out, {"ok": True, "created": True})
         self.assertEqual(self.read("M.md"), "## Good\n\n## Bad\n")
 
@@ -199,7 +210,7 @@ class CliEditRemoveTest(VaultCase):
 
     def test_edit_reads_text_from_stdin(self):
         self.write("Todo.md", "- [ ] a\n")
-        code, out = self.run_cli("edit", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a", stdin="b\n")
+        code, out = self.run_cli("edit", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin=json.dumps({"item": "- [ ] a", "text": "b\n"}))
         self.assertEqual((code, out), (0, {"ok": True}))
         self.assertEqual(self.read("Todo.md"), "- [ ] b\n")
 
@@ -207,9 +218,9 @@ class CliEditRemoveTest(VaultCase):
         self.write("Todo.md", "- [ ] a\n")
         self.write("Retrospective.md", "## Good\n- a\n")
         self.write("Read Later/n.md", "# N\n")
-        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(TODO), "--item", "- [ ] a")[1], {"ok": True})
-        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(RETRO), "--item", "Good\n- a")[1], {"ok": True})
-        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(LATER), "--item", "Read Later/n.md")[1], {"ok": True})
+        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(TODO), stdin=json.dumps({"item": "- [ ] a"}))[1], {"ok": True})
+        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(RETRO), stdin=json.dumps({"item": "Good\n- a"}))[1], {"ok": True})
+        self.assertEqual(self.run_cli("remove", "--vault", str(self.vault), "--list", json.dumps(LATER), stdin=json.dumps({"item": "Read Later/n.md"}))[1], {"ok": True})
         self.assertEqual(self.read("Todo.md"), "")
         self.assertEqual(self.read("Retrospective.md"), "## Good\n")
         self.assertTrue((self.vault / ".trash" / "n.md").exists())
