@@ -73,8 +73,7 @@ Column {
   function finish(spec, badge) {
     var list = { id: Model.newListId(config.lists, spec.name), name: spec.name.slice(0, 24), type: spec.type, path: spec.path, badge: badge, onDone: "delete" }
     var args = ["create", "--vault", config.vaultPath, "--list", JSON.stringify(list)]
-    if (spec.type === "sections" || spec.type === "board")
-      args = args.concat(["--sections", sections.join(",")])
+    var input = JSON.stringify({ sections: spec.type === "sections" || spec.type === "board" ? sections : [] })
     helper.run(args, function (data) {
       if (!data.ok) {
         root.error = String(data.message || qsTr("Could not create it"))
@@ -86,7 +85,7 @@ Column {
         : qsTr("It reads %1. Nothing in it changed.").arg(list.path)
       root.added(list)
       root.step = "done"
-    })
+    }, input)
   }
 
   Component.onCompleted: start()

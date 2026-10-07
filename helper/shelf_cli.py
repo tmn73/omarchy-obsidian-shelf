@@ -7,8 +7,6 @@ object, so the tests drive it directly and bin/obsidian-shelf only prints.
 import argparse
 import json
 import os
-import shutil
-import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -17,6 +15,7 @@ from shelf_checklist import add_checklist, done_checklist, edit_checklist, read_
 from shelf_folder import done_folder, edit_folder, read_folder
 from shelf_io import fail
 import shelf_previews
+import shelf_notify
 import shelf_reminders
 import shelf_seen
 import shelf_settings
@@ -24,6 +23,10 @@ import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
 
 READERS = {"folder": read_folder, "checklist": read_checklist, "sections": read_sections, "board": shelf_board.read_board}
+
+
+ACTIONS = ("add", "done", "clear", "edit", "remove", "move", "date", "lane")
+NEEDS_ITEM = ("done", "edit", "remove", "move", "date")
 
 
 class ArgumentError(ValueError):
@@ -59,28 +62,19 @@ def build_parser() -> Parser:
     create = commands.add_parser("create", add_help=False)
     create.add_argument("--vault", required=True)
     create.add_argument("--list", required=True)
-    create.add_argument("--sections", default="")
     trash = commands.add_parser("trash", add_help=False)
     trash.add_argument("--vault", required=True)
     trash.add_argument("--list", required=True)
     for name in ("sync-state", "sync-service"):
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
-    for name in ("add", "done", "clear", "edit", "remove", "move", "date", "lane"):
+    # The arguments name the vault and the list, from the settings. Text from
+    # the vault (an item, a lane, new text) comes on stdin as JSON: a command
+    # line is readable by every local user.
+    for name in ACTIONS:
         sub = commands.add_parser(name, add_help=False)
         sub.add_argument("--vault", required=True)
         sub.add_argument("--list", required=True)
-        if name == "add":
-            sub.add_argument("--section", default=None)
-        if name in ("done", "edit", "remove", "move", "date"):
-            sub.add_argument("--item", required=True)
-        if name == "move":
-            sub.add_argument("--lane", required=True)
-        if name == "lane":
-            sub.add_argument("--title", required=True)
-        if name == "date":
-            sub.add_argument("--date", default="")
-            sub.add_argument("--time", default="")
     return parser
 
 
@@ -103,11 +97,8 @@ def reminder_clock() -> datetime:
 
 
 def send_notification(message: dict) -> None:
-    try:
-        subprocess.run(shelf_reminders.notify_command(message, shutil.which), stdin=subprocess.DEVNULL,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
-    except (OSError, subprocess.SubprocessError):
-        pass
+    """Over the session bus: the card text never goes into a command line."""
+    shelf_notify.notify(message["headline"], message["body"], shelf_reminders.GLYPH, shelf_reminders.OPEN_SHELF)
 
 
 def remind(vault: Path, lists: list, summary_time: str) -> dict:
@@ -157,51 +148,66 @@ def read_lists(vault: Path, lists: list) -> dict:
     return {"ok": True, "readAt": stamp, "lists": out, "seen": seen, "seenPath": str(path)}
 
 
-def run_board(args, vault: Path, cfg: dict, stdin) -> dict:
-    if args.command == "add":
-        if not args.section:
-            raise ArgumentError("add on a board needs --section, the lane")
-        return shelf_board.add_board(vault, cfg, args.section, stdin.read())
-    if args.command == "move":
-        return shelf_board.move_board(vault, cfg, args.item, args.lane)
-    if args.command == "lane":
-        return shelf_board.add_lane(vault, cfg, args.title)
-    if args.command == "date":
+def read_payload(stdin) -> dict:
+    """The JSON object an action reads on stdin; an empty stdin is {}."""
+    text = stdin.read()
+    if not text.strip():
+        return {}
+    payload = json.loads(text)
+    if not isinstance(payload, dict):
+        raise ArgumentError("stdin must be a JSON object")
+    return {key: value if isinstance(value, list) else str(value) for key, value in payload.items()}
+
+
+def run_board(command: str, vault: Path, cfg: dict, payload: dict) -> dict:
+    item = payload.get("item", "")
+    if command == "add":
+        if not payload.get("section"):
+            raise ArgumentError("add on a board needs a section, the lane")
+        return shelf_board.add_board(vault, cfg, payload["section"], payload.get("text", ""))
+    if command == "move":
+        return shelf_board.move_board(vault, cfg, item, payload.get("lane", ""))
+    if command == "lane":
+        return shelf_board.add_lane(vault, cfg, payload.get("title", ""))
+    if command == "date":
         today = datetime.now().astimezone().date().isoformat()
-        return shelf_board.date_board(vault, cfg, args.item, args.date, args.time, today)
-    if args.command == "edit":
-        return shelf_board.edit_board(vault, cfg, args.item, stdin.read())
-    if args.command == "clear":
+        return shelf_board.date_board(vault, cfg, item, payload.get("date", ""), payload.get("time", ""), today)
+    if command == "edit":
+        return shelf_board.edit_board(vault, cfg, item, payload.get("text", ""))
+    if command == "clear":
         return shelf_board.clear_board(vault, cfg)
     actions = {"done": shelf_board.done_board, "remove": shelf_board.remove_board}
-    return actions[args.command](vault, cfg, args.item)
+    return actions[command](vault, cfg, item)
 
 
-def run_action(args, vault: Path, cfg: dict, stdin) -> dict:
+def run_action(command: str, vault: Path, cfg: dict, payload: dict) -> dict:
+    if command in NEEDS_ITEM and not payload.get("item"):
+        raise ArgumentError(f"{command} needs an item")
     if cfg.get("type") == "board":
-        return run_board(args, vault, cfg, stdin)
-    if args.command in ("move", "date", "lane"):
-        raise ArgumentError(f"{args.command} applies to a board only")
-    kind = (args.command, cfg.get("type"))
+        return run_board(command, vault, cfg, payload)
+    if command in ("move", "date", "lane"):
+        raise ArgumentError(f"{command} applies to a board only")
+    item, text = payload.get("item", ""), payload.get("text", "")
+    kind = (command, cfg.get("type"))
     if kind == ("add", "checklist"):
-        return add_checklist(vault, cfg, stdin.read())
+        return add_checklist(vault, cfg, text)
     if kind == ("add", "sections"):
-        if not args.section:
-            raise ArgumentError("add on a sections list needs --section")
-        return add_sections(vault, cfg, args.section, stdin.read())
+        if not payload.get("section"):
+            raise ArgumentError("add on a sections list needs a section")
+        return add_sections(vault, cfg, payload["section"], text)
     if kind == ("done", "folder"):
-        return done_folder(vault, cfg, args.item)
+        return done_folder(vault, cfg, item)
     if kind == ("done", "checklist"):
-        return done_checklist(vault, cfg, args.item)
+        return done_checklist(vault, cfg, item)
     if kind == ("clear", "sections"):
         return clear_sections(vault, cfg)
     removers = {"folder": done_folder, "checklist": remove_checklist, "sections": remove_sections}
     editors = {"folder": edit_folder, "checklist": edit_checklist, "sections": edit_sections}
-    if args.command == "remove" and cfg.get("type") in removers:
-        return removers[cfg["type"]](vault, cfg, args.item)
-    if args.command == "edit" and cfg.get("type") in editors:
-        return editors[cfg["type"]](vault, cfg, args.item, stdin.read())
-    raise ArgumentError(f"{args.command} does not apply to a {cfg.get('type')} list")
+    if command == "remove" and cfg.get("type") in removers:
+        return removers[cfg["type"]](vault, cfg, item)
+    if command == "edit" and cfg.get("type") in editors:
+        return editors[cfg["type"]](vault, cfg, item, text)
+    raise ArgumentError(f"{command} does not apply to a {cfg.get('type')} list")
 
 
 def run_sync(command: str, vault: Path) -> tuple:
@@ -244,7 +250,7 @@ def main(argv: list, stdin) -> tuple:
             cfg = json.loads(args.list)
             if not isinstance(cfg, dict) or not cfg.get("path"):
                 raise ArgumentError("--list must be a JSON object with a path")
-            sections = [name.strip() for name in args.sections.split(",") if name.strip()]
+            sections = [str(name).strip() for name in read_payload(stdin).get("sections", []) if str(name).strip()]
             return 0, shelf_settings.create_list(vault, cfg, sections)
         if args.command == "trash":
             cfg = json.loads(args.list)
@@ -270,6 +276,6 @@ def main(argv: list, stdin) -> tuple:
         cfg = json.loads(args.list)
         if not isinstance(cfg, dict) or not cfg.get("path"):
             raise ArgumentError("--list must be a JSON object with a path")
-        return 0, run_action(args, vault, cfg, stdin)
+        return 0, run_action(args.command, vault, cfg, read_payload(stdin))
     except (ArgumentError, json.JSONDecodeError) as err:
         return 2, fail("invalid", str(err))

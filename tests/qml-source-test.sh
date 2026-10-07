@@ -156,8 +156,6 @@ has "ShelfPopup.qml" "SettingsView" "ShelfPopup.qml does not host the settings v
 has "Panel.qml" "popup\.inputFocused" "the key catcher ignores focused fields"
 
 # ---- Edit and remove on every list
-has "Service.qml" 'action === "edit"' "Service.qml cannot send an edit"
-has "Service.qml" 'action === "remove"' "Service.qml cannot send a remove"
 has "KeyedListModel.qml" "function replaceKey\(" "KeyedListModel.qml cannot update a row in place"
 has "InlineEditor.qml" "signal saved" "InlineEditor.qml does not report a save"
 has "InlineEditor.qml" "signal cancelled" "InlineEditor.qml does not report a cancel"
@@ -270,14 +268,13 @@ has "ShelfPopup.qml" 'board: "BoardList.qml"' "the popup cannot show a board"
 has "BoardList.qml" "model: root.laneKeys" "a read rebuilds every lane and closes open editors"
 has "BoardList.qml" "readonly property bool typing" "the popup keys fire while the date panel has focus"
 has "ShelfPopup.qml" "listLoader.item.typing === true" "the popup ignores a list that is typing"
-has "Service.qml" 'action === "move" \|\| action === "date"' "the service cannot move or date a card"
 has "Reminders.qml" '"remind", "--vault"' "nothing asks the helper for reminders"
 has "Panel.qml" "late: shelf.lateCount > 0" "a late card does not show on the chip"
 has "Panel.qml" 'popup.forward\("moveCard", dx\)' "Left and Right do not move a card"
 has "DatePanel.qml" "dateField.forceActiveFocus" "Escape cannot close the date panel"
+hasnt "DatePanel.qml" "root.picked\(modelData.date" "a quick pick applies before the time can be typed"
 hasnt "BoardLane.qml" "required property string key" "a card delegate hides the key of CardRow, so every card edits at once"
 has "CardRow.qml" "root.board.toggleStatus" "a card has no status button"
-has "Service.qml" "action === \"lane\"" "the service cannot add a status"
 hasnt "CardRow.qml" "Move to the lane before" "the card still shows arrows instead of its status"
 hasnt "CardRow.qml" "anchors.right: actions.left" "the hidden card buttons still take the width of the text"
 has "CardRow.qml" "label: qsTr\(\"Remove\"\); danger: true" "removing a card does not read as a delete"
@@ -290,6 +287,10 @@ has "ChecklistRow.qml" "Util.alpha\(Color.popups.text, 0.03\)" "checklist rows r
 hasnt "CardRow.qml" "Qt.tint" "the card paints a color that does not follow the theme"
 has "BoardList.qml" "StatusMenu \\{" "the status menu does not float at the board level"
 hasnt "CardRow.qml" "StatusPanel" "the status still opens as a row under the card"
+has "Service.qml" '\["add", "edit", "done", "remove", "move", "date", "lane", "clear"\]' "the service does not send every action"
+hasnt "Service.qml" "\"--item\"|\"--lane\"|\"--title\"|\"--section\"" "vault text goes into a command line"
+has "Service.qml" "text: JSON.stringify\(payload\)" "the action payload does not go on stdin"
+hasnt "AddListSheet.qml" "\"--sections\"" "new lane names go into a command line"
 
 # Syntax: qmllint, when the machine has it, parses every file. It refuses the
 # typed functions an IpcHandler needs, so files with one are left out.
