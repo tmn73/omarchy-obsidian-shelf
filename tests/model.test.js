@@ -325,3 +325,18 @@ test('addTargets gives the headings of a notes list and the open lanes of a boar
   assert.deepEqual(Model.addTargets({ type: 'checklist' }, { items: [] }), [])
   assert.deepEqual(Model.addTargets(null, null), [])
 })
+
+test('normalizeSettings keeps a reminder sound on by default and its file', () => {
+  const s = Model.normalizeSettings({})
+  assert.equal(s.reminderSound, true)
+  assert.equal(s.reminderSoundFile, '')
+  assert.equal(Model.normalizeSettings({ reminderSound: false }).reminderSound, false)
+  assert.equal(Model.normalizeSettings({ reminderSound: 'false' }).reminderSound, false)
+  assert.equal(Model.normalizeSettings({ reminderSoundFile: '/usr/share/sounds/freedesktop/stereo/bell.oga' }).reminderSoundFile, '/usr/share/sounds/freedesktop/stereo/bell.oga')
+})
+
+test('soundArgument tells the helper which sound a reminder plays', () => {
+  assert.equal(Model.soundArgument({ reminderSound: false, reminderSoundFile: '/a.oga' }), 'none')
+  assert.equal(Model.soundArgument({ reminderSound: true, reminderSoundFile: '' }), 'default')
+  assert.equal(Model.soundArgument({ reminderSound: true, reminderSoundFile: '/a.oga' }), '/a.oga')
+})

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Io
 import "Board.js" as Board
+import "Model.js" as Model
 
 // Asks the helper for board reminders every minute, and keeps today's date
 // for the late count. Each bar runs one; the helper's lock makes one
@@ -18,7 +19,8 @@ Item {
     today = Board.isoDay(new Date())
     if (!wanted || process.running)
       return
-    process.command = [helper, "remind", "--vault", config.vaultPath, "--lists", JSON.stringify(config.lists), "--summary-time", config.reminderTime]
+    process.command = [helper, "remind", "--vault", config.vaultPath, "--lists", JSON.stringify(config.lists),
+                       "--summary-time", config.reminderTime, "--sound", Model.soundArgument(config)]
     process.running = true
   }
 

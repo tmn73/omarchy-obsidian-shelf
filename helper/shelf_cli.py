@@ -7,6 +7,8 @@ object, so the tests drive it directly and bin/obsidian-shelf only prints.
 import argparse
 import json
 import os
+import shutil
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -18,6 +20,7 @@ import shelf_previews
 import shelf_notify
 import shelf_reminders
 import shelf_seen
+import shelf_sounds
 import shelf_settings
 import shelf_sync
 from shelf_sections import add_sections, clear_sections, edit_sections, read_sections, remove_sections
@@ -52,6 +55,10 @@ def build_parser() -> Parser:
     remind.add_argument("--vault", required=True)
     remind.add_argument("--lists", required=True)
     remind.add_argument("--summary-time", default="09:00")
+    remind.add_argument("--sound", default="none", help="none, default, or a sound file")
+    commands.add_parser("sounds", add_help=False)
+    play = commands.add_parser("play-sound", add_help=False)
+    play.add_argument("--path", required=True)
     seen = commands.add_parser("seen", add_help=False)
     seen.add_argument("--lists", required=True)
     scan = commands.add_parser("scan", add_help=False)
@@ -101,7 +108,15 @@ def send_notification(message: dict) -> None:
     shelf_notify.notify(message["headline"], message["body"], shelf_reminders.GLYPH, shelf_reminders.OPEN_SHELF)
 
 
-def remind(vault: Path, lists: list, summary_time: str) -> dict:
+def sound_list() -> list:
+    return shelf_sounds.list_sounds(shelf_sounds.sound_roots(os.environ, Path(os.environ.get("HOME", str(Path.home())))))
+
+
+def play_sound(path: str) -> bool:
+    return shelf_sounds.play(path, shutil.which, subprocess.Popen)
+
+
+def remind(vault: Path, lists: list, summary_time: str, sound: str = "none") -> dict:
     if not shelf_reminders.CLOCK.match(summary_time):
         raise ArgumentError("--summary-time is HH:MM")
     boards = [cfg for cfg in lists if isinstance(cfg, dict) and cfg.get("type") == "board"]
@@ -112,9 +127,13 @@ def remind(vault: Path, lists: list, summary_time: str) -> dict:
     def compute(state):
         return shelf_reminders.due(payloads, boards, state, now, summary_time)
     try:
-        return shelf_reminders.run(path, compute, send_notification)
+        result = shelf_reminders.run(path, compute, send_notification)
     except OSError as err:
         return fail("io", str(err))
+    # One sound per run, however many reminders rang.
+    if result.get("sent") and sound != "none":
+        play_sound(shelf_sounds.default_sound(sound_list()) if sound == "default" else sound)
+    return result
 
 
 def settle_seen(lists: list, payloads: list) -> tuple:
@@ -237,6 +256,11 @@ def main(argv: list, stdin) -> tuple:
         args = build_parser().parse_args(argv)
         if args.command is None:
             raise ArgumentError("a command is required")
+        if args.command == "sounds":
+            sounds = sound_list()
+            return 0, {"ok": True, "sounds": sounds, "default": shelf_sounds.default_sound(sounds)}
+        if args.command == "play-sound":
+            return 0, {"ok": play_sound(args.path)}
         if args.command == "vaults":
             return 0, {"ok": True, "vaults": shelf_settings.known_vaults(config_home() / "obsidian" / "obsidian.json")}
         if args.command == "seen":
@@ -263,7 +287,7 @@ def main(argv: list, stdin) -> tuple:
             lists = json.loads(args.lists)
             if not isinstance(lists, list):
                 raise ArgumentError("--lists must be a JSON array")
-            return 0, remind(vault, lists, args.summary_time)
+            return 0, remind(vault, lists, args.summary_time, args.sound)
         if args.command in ("read", "enrich"):
             lists = json.loads(args.lists)
             if not isinstance(lists, list):

@@ -82,6 +82,8 @@ function normalizeSettings (raw) {
     tweetPreviews: raw.tweetPreviews === true || raw.tweetPreviews === 'true',
     linkPreviews: raw.linkPreviews !== false && raw.linkPreviews !== 'false',
     reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(text(raw.reminderTime)) ? text(raw.reminderTime) : '09:00',
+    reminderSound: raw.reminderSound !== false && raw.reminderSound !== 'false',
+    reminderSoundFile: text(raw.reminderSoundFile),
     lists: lists,
     errors: errors
   }
@@ -94,6 +96,13 @@ function addTargets (cfg, listPayload) {
   if (cfg.type === 'sections') return (toArray(listPayload.sections) || []).map(function (s) { return s.heading })
   if (cfg.type !== 'board') return []
   return (toArray(listPayload.lanes) || []).filter(function (l) { return !l.complete }).map(function (l) { return l.title })
+}
+
+// The sound a reminder plays, as the helper's --sound value: none, the
+// system default, or the file the user picked among the system sounds.
+function soundArgument (config) {
+  if (!config || !config.reminderSound) return 'none'
+  return config.reminderSoundFile || 'default'
 }
 
 function findList (payload, id) {
@@ -366,6 +375,7 @@ if (typeof module !== 'undefined') {
     toArray: toArray,
     normalizeSettings: normalizeSettings,
     findList: findList,
+    soundArgument: soundArgument,
     addTargets: addTargets,
     listItemCount: listItemCount,
     badgeCount: badgeCount,
