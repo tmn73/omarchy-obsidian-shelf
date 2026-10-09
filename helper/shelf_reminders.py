@@ -9,6 +9,12 @@ lock, and the state file remembers what went out:
 A card with a date and a time rings once, at that time or at the first run
 later that same day. The morning summary rings once a day after the summary
 time, for the cards due today without a time and every late card.
+
+A notification never carries text from the vault: the Omarchy notification
+service copies the summary and the body into process arguments, which every
+local user can read. It names the board and the time, and the shelf shows
+the cards. "cards" keeps the keys of the cards a message is about, for the
+tests, and is never sent.
 """
 
 import fcntl
@@ -44,6 +50,11 @@ def summary_headline(today: int, late: int) -> str:
     return f"{plural(late, 'card')} " + ("is late" if late == 1 else "are late")
 
 
+def card_body(cfg: dict) -> str:
+    name = cfg.get("name", "")
+    return f"{name} · open the shelf to see the card" if name else "Open the shelf to see the card"
+
+
 def due(payloads: list, lists: list, state: dict, now, summary_time: str) -> tuple:
     """The messages to send now, and the state that remembers them."""
     today = now.date().isoformat()
@@ -57,28 +68,27 @@ def due(payloads: list, lists: list, state: dict, now, summary_time: str) -> tup
             continue
         if not payload or payload.get("state") != "ok" or not payload.get("datesOn"):
             continue
-        for lane, card in open_cards(payload):
+        for _, card in open_cards(payload):
             date, time = card.get("date", ""), card.get("time", "")
             if not ISO_DATE.match(date):
                 continue
             if date < today:
-                late_cards.append(card["text"])
+                late_cards.append(card["key"])
             elif date == today and not time:
-                today_cards.append(card["text"])
+                today_cards.append(card["key"])
             elif date == today and CLOCK.match(time) and time <= clock:
                 key = "\u0000".join([cfg["id"], card["key"], f"{date} {time}"])
                 if key not in fired:
                     fired[key] = today
-                    messages.append({"kind": "card", "headline": card["text"],
-                                     "body": f"{cfg.get('name', '')} · {lane} · today {time}"})
+                    messages.append({"kind": "card", "cards": [card["key"]],
+                                     "headline": f"Card due at {time}", "body": card_body(cfg)})
     summary = state.get("summary", "")
     if clock >= summary_time and summary != today:
         summary = today
         if today_cards or late_cards:
-            body = [" · ".join(today_cards)] if today_cards else []
-            body += ["Late: " + " · ".join(late_cards)] if late_cards else []
-            messages.append({"kind": "summary", "headline": summary_headline(len(today_cards), len(late_cards)),
-                             "body": "\n".join(body)})
+            messages.append({"kind": "summary", "cards": today_cards + late_cards,
+                             "headline": summary_headline(len(today_cards), len(late_cards)),
+                             "body": "Open the shelf to see the cards"})
     return messages, {"fired": fired, "summary": summary}
 
 
