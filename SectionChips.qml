@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // The sections of a new notes file, as chips: remove one, or type a new one.
@@ -23,7 +24,7 @@ Flow {
       width: chipRow.implicitWidth + Style.space(16)
       height: Style.space(30)
       radius: Style.space(7)
-      color: Util.alpha(Color.popups.text, 0.1)
+      color: Util.alpha(Commons.Color.popups.text, 0.1)
 
       Row {
         id: chipRow
@@ -31,7 +32,7 @@ Flow {
         anchors.centerIn: parent
         spacing: Style.space(6)
 
-        Text { anchors.verticalCenter: parent.verticalCenter; text: modelData; textFormat: Text.PlainText; color: Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body }
+        Text { anchors.verticalCenter: parent.verticalCenter; text: modelData; textFormat: Text.PlainText; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body }
 
         RowButton {
           anchors.verticalCenter: parent.verticalCenter

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // One line of a picker: a label, a muted detail on the right.
 MouseArea {
@@ -20,7 +21,7 @@ MouseArea {
   Rectangle {
     anchors.fill: parent
     radius: Style.space(6)
-    color: root.selected ? Util.alpha(Color.accent, 0.15) : (root.containsMouse ? Util.alpha(Color.popups.text, 0.08) : "transparent")
+    color: root.selected ? Util.alpha(Commons.Color.accent, 0.15) : (root.containsMouse ? Util.alpha(Commons.Color.popups.text, 0.08) : "transparent")
   }
 
   Text {
@@ -32,7 +33,7 @@ MouseArea {
     text: root.label
     textFormat: Text.PlainText
     elide: Text.ElideMiddle
-    color: root.selected ? Color.accent : Color.popups.text
+    color: root.selected ? Commons.Color.accent : Commons.Color.popups.text
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
   }
@@ -45,7 +46,7 @@ MouseArea {
     anchors.verticalCenter: parent.verticalCenter
     text: root.detail
     textFormat: Text.PlainText
-    color: Util.alpha(Color.popups.text, 0.6)
+    color: Util.alpha(Commons.Color.popups.text, 0.6)
     font.family: root.fontFamily
     font.pixelSize: Style.font.bodySmall
   }

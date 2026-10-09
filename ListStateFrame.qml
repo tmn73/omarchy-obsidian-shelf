@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // What every list component shares: the contract ShelfPopup binds to, the
@@ -61,7 +62,7 @@ Item {
       visible: root.listState === "ok"
       text: ""
       textFormat: Text.PlainText
-      color: Color.accent
+      color: Commons.Color.accent
       font.family: root.fontFamily
       font.pixelSize: Style.font.displayLarge
     }
@@ -72,7 +73,7 @@ Item {
       text: root.listState === "ok" ? root.emptyTitle : (root.listState === "" ? qsTr("Reading the vault") : (root.listPayload.message || qsTr("This list cannot be read")))
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: root.listState === "ok" || root.listState === "" ? Color.popups.text : Color.urgent
+      color: root.listState === "ok" || root.listState === "" ? Commons.Color.popups.text : Commons.Color.urgent
       font.family: root.fontFamily
       font.pixelSize: Style.font.subtitle
       font.bold: true
@@ -86,8 +87,8 @@ Item {
         visible: root.listState === "missing"
         text: qsTr("Create it again")
         bordered: true
-        background: Color.accent
-        foreground: Color.popups.background
+        background: Commons.Color.accent
+        foreground: Commons.Color.popups.background
         onClicked: root.createRequested()
       }
 
@@ -105,7 +106,7 @@ Item {
       text: root.emptyText
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Util.alpha(Color.popups.text, 0.65)
+      color: Util.alpha(Commons.Color.popups.text, 0.65)
       font.family: root.fontFamily
       font.pixelSize: Style.font.body
     }

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // The key hints in the popup footer.
 Row {
@@ -23,7 +24,7 @@ Row {
         width: Math.max(Style.space(18), keyLabel.implicitWidth + Style.space(8))
         height: Style.space(18)
         radius: Style.space(4)
-        color: Util.alpha(Color.popups.text, 0.08)
+        color: Util.alpha(Commons.Color.popups.text, 0.08)
 
         Text {
           id: keyLabel
@@ -31,7 +32,7 @@ Row {
           anchors.centerIn: parent
           text: modelData[0]
           textFormat: Text.PlainText
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption
         }
@@ -41,7 +42,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         text: modelData[1]
         textFormat: Text.PlainText
-        color: Util.alpha(Color.popups.text, 0.65)
+        color: Util.alpha(Commons.Color.popups.text, 0.65)
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }

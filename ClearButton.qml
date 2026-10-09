@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Two-step clear. The first click arms the button: it turns to the urgent
 // color and a bar drains over three seconds. A second click before the bar is
@@ -46,9 +47,9 @@ MouseArea {
     anchors.fill: parent
     radius: Style.space(8)
     clip: true
-    color: root.armed ? Util.alpha(Color.urgent, 0.12) : "transparent"
+    color: root.armed ? Util.alpha(Commons.Color.urgent, 0.12) : "transparent"
     border.width: Math.max(1, Style.space(1))
-    border.color: root.armed ? Color.urgent : Util.alpha(Color.popups.text, root.containsMouse ? 0.5 : 0.2)
+    border.color: root.armed ? Commons.Color.urgent : Util.alpha(Commons.Color.popups.text, root.containsMouse ? 0.5 : 0.2)
 
     Behavior on color { ColorAnimation { duration: Style.duration(200) } }
     Behavior on border.color { ColorAnimation { duration: Style.duration(200) } }
@@ -60,7 +61,7 @@ MouseArea {
       anchors.bottom: parent.bottom
       height: Math.max(2, Style.space(2))
       width: 0
-      color: Color.urgent
+      color: Commons.Color.urgent
       visible: root.armed
     }
   }
@@ -81,7 +82,7 @@ MouseArea {
     anchors.centerIn: parent
     text: root.armed ? qsTr("Click again to clear %1 items").arg(root.count) : qsTr("Clear after %1").arg(root.listName.toLowerCase())
     textFormat: Text.PlainText
-    color: root.armed || root.containsMouse ? Color.popups.text : Util.alpha(Color.popups.text, 0.65)
+    color: root.armed || root.containsMouse ? Commons.Color.popups.text : Util.alpha(Commons.Color.popups.text, 0.65)
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
   }

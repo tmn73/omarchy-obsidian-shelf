@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
@@ -52,7 +53,7 @@ Column {
       text: root.cfg.path || ""
       textFormat: Text.PlainText
       elide: Text.ElideMiddle
-      color: Color.popups.text
+      color: Commons.Color.popups.text
       font.family: root.fontFamily
       font.pixelSize: Style.font.body
     }
@@ -115,7 +116,7 @@ Column {
       : qsTr("Sections are the ## headings of the file. Add or rename them in the file.")
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
-    color: Util.alpha(Color.popups.text, 0.65)
+    color: Util.alpha(Commons.Color.popups.text, 0.65)
     font.family: root.fontFamily
     font.pixelSize: Style.font.bodySmall
   }
@@ -129,7 +130,7 @@ Column {
       cursorShape: Qt.PointingHandCursor
       onClicked: root.howToggled()
 
-      Text { id: howLabel; text: qsTr("Add from your phone: how"); textFormat: Text.PlainText; color: Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
+      Text { id: howLabel; text: qsTr("Add from your phone: how"); textFormat: Text.PlainText; color: Commons.Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
     }
 
     Item { width: root.innerWidth - howLabel.implicitWidth - removeLabel.implicitWidth; height: 1 }
@@ -140,7 +141,7 @@ Column {
       cursorShape: Qt.PointingHandCursor
       onClicked: root.removeRequested()
 
-      Text { id: removeLabel; text: qsTr("Remove from shelf"); textFormat: Text.PlainText; color: Color.urgent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
+      Text { id: removeLabel; text: qsTr("Remove from shelf"); textFormat: Text.PlainText; color: Commons.Color.urgent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
     }
   }
 
@@ -149,9 +150,9 @@ Column {
     width: root.innerWidth
     height: how.implicitHeight + Style.space(20)
     radius: Style.space(8)
-    color: Util.alpha(Color.accent, 0.08)
+    color: Util.alpha(Commons.Color.accent, 0.08)
     border.width: 1
-    border.color: Util.alpha(Color.accent, 0.3)
+    border.color: Util.alpha(Commons.Color.accent, 0.3)
 
     Text {
       id: how
@@ -162,7 +163,7 @@ Column {
       text: Model.phoneHowTo(root.cfg)
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Util.alpha(Color.popups.text, 0.8)
+      color: Util.alpha(Commons.Color.popups.text, 0.8)
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }

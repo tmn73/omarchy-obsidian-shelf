@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
@@ -28,9 +29,9 @@ Rectangle {
 
   implicitHeight: column.implicitHeight + Style.space(4)
   radius: Style.space(10)
-  color: expanded ? Util.alpha(Color.popups.text, 0.06) : Util.alpha(Color.popups.text, 0.04)
+  color: expanded ? Util.alpha(Commons.Color.popups.text, 0.06) : Util.alpha(Commons.Color.popups.text, 0.04)
   border.width: 1
-  border.color: expanded ? Color.accent : Util.alpha(Color.popups.text, 0.1)
+  border.color: expanded ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.1)
 
   onExpandedChanged: if (!expanded) { picking = false; showHow = false }
 
@@ -60,9 +61,9 @@ Rectangle {
         width: Style.space(34)
         height: width
         radius: Style.space(8)
-        color: Util.alpha(Color.popups.text, 0.1)
+        color: Util.alpha(Commons.Color.popups.text, 0.1)
 
-        Text { anchors.centerIn: parent; text: root.glyph; textFormat: Text.PlainText; color: Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body }
+        Text { anchors.centerIn: parent; text: root.glyph; textFormat: Text.PlainText; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body }
       }
 
       MouseArea {
@@ -78,8 +79,8 @@ Rectangle {
           width: parent.width
           spacing: Style.space(3)
 
-          Text { width: parent.width; text: root.cfg.name || ""; textFormat: Text.PlainText; elide: Text.ElideRight; color: Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body; font.bold: true }
-          Text { width: parent.width; text: root.detail; textFormat: Text.PlainText; elide: Text.ElideMiddle; color: Util.alpha(Color.popups.text, 0.65); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
+          Text { width: parent.width; text: root.cfg.name || ""; textFormat: Text.PlainText; elide: Text.ElideRight; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body; font.bold: true }
+          Text { width: parent.width; text: root.detail; textFormat: Text.PlainText; elide: Text.ElideMiddle; color: Util.alpha(Commons.Color.popups.text, 0.65); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
         }
       }
 
@@ -91,11 +92,11 @@ Rectangle {
         ToggleSwitch {
           anchors.horizontalCenter: parent.horizontalCenter
           checked: root.cfg.badge === true
-          accent: Color.accent
+          accent: Commons.Color.accent
           onToggled: root.changed("badge", !root.cfg.badge)
         }
 
-        Text { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Notify"); textFormat: Text.PlainText; color: Util.alpha(Color.popups.text, 0.6); font.family: root.fontFamily; font.pixelSize: Style.font.caption }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Notify"); textFormat: Text.PlainText; color: Util.alpha(Commons.Color.popups.text, 0.6); font.family: root.fontFamily; font.pixelSize: Style.font.caption }
       }
 
       RowButton {

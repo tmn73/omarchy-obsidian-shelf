@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 import qs.Commons
+import qs.Commons as Commons
 
 // A dashed, full-width button for adding something.
 MouseArea {
@@ -20,7 +21,7 @@ MouseArea {
     preferredRendererType: Shape.CurveRenderer
 
     ShapePath {
-      strokeColor: root.containsMouse ? Color.accent : Util.alpha(Color.popups.text, 0.3)
+      strokeColor: root.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.3)
       strokeWidth: Math.max(1, Style.space(1.5))
       strokeStyle: ShapePath.DashLine
       dashPattern: [3, 3]
@@ -34,7 +35,7 @@ MouseArea {
     anchors.centerIn: parent
     text: root.text
     textFormat: Text.PlainText
-    color: root.containsMouse ? Color.popups.text : Util.alpha(Color.popups.text, 0.7)
+    color: root.containsMouse ? Commons.Color.popups.text : Util.alpha(Commons.Color.popups.text, 0.7)
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
   }

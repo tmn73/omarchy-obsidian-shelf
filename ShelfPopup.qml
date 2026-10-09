@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "Model.js" as Model
 
 // Popup layout: header, tabs, the active list, then the key hints.
@@ -134,7 +135,7 @@ Item {
       visible: root.service && root.service.notice !== ""
       text: root.service ? root.service.notice : ""
       textFormat: Text.PlainText
-      color: Color.accent
+      color: Commons.Color.accent
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
       wrapMode: Text.Wrap
@@ -244,7 +245,7 @@ Item {
         visible: listLoader.status === Loader.Error
         text: qsTr("This list type cannot be shown yet")
         textFormat: Text.PlainText
-        color: Util.alpha(Color.popups.text, 0.65)
+        color: Util.alpha(Commons.Color.popups.text, 0.65)
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
       }
@@ -267,7 +268,7 @@ Item {
     Rectangle {
       width: parent.width
       height: 1
-      color: Util.alpha(Color.popups.text, 0.08)
+      color: Util.alpha(Commons.Color.popups.text, 0.08)
     }
 
     KeyHints {

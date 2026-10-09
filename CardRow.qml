@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "Board.js" as Board
 
 // One card of a board: its box, its text, its date, and on hover or under the
@@ -39,7 +40,7 @@ Column {
     Rectangle {
       anchors.fill: parent
       radius: Style.space(9)
-      color: hover.hovered || root.current || root.dating || root.choosing ? Util.alpha(Color.popups.text, 0.07) : root.accent ? Util.alpha(Color.accent, 0.06) : Util.alpha(Color.popups.text, 0.03)
+      color: hover.hovered || root.current || root.dating || root.choosing ? Util.alpha(Commons.Color.popups.text, 0.07) : root.accent ? Util.alpha(Commons.Color.accent, 0.06) : Util.alpha(Commons.Color.popups.text, 0.03)
 
       Behavior on color { ColorAnimation { duration: Style.duration(150) } }
     }
@@ -62,9 +63,9 @@ Column {
       Rectangle {
         anchors.fill: parent
         radius: Style.space(6)
-        color: root.checked ? Color.accent : "transparent"
+        color: root.checked ? Commons.Color.accent : "transparent"
         border.width: Math.max(1, Style.space(1.5))
-        border.color: root.checked || box.containsMouse ? Color.accent : Util.alpha(Color.popups.text, 0.4)
+        border.color: root.checked || box.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.4)
       }
 
       Text {
@@ -72,7 +73,7 @@ Column {
         visible: root.checked
         text: ""
         textFormat: Text.PlainText
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }
@@ -122,7 +123,7 @@ Column {
           text: root.text
           textFormat: Text.PlainText
           wrapMode: Text.Wrap
-          color: root.checked ? Util.alpha(Color.popups.text, 0.5) : Color.popups.text
+          color: root.checked ? Util.alpha(Commons.Color.popups.text, 0.5) : Commons.Color.popups.text
           font.family: root.fontFamily
           font.pixelSize: Style.font.body
           font.strikeout: root.checked
@@ -167,7 +168,7 @@ Column {
         Rectangle {
           anchors.fill: parent
           radius: Style.space(7)
-          color: statusButton.containsMouse || root.choosing ? Util.alpha(Color.popups.text, 0.14) : Util.alpha(Color.popups.text, 0.06)
+          color: statusButton.containsMouse || root.choosing ? Util.alpha(Commons.Color.popups.text, 0.14) : Util.alpha(Commons.Color.popups.text, 0.06)
         }
 
         Text {
@@ -176,7 +177,7 @@ Column {
           anchors.centerIn: parent
           text: root.lane + "  "
           textFormat: Text.PlainText
-          color: Util.alpha(Color.popups.text, 0.8)
+          color: Util.alpha(Commons.Color.popups.text, 0.8)
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption
         }

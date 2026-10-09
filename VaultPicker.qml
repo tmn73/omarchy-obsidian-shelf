@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // Choose a folder or a file of the vault, or a new one. Typing filters the
@@ -54,9 +55,9 @@ Column {
     width: parent.width
     height: options.implicitHeight + Style.space(8)
     radius: Style.space(9)
-    color: Util.alpha(Color.popups.text, 0.04)
+    color: Util.alpha(Commons.Color.popups.text, 0.04)
     border.width: 1
-    border.color: Util.alpha(Color.popups.text, 0.08)
+    border.color: Util.alpha(Commons.Color.popups.text, 0.08)
 
     Column {
       id: options
@@ -92,7 +93,7 @@ Column {
         padding: Style.space(10)
         text: qsTr("Nothing matches")
         textFormat: Text.PlainText
-        color: Util.alpha(Color.popups.text, 0.6)
+        color: Util.alpha(Commons.Color.popups.text, 0.6)
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }

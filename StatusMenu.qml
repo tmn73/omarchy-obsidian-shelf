@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Board.js" as Board
 
@@ -42,8 +43,8 @@ FocusScope {
 
   function dotColor(lane) {
     if (lane === root.accentLane)
-      return Color.accent
-    return Util.alpha(Color.popups.text, root.completeLanes.indexOf(lane) >= 0 ? 0.25 : 0.5)
+      return Commons.Color.accent
+    return Util.alpha(Commons.Color.popups.text, root.completeLanes.indexOf(lane) >= 0 ? 0.25 : 0.5)
   }
 
   component MenuRow: MouseArea {
@@ -65,7 +66,7 @@ FocusScope {
     Rectangle {
       anchors.fill: parent
       radius: Style.space(6)
-      color: row.lit || row.containsMouse ? Util.alpha(Color.popups.text, 0.1) : "transparent"
+      color: row.lit || row.containsMouse ? Util.alpha(Commons.Color.popups.text, 0.1) : "transparent"
     }
 
     Row {
@@ -86,7 +87,7 @@ FocusScope {
         anchors.verticalCenter: parent.verticalCenter
         text: row.label
         textFormat: Text.PlainText
-        color: row.create ? Color.accent : Color.popups.text
+        color: row.create ? Commons.Color.accent : Commons.Color.popups.text
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }
@@ -98,7 +99,7 @@ FocusScope {
       anchors.rightMargin: Style.space(10)
       text: row.hint
       textFormat: Text.PlainText
-      color: Util.alpha(Color.popups.text, 0.5)
+      color: Util.alpha(Commons.Color.popups.text, 0.5)
       font.family: root.fontFamily
       font.pixelSize: Style.font.caption
     }
@@ -110,9 +111,9 @@ FocusScope {
     width: parent.width
     height: body.implicitHeight + Style.space(12)
     radius: Style.space(10)
-    color: Qt.tint(Color.popups.background, Util.alpha(Color.popups.text, 0.08))
+    color: Qt.tint(Commons.Color.popups.background, Util.alpha(Commons.Color.popups.text, 0.08))
     border.width: 1
-    border.color: Util.alpha(Color.popups.text, 0.22)
+    border.color: Util.alpha(Commons.Color.popups.text, 0.22)
 
     Column {
       id: body

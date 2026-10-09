@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Board.js" as Board
 
@@ -25,9 +26,9 @@ Rectangle {
 
   implicitHeight: body.implicitHeight + Style.space(20)
   radius: Style.space(10)
-  color: Util.alpha(Color.popups.text, 0.06)
+  color: Util.alpha(Commons.Color.popups.text, 0.06)
   border.width: 1
-  border.color: Util.alpha(Color.popups.text, 0.14)
+  border.color: Util.alpha(Commons.Color.popups.text, 0.14)
 
   // The popup keys are off while the panel is open, so the date field takes
   // the focus at once: Escape then closes the panel, Enter sets the date.
@@ -97,7 +98,7 @@ Rectangle {
         Keys.onEscapePressed: root.cancelled()
       }
 
-      Button { text: qsTr("Set"); bordered: true; background: Color.accent; foreground: Color.popups.background; onClicked: root.apply() }
+      Button { text: qsTr("Set"); bordered: true; background: Commons.Color.accent; foreground: Commons.Color.popups.background; onClicked: root.apply() }
       Button { text: qsTr("No date"); onClicked: root.picked("", "") }
     }
 
@@ -106,7 +107,7 @@ Rectangle {
       text: root.error !== "" ? root.error : qsTr("A card with a time rings at that time. A card with only a date is in the morning summary.")
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: root.error !== "" ? Color.urgent : Util.alpha(Color.popups.text, 0.6)
+      color: root.error !== "" ? Commons.Color.urgent : Util.alpha(Commons.Color.popups.text, 0.6)
       font.family: root.fontFamily
       font.pixelSize: Style.font.caption
     }

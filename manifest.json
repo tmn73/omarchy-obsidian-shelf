@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "tmn73.obsidian",
   "name": "Obsidian Shelf",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "tmn73",
   "license": "MIT",
   "description": "Lists from your Obsidian vault in the bar: links to read later, checklists, boards with dates and reminders, and notes by section, captured on your phone and handled from the desktop.",

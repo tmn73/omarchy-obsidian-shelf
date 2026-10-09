@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
@@ -108,7 +109,7 @@ Column {
       }
     }
 
-    Text { anchors.verticalCenter: parent.verticalCenter; text: qsTr("ADD A LIST"); textFormat: Text.PlainText; color: Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.subtitle; font.bold: true; font.letterSpacing: Style.space(2) }
+    Text { anchors.verticalCenter: parent.verticalCenter; text: qsTr("ADD A LIST"); textFormat: Text.PlainText; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.subtitle; font.bold: true; font.letterSpacing: Style.space(2) }
   }
 
   // ---- Step 1: found in the vault, or a kind
@@ -125,7 +126,7 @@ Column {
       text: qsTr("Nothing new: every list found in the vault is already on the shelf.")
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Util.alpha(Color.popups.text, 0.65)
+      color: Util.alpha(Commons.Color.popups.text, 0.65)
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }
@@ -186,7 +187,7 @@ Column {
       text: root.path + (root.pathIsNew ? qsTr("  (new, created when you add)") : "")
       textFormat: Text.PlainText
       elide: Text.ElideMiddle
-      color: Color.accent
+      color: Commons.Color.accent
       font.family: root.fontFamily
       font.pixelSize: Style.font.body
     }
@@ -227,7 +228,7 @@ Column {
       text: root.error
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Color.urgent
+      color: Commons.Color.urgent
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }
@@ -236,7 +237,7 @@ Column {
       spacing: Style.space(8)
 
       Button { text: qsTr("Cancel"); onClicked: root.step = "kind" }
-      Button { text: qsTr("Add to shelf"); bordered: true; background: Color.accent; foreground: Color.popups.background; onClicked: root.submit() }
+      Button { text: qsTr("Add to shelf"); bordered: true; background: Commons.Color.accent; foreground: Commons.Color.popups.background; onClicked: root.submit() }
     }
   }
 
@@ -246,15 +247,15 @@ Column {
     width: parent.width
     spacing: Style.space(12)
 
-    Text { text: ""; textFormat: Text.PlainText; color: Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.displayLarge }
-    Text { width: parent.width; text: qsTr("%1 is on the shelf").arg(root.lastAdded ? root.lastAdded.name : ""); textFormat: Text.PlainText; wrapMode: Text.Wrap; color: Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.heading; font.bold: true }
-    Text { width: parent.width; text: root.doneText; textFormat: Text.PlainText; wrapMode: Text.Wrap; color: Util.alpha(Color.popups.text, 0.7); font.family: root.fontFamily; font.pixelSize: Style.font.body }
+    Text { text: ""; textFormat: Text.PlainText; color: Commons.Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.displayLarge }
+    Text { width: parent.width; text: qsTr("%1 is on the shelf").arg(root.lastAdded ? root.lastAdded.name : ""); textFormat: Text.PlainText; wrapMode: Text.Wrap; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.heading; font.bold: true }
+    Text { width: parent.width; text: root.doneText; textFormat: Text.PlainText; wrapMode: Text.Wrap; color: Util.alpha(Commons.Color.popups.text, 0.7); font.family: root.fontFamily; font.pixelSize: Style.font.body }
 
     Row {
       spacing: Style.space(8)
 
       Button { text: qsTr("Add another"); onClicked: root.start() }
-      Button { text: qsTr("Open the tab"); bordered: true; background: Color.accent; foreground: Color.popups.background; onClicked: root.openRequested(root.lastAdded.id) }
+      Button { text: qsTr("Open the tab"); bordered: true; background: Commons.Color.accent; foreground: Commons.Color.popups.background; onClicked: root.openRequested(root.lastAdded.id) }
     }
   }
 }

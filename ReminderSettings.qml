@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // The reminder settings, shown when a board is on the shelf: the time of the
@@ -90,5 +91,5 @@ Column {
     }
   }
 
-  Rectangle { width: parent.width; height: 1; color: Util.alpha(Color.popups.text, 0.08) }
+  Rectangle { width: parent.width; height: 1; color: Util.alpha(Commons.Color.popups.text, 0.08) }
 }

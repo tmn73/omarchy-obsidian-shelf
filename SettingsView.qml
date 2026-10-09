@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
@@ -83,7 +84,7 @@ FocusScope {
         text: modelData
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: Color.urgent
+        color: Commons.Color.urgent
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }
@@ -100,7 +101,7 @@ FocusScope {
         text: qsTr("Notify: the items of the list count on the bar chip, and a new one from your phone pings it.")
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: Util.alpha(Color.popups.text, 0.65)
+        color: Util.alpha(Commons.Color.popups.text, 0.65)
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }
@@ -150,7 +151,7 @@ FocusScope {
       }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Util.alpha(Color.popups.text, 0.08) }
+    Rectangle { width: parent.width; height: 1; color: Util.alpha(Commons.Color.popups.text, 0.08) }
 
     ReminderSettings {
       visible: root.config.lists.some(function (l) { return l.type === "board" })

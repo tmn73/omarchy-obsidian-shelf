@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "Model.js" as Model
 
 // One lane of a board: its title and count, then its cards. A Complete lane
@@ -30,14 +31,14 @@ Column {
       width: Style.space(8)
       height: width
       radius: width / 2
-      color: root.accent ? Color.accent : Util.alpha(Color.popups.text, root.lane.complete ? 0.25 : 0.5)
+      color: root.accent ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, root.lane.complete ? 0.25 : 0.5)
     }
 
     Text {
       anchors.verticalCenter: parent.verticalCenter
       text: root.lane.title.toUpperCase()
       textFormat: Text.PlainText
-      color: Util.alpha(Color.popups.text, 0.75)
+      color: Util.alpha(Commons.Color.popups.text, 0.75)
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
       font.bold: true
@@ -48,7 +49,7 @@ Column {
       anchors.verticalCenter: parent.verticalCenter
       text: String(root.items.length)
       textFormat: Text.PlainText
-      color: Util.alpha(Color.popups.text, 0.55)
+      color: Util.alpha(Commons.Color.popups.text, 0.55)
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }
@@ -80,7 +81,7 @@ Column {
           radius: Style.space(6)
           color: "transparent"
           border.width: 1
-          border.color: parent.containsMouse ? Color.urgent : Util.alpha(Color.popups.text, 0.2)
+          border.color: parent.containsMouse ? Commons.Color.urgent : Util.alpha(Commons.Color.popups.text, 0.2)
         }
 
         Text {
@@ -89,7 +90,7 @@ Column {
           anchors.centerIn: parent
           text: qsTr("Clear")
           textFormat: Text.PlainText
-          color: parent.containsMouse ? Color.urgent : Util.alpha(Color.popups.text, 0.7)
+          color: parent.containsMouse ? Commons.Color.urgent : Util.alpha(Commons.Color.popups.text, 0.7)
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption
         }
