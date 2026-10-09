@@ -33,15 +33,16 @@ class TimedCardTest(unittest.TestCase):
         messages, state = due(payload, [BOARD], {}, at("13:59"), "09:00")
         self.assertEqual([m for m in messages if m["kind"] == "card"], [])
         messages, state = due(payload, [BOARD], state, at("14:00"), "09:00")
-        self.assertEqual([m["headline"] for m in messages if m["kind"] == "card"], ["Slides"])
-        self.assertIn("14:00", messages[-1]["body"])
+        self.assertEqual([m["cards"] for m in messages if m["kind"] == "card"], [["Slides"]])
+        self.assertEqual(messages[-1]["headline"], "Card due at 14:00")
+        self.assertEqual(messages[-1]["body"], "Todo · open the shelf to see the card")
         messages, state = due(payload, [BOARD], state, at("14:01"), "09:00")
         self.assertEqual([m for m in messages if m["kind"] == "card"], [])
 
     def test_a_missed_time_rings_later_the_same_day(self):
         payload = [board(card("Slides", "2026-10-06", "14:00"))]
         messages, _ = due(payload, [BOARD], {"summary": "2026-10-06"}, at("16:30"), "09:00")
-        self.assertEqual([m["headline"] for m in messages], ["Slides"])
+        self.assertEqual([m["cards"] for m in messages], [["Slides"]])
 
     def test_never_rings_on_a_later_day(self):
         payload = [board(card("Slides", "2026-10-05", "14:00"))]
@@ -69,16 +70,15 @@ class SummaryTest(unittest.TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]["kind"], "summary")
         self.assertEqual(messages[0]["headline"], "1 card for today, 1 late")
-        self.assertIn("Dentist", messages[0]["body"])
-        self.assertIn("Late: Landlord", messages[0]["body"])
-        self.assertNotIn("Later", messages[0]["body"])
+        self.assertEqual(messages[0]["cards"], ["Dentist", "Landlord"])
+        self.assertEqual(messages[0]["body"], "Open the shelf to see the cards")
         self.assertEqual(due(payload, [BOARD], state, at("12:00"), "09:00")[0], [])
 
     def test_late_timed_cards_are_in_the_summary_and_today_timed_cards_are_not(self):
         payload = [board(card("Old", "2026-10-04", "10:00"), card("Now", "2026-10-06", "18:00"))]
         messages, _ = due(payload, [BOARD], {}, at("09:30"), "09:00")
         self.assertEqual(messages[0]["headline"], "1 card is late")
-        self.assertNotIn("Now", messages[0]["body"])
+        self.assertEqual(messages[0]["cards"], ["Old"])
 
     def test_a_day_with_nothing_due_sends_nothing_and_is_done(self):
         payload = [board(card("Later", "2026-10-09"))]
@@ -87,15 +87,27 @@ class SummaryTest(unittest.TestCase):
         self.assertEqual(state["summary"], "2026-10-06")
 
 
+class NoVaultTextTest(unittest.TestCase):
+    def test_no_card_or_lane_text_reaches_a_notification(self):
+        payload = [board(card("Call the bank", "2026-10-06", "14:00"), card("Pay rent", "2026-10-06"),
+                         card("Renew passport", "2026-10-01"))]
+        messages, _ = due(payload, [BOARD], {}, at("14:00"), "09:00")
+        self.assertEqual(sorted(m["kind"] for m in messages), ["card", "summary"])
+        for m in messages:
+            for secret in ("Call the bank", "Pay rent", "Renew passport", "To do"):
+                self.assertNotIn(secret, m["headline"] + m["body"])
+
+
 class SendTest(unittest.TestCase):
-    MESSAGE = {"kind": "card", "headline": "Reply to the landlord", "body": "Tasks · To do · today 14:00"}
+    MESSAGE = {"kind": "card", "cards": ["Reply to the landlord"],
+               "headline": "Card due at 14:00", "body": "Tasks · open the shelf to see the card"}
 
     def test_goes_over_the_bus_with_a_click_that_opens_the_shelf(self):
         import shelf_cli
         with mock.patch("shelf_notify.notify", return_value=True) as sent:
             shelf_cli.send_notification(self.MESSAGE)
         args = sent.call_args[0]
-        self.assertEqual(args[:2], ("Reply to the landlord", "Tasks · To do · today 14:00"))
+        self.assertEqual(args[:2], ("Card due at 14:00", "Tasks · open the shelf to see the card"))
         self.assertEqual(args[3], ["omarchy-shell", "tmn73.obsidian", "open"])
 
     def test_never_puts_the_text_in_a_process(self):
@@ -118,7 +130,7 @@ class RunTest(VaultCase):
             t.start()
         for t in threads:
             t.join()
-        self.assertEqual([m["headline"] for m in sent], ["Slides"])
+        self.assertEqual([m["cards"] for m in sent], [["Slides"]])
 
     def test_cli_remind_reads_the_boards(self):
         self.write("Todo.md", "## To do\n- [ ] Slides @{2026-10-06} @@{14:00}\n")
@@ -127,7 +139,7 @@ class RunTest(VaultCase):
              mock.patch("shelf_cli.send_notification", side_effect=sent.append):
             code, out = main(["remind", "--vault", str(self.vault), "--lists", json.dumps([BOARD])], io.StringIO(""))
         self.assertEqual((code, out["ok"]), (0, True))
-        self.assertIn("Slides", [m["headline"] for m in sent])
+        self.assertEqual([(m["kind"], m["headline"]) for m in sent], [("card", "Card due at 14:00")])
         self.assertTrue((Path(self.state_home) / "obsidian-shelf" / "reminders.json").exists())
 
 

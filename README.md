@@ -15,7 +15,7 @@ without opening Obsidian.
   lane, give it a date, add a line, edit or remove an item, clear a notes
   file after a meeting.
 - **Reminders**: a card with a date and a time rings at that time, and a
-  morning summary lists the cards due today and the late ones.
+  morning summary counts the cards due today and the late ones.
 - **Previews**: YouTube thumbnails, tweet pictures, and the preview image and
   title of most other pages, Instagram and Reddit included.
 - **A chip so you do not forget**: it shows how many items wait in the lists
@@ -138,8 +138,10 @@ Each board has a "Remind me" setting, on by default.
   notification. A click on it opens the shelf. When the PC was off at that
   time, it rings when the shelf starts again that same day.
 - The morning summary rings once a day at the summary time (09:00, a
-  setting). It lists the cards due today without a time and every late card.
-  A day with nothing due sends nothing.
+  setting). It counts the cards due today without a time and every late
+  card. A day with nothing due sends nothing.
+- A notification names the board and the time, never the card: open the
+  shelf to read it. See [Previews and privacy](#previews-and-privacy) for the reason.
 - A reminder plays a sound, on by default. The settings let you turn it off
   or pick another one among the sounds already on the system (the sound
   themes in `/usr/share/sounds` and `~/.local/share/sounds`). The plugin ships
@@ -171,7 +173,9 @@ Each board has a "Remind me" setting, on by default.
 - Text from the vault never goes into a command line, which every local user
   can read in the process list. The helper reads items, lanes and new text on
   stdin, and it sends reminders to the session D-Bus itself, without
-  `notify-send`. Opening a link gives its address to `xdg-open`, as any app
+  `notify-send`. A reminder carries no vault text either, because the
+  Omarchy notification service copies each notification into process
+  arguments. Opening a link gives its address to `xdg-open`, as any app
   does when it opens a link.
 
 ## Settings
