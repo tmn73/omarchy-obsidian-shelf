@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // A short message with an Undo button, and an optional second action. It
 // leaves by itself after six seconds.
@@ -26,7 +27,7 @@ Rectangle {
   visible: shown
   implicitHeight: label.implicitHeight + Style.space(24)
   radius: Style.space(10)
-  color: Util.alpha(Color.popups.text, 0.12)
+  color: Util.alpha(Commons.Color.popups.text, 0.12)
 
   Timer {
     id: hideTimer
@@ -46,7 +47,7 @@ Rectangle {
     text: root.text
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
-    color: Color.popups.text
+    color: Commons.Color.popups.text
     font.family: root.fontFamily
     font.pixelSize: Style.font.bodySmall
   }
@@ -66,7 +67,7 @@ Rectangle {
       cursorShape: Qt.PointingHandCursor
       onClicked: { root.shown = false; root.action() }
 
-      Text { id: actionText; text: root.actionLabel; textFormat: Text.PlainText; color: Color.urgent; font.family: root.fontFamily; font.pixelSize: Style.font.body }
+      Text { id: actionText; text: root.actionLabel; textFormat: Text.PlainText; color: Commons.Color.urgent; font.family: root.fontFamily; font.pixelSize: Style.font.body }
     }
 
     MouseArea {
@@ -76,7 +77,7 @@ Rectangle {
       cursorShape: Qt.PointingHandCursor
       onClicked: { root.shown = false; root.undo() }
 
-      Text { id: undoLabel; text: qsTr("Undo"); textFormat: Text.PlainText; color: Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.body; font.bold: true }
+      Text { id: undoLabel; text: qsTr("Undo"); textFormat: Text.PlainText; color: Commons.Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.body; font.bold: true }
     }
   }
 }

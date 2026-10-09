@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // The vault: its name and folder, and Change to pick another vault Obsidian
@@ -18,9 +19,9 @@ Rectangle {
 
   implicitHeight: body.implicitHeight + Style.space(24)
   radius: Style.space(10)
-  color: Util.alpha(Color.popups.text, 0.04)
+  color: Util.alpha(Commons.Color.popups.text, 0.04)
   border.width: 1
-  border.color: Util.alpha(Color.popups.text, 0.1)
+  border.color: Util.alpha(Commons.Color.popups.text, 0.1)
 
   onChoosingChanged: if (choosing) helper.run(["vaults"], function (data) { root.vaults = data.vaults || [] })
 
@@ -35,8 +36,8 @@ Rectangle {
     spacing: Style.space(5)
 
     SettingsCaption { text: qsTr("VAULT"); fontFamily: root.fontFamily }
-    Text { width: parent.width; text: root.name; textFormat: Text.PlainText; elide: Text.ElideRight; color: Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body; font.bold: true }
-    Text { width: parent.width; text: root.vaultPath.replace(/^\/home\/[^/]+/, "~"); textFormat: Text.PlainText; elide: Text.ElideMiddle; color: Util.alpha(Color.popups.text, 0.65); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
+    Text { width: parent.width; text: root.name; textFormat: Text.PlainText; elide: Text.ElideRight; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.body; font.bold: true }
+    Text { width: parent.width; text: root.vaultPath.replace(/^\/home\/[^/]+/, "~"); textFormat: Text.PlainText; elide: Text.ElideMiddle; color: Util.alpha(Commons.Color.popups.text, 0.65); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
 
     MouseArea {
       width: changeLabel.implicitWidth
@@ -44,7 +45,7 @@ Rectangle {
       cursorShape: Qt.PointingHandCursor
       onClicked: root.choosing = !root.choosing
 
-      Text { id: changeLabel; text: root.choosing ? qsTr("Cancel") : qsTr("Change"); textFormat: Text.PlainText; color: Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
+      Text { id: changeLabel; text: root.choosing ? qsTr("Cancel") : qsTr("Change"); textFormat: Text.PlainText; color: Commons.Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
     }
 
     Column {

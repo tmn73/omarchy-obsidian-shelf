@@ -44,6 +44,7 @@ done
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
   hasnt "$name" "#[0-9a-fA-F]{6}\b" "$name contains a hex color; use the Color singleton"
+  hasnt "$name" "(^|[^.[:alnum:]_])Color\." "$name uses a bare Color; Qt 6.12 shadows it, use Commons.Color"
   lines=$(wc -l < "$file")
   (( lines <= 300 )) || fail "$name has $lines lines (limit 300)"
 done
@@ -79,7 +80,7 @@ has "KeyedListModel.qml" "keyedSyncPlan" "KeyedListModel.qml does not use Model.
 for property in count pinging urgent; do
   has "ShelfChip.qml" "property .*\b$property\b" "ShelfChip.qml no longer exposes $property"
 done
-has "ShelfChip.qml" "Color\.urgent" "ShelfChip.qml does not use Color.urgent for the sync dot"
+has "ShelfChip.qml" "Commons\.Color\.urgent" "ShelfChip.qml does not use Commons.Color.urgent for the sync dot"
 
 # ---- Popup frame and tabs (direction A)
 has "PopupHeader.qml" '"SHELF"' "PopupHeader.qml does not show the SHELF title"
@@ -281,9 +282,9 @@ has "CardRow.qml" "label: qsTr\(\"Remove\"\); danger: true" "removing a card doe
 has "HoverActions.qml" "danger: true" "removing an item does not read as a delete"
 has "StatusMenu.qml" "Board.statusMatches" "the status menu cannot filter or create"
 has "CardRow.qml" "id: textClip" "the text shows under the card buttons on hover"
-has "FolderRow.qml" "Util.alpha\(Color.popups.text, 0.03\)" "link rows run together without a card each"
+has "FolderRow.qml" "Util.alpha\(Commons.Color.popups.text, 0.03\)" "link rows run together without a card each"
 has "FolderRow.qml" "titleMetrics.advanceWidth" "the link title shrinks on each layout (elided implicitWidth)"
-has "ChecklistRow.qml" "Util.alpha\(Color.popups.text, 0.03\)" "checklist rows run together without a card each"
+has "ChecklistRow.qml" "Util.alpha\(Commons.Color.popups.text, 0.03\)" "checklist rows run together without a card each"
 hasnt "CardRow.qml" "Qt.tint" "the card paints a color that does not follow the theme"
 has "BoardList.qml" "StatusMenu \\{" "the status menu does not float at the board level"
 hasnt "CardRow.qml" "StatusPanel" "the status still opens as a row under the card"

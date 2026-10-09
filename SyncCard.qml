@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // The next Obsidian Sync setup step, with one button to take it.
@@ -16,9 +17,9 @@ Rectangle {
 
   implicitHeight: body.implicitHeight + Style.space(28)
   radius: Style.space(10)
-  color: Util.alpha(Color.accent, 0.08)
+  color: Util.alpha(Commons.Color.accent, 0.08)
   border.width: Math.max(1, Style.space(1))
-  border.color: Util.alpha(Color.accent, 0.35)
+  border.color: Util.alpha(Commons.Color.accent, 0.35)
 
   Column {
     id: body
@@ -35,7 +36,7 @@ Rectangle {
         width: parent.width - hide.width
         text: qsTr("Obsidian Sync on this PC")
         textFormat: Text.PlainText
-        color: Util.alpha(Color.popups.text, 0.65)
+        color: Util.alpha(Commons.Color.popups.text, 0.65)
         font.family: root.fontFamily
         font.pixelSize: Style.font.caption
         font.bold: true
@@ -55,7 +56,7 @@ Rectangle {
 
           text: qsTr("Hide")
           textFormat: Text.PlainText
-          color: Util.alpha(Color.popups.text, 0.6)
+          color: Util.alpha(Commons.Color.popups.text, 0.6)
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption
           font.underline: hide.containsMouse
@@ -68,7 +69,7 @@ Rectangle {
       text: root.step ? qsTr(root.step.title) : ""
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Color.popups.text
+      color: Commons.Color.popups.text
       font.family: root.fontFamily
       font.pixelSize: Style.font.subtitle
       font.bold: true
@@ -79,7 +80,7 @@ Rectangle {
       text: root.step ? qsTr(root.step.text) : ""
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Util.alpha(Color.popups.text, 0.75)
+      color: Util.alpha(Commons.Color.popups.text, 0.75)
       font.family: root.fontFamily
       font.pixelSize: Style.font.body
     }
@@ -90,7 +91,7 @@ Rectangle {
       text: qsTr("Pause Sync in the Obsidian app on this PC (Settings, Sync, Pause), so that only one client writes the folder. The app still opens and edits the vault.")
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Color.urgent
+      color: Commons.Color.urgent
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }
@@ -101,15 +102,15 @@ Rectangle {
       text: root.guide ? root.guide.message : ""
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      color: Color.urgent
+      color: Commons.Color.urgent
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }
 
     Button {
       bordered: true
-      background: Color.accent
-      foreground: Color.popups.background
+      background: Commons.Color.accent
+      foreground: Commons.Color.popups.background
       text: root.step ? qsTr(root.step.button) : ""
       onClicked: if (root.guide) root.guide.runSyncStep()
     }

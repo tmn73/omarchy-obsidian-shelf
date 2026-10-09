@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // One todo. A tick fills the box, draws the check and strikes the text; the
 // row then asks the list to remove it, so the leave motion follows the tick.
@@ -37,7 +38,7 @@ Item {
     radius: Style.space(9)
     // Every row sits on its own faint card, like the board cards, so the
     // rows read apart without lines.
-    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.07) : Util.alpha(Color.popups.text, 0.03)
+    color: hover.hovered || root.current ? Util.alpha(Commons.Color.popups.text, 0.07) : Util.alpha(Commons.Color.popups.text, 0.03)
 
     Behavior on color { ColorAnimation { duration: Style.duration(150) } }
   }
@@ -64,9 +65,9 @@ Item {
 
       anchors.fill: parent
       radius: Style.space(6)
-      color: root.ticking ? Color.accent : "transparent"
+      color: root.ticking ? Commons.Color.accent : "transparent"
       border.width: Math.max(1, Style.space(1.5))
-      border.color: root.ticking || box.containsMouse ? Color.accent : Util.alpha(Color.popups.text, 0.4)
+      border.color: root.ticking || box.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.4)
 
       Behavior on color { ColorAnimation { duration: Style.duration(200) } }
       Behavior on border.color { ColorAnimation { duration: Style.duration(200) } }
@@ -86,7 +87,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         text: ""
         textFormat: Text.PlainText
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }
@@ -133,7 +134,7 @@ Item {
     text: root.text
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
-    color: root.ticking ? Util.alpha(Color.popups.text, 0.55) : Color.popups.text
+    color: root.ticking ? Util.alpha(Commons.Color.popups.text, 0.55) : Commons.Color.popups.text
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
 
@@ -145,7 +146,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       height: Math.max(1, Style.space(1))
       width: 0
-      color: Util.alpha(Color.popups.text, 0.55)
+      color: Util.alpha(Commons.Color.popups.text, 0.55)
     }
   }
 

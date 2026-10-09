@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // The bar chip: the shelf glyph, and what waits in the lists that notify.
@@ -52,7 +53,7 @@ WidgetButton {
         radius: width / 2
         x: parent.width - width / 2
         y: -height / 3
-        color: Color.accent
+        color: Commons.Color.accent
         visible: root.pinging || root.marked
 
         Rectangle {
@@ -64,7 +65,7 @@ WidgetButton {
           radius: width / 2
           color: "transparent"
           border.width: Math.max(1, Style.space(1))
-          border.color: Color.accent
+          border.color: Commons.Color.accent
         }
 
         SequentialAnimation {
@@ -84,7 +85,7 @@ WidgetButton {
       visible: root.count > 0
       text: String(root.count)
       textFormat: Text.PlainText
-      color: root.late ? Color.urgent : root.foreground
+      color: root.late ? Commons.Color.urgent : root.foreground
       font.family: root.fontFamily
       font.pixelSize: root.fontSize
       font.bold: true
@@ -100,7 +101,7 @@ WidgetButton {
     anchors.right: content.right
     anchors.bottom: content.bottom
     anchors.rightMargin: -width / 2
-    color: Color.urgent
+    color: Commons.Color.urgent
     visible: root.urgent
   }
 

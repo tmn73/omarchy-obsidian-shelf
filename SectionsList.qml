@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "Model.js" as Model
 
 // The `sections` list: one column per heading, then the two-step clear.
@@ -14,7 +15,7 @@ ListStateFrame {
   readonly property real gap: Style.space(12)
   // The first column takes the accent, the second the urgent color: with the
   // default Good and Bad headings that reads as good and bad without words.
-  readonly property var dotColors: [Color.accent, Color.urgent]
+  readonly property var dotColors: [Commons.Color.accent, Commons.Color.urgent]
 
   contentHeightHint: showRows ? body.implicitHeight : stateHeight
   showRows: sections.length > 0
@@ -109,7 +110,7 @@ ListStateFrame {
                 width: Style.space(8)
                 height: width
                 radius: Style.space(2)
-                color: column.index < root.dotColors.length ? root.dotColors[column.index] : Util.alpha(Color.popups.text, 0.4)
+                color: column.index < root.dotColors.length ? root.dotColors[column.index] : Util.alpha(Commons.Color.popups.text, 0.4)
               }
 
               Text {
@@ -117,7 +118,7 @@ ListStateFrame {
                 text: column.modelData.heading.toUpperCase()
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
-                color: Color.popups.text
+                color: Commons.Color.popups.text
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall
                 font.bold: true
@@ -127,7 +128,7 @@ ListStateFrame {
               Text {
                 text: String(view.count)
                 textFormat: Text.PlainText
-                color: Util.alpha(Color.popups.text, 0.6)
+                color: Util.alpha(Commons.Color.popups.text, 0.6)
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall
               }

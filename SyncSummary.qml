@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // The sync in one card: on, the next setup step, or off.
 Rectangle {
@@ -17,9 +18,9 @@ Rectangle {
 
   implicitHeight: body.implicitHeight + Style.space(24)
   radius: Style.space(10)
-  color: Util.alpha(Color.popups.text, 0.04)
+  color: Util.alpha(Commons.Color.popups.text, 0.04)
   border.width: 1
-  border.color: Util.alpha(Color.popups.text, 0.1)
+  border.color: Util.alpha(Commons.Color.popups.text, 0.1)
 
   Column {
     id: body
@@ -39,13 +40,13 @@ Rectangle {
         width: Style.space(7)
         height: width
         radius: width / 2
-        color: root.running ? Color.accent : (root.step ? Color.urgent : Util.alpha(Color.popups.text, 0.4))
+        color: root.running ? Commons.Color.accent : (root.step ? Commons.Color.urgent : Util.alpha(Commons.Color.popups.text, 0.4))
       }
 
       Text {
         text: root.running ? qsTr("Obsidian Sync on") : (root.step ? qsTr(root.step.title) : qsTr("Not guided"))
         textFormat: Text.PlainText
-        color: Color.popups.text
+        color: Commons.Color.popups.text
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
       }
@@ -56,7 +57,7 @@ Rectangle {
       text: root.running ? qsTr("synced %1").arg(root.syncedAt) : (root.step ? qsTr("Finish it from the shelf") : qsTr("Your own sync, or none"))
       textFormat: Text.PlainText
       elide: Text.ElideRight
-      color: Util.alpha(Color.popups.text, 0.65)
+      color: Util.alpha(Commons.Color.popups.text, 0.65)
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall
     }
@@ -67,7 +68,7 @@ Rectangle {
       cursorShape: Qt.PointingHandCursor
       onClicked: root.guideToggled(!root.active)
 
-      Text { id: toggleLabel; text: root.active ? qsTr("I sync another way") : qsTr("Use Obsidian Sync"); textFormat: Text.PlainText; color: Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
+      Text { id: toggleLabel; text: root.active ? qsTr("I sync another way") : qsTr("Use Obsidian Sync"); textFormat: Text.PlainText; color: Commons.Color.accent; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
     }
   }
 }

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // One topic in a section column, with edit and remove on hover.
 Rectangle {
@@ -20,7 +21,7 @@ Rectangle {
 
   implicitHeight: Math.max(editing ? editor.implicitHeight : topic.implicitHeight, actions.shown ? actions.height : 0) + Style.space(16)
   radius: Style.space(8)
-  color: hover.hovered ? Util.alpha(Color.popups.text, 0.08) : Util.alpha(Color.popups.text, 0.05)
+  color: hover.hovered ? Util.alpha(Commons.Color.popups.text, 0.08) : Util.alpha(Commons.Color.popups.text, 0.05)
 
   Behavior on color { ColorAnimation { duration: Style.duration(150) } }
 
@@ -38,7 +39,7 @@ Rectangle {
     text: root.text
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
-    color: Color.popups.text
+    color: Commons.Color.popups.text
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
   }

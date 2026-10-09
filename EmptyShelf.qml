@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // What a new user sees: first the vault (the ones Obsidian knows, one click),
@@ -31,7 +32,7 @@ Column {
   Text {
     text: root.configured ? "" : ""
     textFormat: Text.PlainText
-    color: Color.accent
+    color: Commons.Color.accent
     font.family: root.fontFamily
     font.pixelSize: Style.font.displayLarge
   }
@@ -40,7 +41,7 @@ Column {
     width: parent.width
     text: root.configured ? qsTr("Your shelf is empty") : qsTr("Where are your notes?")
     textFormat: Text.PlainText
-    color: Color.popups.text
+    color: Commons.Color.popups.text
     font.family: root.fontFamily
     font.pixelSize: Style.font.heading
     font.bold: true
@@ -53,7 +54,7 @@ Column {
       : qsTr("Pick the folder that holds your Markdown notes, usually your Obsidian vault.")
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
-    color: Util.alpha(Color.popups.text, 0.7)
+    color: Util.alpha(Commons.Color.popups.text, 0.7)
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
   }
@@ -88,8 +89,8 @@ Column {
     visible: root.configured
     text: qsTr("Add your first list")
     bordered: true
-    background: Color.accent
-    foreground: Color.popups.background
+    background: Commons.Color.accent
+    foreground: Commons.Color.popups.background
     onClicked: root.addRequested()
   }
 }

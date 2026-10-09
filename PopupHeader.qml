@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Title, sync line and the settings button.
 Item {
@@ -24,7 +25,7 @@ Item {
     Text {
       text: "SHELF"
       textFormat: Text.PlainText
-      color: Color.popups.text
+      color: Commons.Color.popups.text
       font.family: root.fontFamily
       font.pixelSize: Style.font.subtitle
       font.bold: true
@@ -39,13 +40,13 @@ Item {
         width: Style.space(6)
         height: width
         radius: width / 2
-        color: root.failing ? Color.urgent : Color.accent
+        color: root.failing ? Commons.Color.urgent : Commons.Color.accent
       }
 
       Text {
         text: root.syncText
         textFormat: Text.PlainText
-        color: root.failing ? Color.urgent : Util.alpha(Color.popups.text, 0.65)
+        color: root.failing ? Commons.Color.urgent : Util.alpha(Commons.Color.popups.text, 0.65)
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
         elide: Text.ElideRight
@@ -68,7 +69,7 @@ Item {
     Rectangle {
       anchors.fill: parent
       radius: Style.space(8)
-      color: gear.containsMouse || root.settingsOpen ? Util.alpha(Color.popups.text, 0.1) : "transparent"
+      color: gear.containsMouse || root.settingsOpen ? Util.alpha(Commons.Color.popups.text, 0.1) : "transparent"
 
       Behavior on color { ColorAnimation { duration: Style.duration(150) } }
     }
@@ -77,7 +78,7 @@ Item {
       anchors.centerIn: parent
       text: root.settingsOpen ? "" : ""
       textFormat: Text.PlainText
-      color: Color.popups.text
+      color: Commons.Color.popups.text
       font.family: root.fontFamily
       font.pixelSize: Style.font.title
     }

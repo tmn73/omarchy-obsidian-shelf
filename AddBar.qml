@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // The add field. With sections, a picker chooses where the new line goes;
@@ -50,7 +51,7 @@ Column {
         Rectangle {
           anchors.fill: parent
           radius: Style.space(6)
-          color: parent.picked ? Util.alpha(Color.popups.text, 0.14) : "transparent"
+          color: parent.picked ? Util.alpha(Commons.Color.popups.text, 0.14) : "transparent"
 
           Behavior on color { ColorAnimation { duration: Style.duration(200) } }
         }
@@ -61,7 +62,7 @@ Column {
           anchors.centerIn: parent
           text: modelData
           textFormat: Text.PlainText
-          color: parent.picked ? Color.popups.text : Util.alpha(Color.popups.text, 0.6)
+          color: parent.picked ? Commons.Color.popups.text : Util.alpha(Commons.Color.popups.text, 0.6)
           font.family: root.fontFamily
           font.pixelSize: Style.font.bodySmall
           font.bold: true
@@ -98,7 +99,7 @@ Column {
       Rectangle {
         anchors.fill: parent
         radius: Style.space(8)
-        color: addButton.containsMouse ? Color.accent : Util.alpha(Color.popups.text, 0.1)
+        color: addButton.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.1)
 
         Behavior on color { ColorAnimation { duration: Style.duration(150) } }
       }
@@ -109,7 +110,7 @@ Column {
         anchors.centerIn: parent
         text: "Add"
         textFormat: Text.PlainText
-        color: addButton.containsMouse ? Color.popups.background : Color.popups.text
+        color: addButton.containsMouse ? Commons.Color.popups.background : Commons.Color.popups.text
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
         font.bold: true

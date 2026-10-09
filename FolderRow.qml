@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "Model.js" as Model
 
 // One saved link: platform glyph, title, domain and age, a two-line excerpt,
@@ -55,7 +56,7 @@ Item {
     radius: Style.space(10)
     // Every row sits on its own faint card, like the board cards, so the
     // rows read apart without lines.
-    color: hover.hovered || root.current ? Util.alpha(Color.popups.text, 0.07) : Util.alpha(Color.popups.text, 0.03)
+    color: hover.hovered || root.current ? Util.alpha(Commons.Color.popups.text, 0.07) : Util.alpha(Commons.Color.popups.text, 0.03)
 
     Behavior on color { ColorAnimation { duration: Style.duration(150) } }
   }
@@ -70,9 +71,9 @@ Item {
     SequentialAnimation {
       id: flash
 
-      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Color.accent, 0.18); duration: Style.duration(1) }
+      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Commons.Color.accent, 0.18); duration: Style.duration(1) }
       PauseAnimation { duration: Style.duration(650) }
-      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Color.accent, 0); duration: Style.duration(2600); easing.type: Easing.OutCubic }
+      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Commons.Color.accent, 0); duration: Style.duration(2600); easing.type: Easing.OutCubic }
     }
   }
 
@@ -152,7 +153,7 @@ Item {
           wrapMode: Text.Wrap
           maximumLineCount: root.excerpt === "" ? 2 : 1
           elide: Text.ElideRight
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           font.family: root.fontFamily
           font.pixelSize: Style.font.body
           font.bold: true
@@ -166,7 +167,7 @@ Item {
           width: newLabel.implicitWidth + Style.space(10)
           height: newLabel.implicitHeight + Style.space(2)
           radius: Style.space(4)
-          color: Color.accent
+          color: Commons.Color.accent
 
           Text {
             id: newLabel
@@ -174,7 +175,7 @@ Item {
             anchors.centerIn: parent
             text: "NEW"
             textFormat: Text.PlainText
-            color: Color.popups.background
+            color: Commons.Color.popups.background
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
             font.bold: true
@@ -191,7 +192,7 @@ Item {
         maximumLineCount: 2
         elide: Text.ElideRight
         lineHeight: 1.15
-        color: Util.alpha(Color.popups.text, 0.85)
+        color: Util.alpha(Commons.Color.popups.text, 0.85)
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
       }
@@ -201,7 +202,7 @@ Item {
 
         text: (root.domain !== "" ? root.domain + "  ·  " : "") + Model.relativeAge(root.modifiedAt, Date.now())
         textFormat: Text.PlainText
-        color: Util.alpha(Color.popups.text, 0.6)
+        color: Util.alpha(Commons.Color.popups.text, 0.6)
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
       }

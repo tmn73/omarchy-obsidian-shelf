@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Tabs, one per list, each with its count. When the names fit, the tabs fill
 // the bar. When they do not, each tab keeps the width of its name and the bar
@@ -55,9 +56,9 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Style.space(9)
-    color: Util.alpha(Color.popups.text, 0.04)
+    color: Util.alpha(Commons.Color.popups.text, 0.04)
     border.width: 1
-    border.color: Util.alpha(Color.popups.text, 0.08)
+    border.color: Util.alpha(Commons.Color.popups.text, 0.08)
   }
 
   Flickable {
@@ -96,7 +97,7 @@ Item {
       width: root.activeTab ? root.activeTab.width : 0
       height: flick.height
       radius: Style.space(6)
-      color: Color.accent
+      color: Commons.Color.accent
       visible: root.activeTab !== null
 
       Behavior on x {
@@ -143,7 +144,7 @@ Item {
               anchors.verticalCenter: parent.verticalCenter
               text: tab.modelData.name
               textFormat: Text.PlainText
-              color: tab.active ? Color.popups.background : Util.alpha(Color.popups.text, 0.65)
+              color: tab.active ? Commons.Color.popups.background : Util.alpha(Commons.Color.popups.text, 0.65)
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
               font.bold: tab.active
@@ -158,7 +159,7 @@ Item {
               width: countLabel.implicitWidth + Style.space(12)
               height: countLabel.implicitHeight + Style.space(2)
               radius: height / 2
-              color: tab.active ? Util.alpha(Color.popups.background, 0.18) : Util.alpha(Color.popups.text, 0.08)
+              color: tab.active ? Util.alpha(Commons.Color.popups.background, 0.18) : Util.alpha(Commons.Color.popups.text, 0.08)
 
               Text {
                 id: countLabel
@@ -166,7 +167,7 @@ Item {
                 anchors.centerIn: parent
                 text: String(tab.modelData.count)
                 textFormat: Text.PlainText
-                color: tab.active ? Color.popups.background : Color.popups.text
+                color: tab.active ? Commons.Color.popups.background : Commons.Color.popups.text
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall
               }
@@ -185,6 +186,6 @@ Item {
     width: flick.visibleArea.widthRatio * flick.width
     height: Style.space(2)
     radius: height / 2
-    color: Util.alpha(Color.popups.text, 0.35)
+    color: Util.alpha(Commons.Color.popups.text, 0.35)
   }
 }
