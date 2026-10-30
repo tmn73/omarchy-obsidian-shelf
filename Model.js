@@ -51,6 +51,11 @@ function normalizeList (entry, position, seen, errors) {
   return out
 }
 
+// The value when it is one of the choices the settings offer, else the default.
+function oneOf (value, choices, fallback) {
+  return choices.indexOf(value) !== -1 ? value : fallback
+}
+
 function normalizeSettings (raw) {
   raw = raw || {}
   var errors = []
@@ -81,6 +86,9 @@ function normalizeSettings (raw) {
     obsidianSync: raw.obsidianSync !== false && raw.obsidianSync !== 'false',
     tweetPreviews: raw.tweetPreviews === true || raw.tweetPreviews === 'true',
     linkPreviews: raw.linkPreviews !== false && raw.linkPreviews !== 'false',
+    chipItems: raw.chipItems === true || raw.chipItems === 'true',
+    chipItemsWidth: oneOf(Number(raw.chipItemsWidth), [100, 160, 260], 160),
+    chipItemsIntervalSec: oneOf(Number(raw.chipItemsIntervalSec), [6, 10, 20], 6),
     reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(text(raw.reminderTime)) ? text(raw.reminderTime) : '09:00',
     reminderSound: raw.reminderSound !== false && raw.reminderSound !== 'false',
     reminderSoundFile: text(raw.reminderSoundFile),
@@ -136,6 +144,25 @@ function badgeCount (payload, lists) {
     if (cfg.badge) total += listItemCount(findList(payload, cfg.id))
   })
   return total
+}
+
+// What the chip shows one at a time: the text of every item that waits in
+// the lists that count on the chip, in tab order. Complete lanes stay out.
+function chipItemTexts (payload, lists) {
+  var texts = []
+  ;(toArray(lists) || []).forEach(function (cfg) {
+    var list = cfg.badge ? findList(payload, cfg.id) : null
+    if (!list || list.state !== 'ok') return
+    var groups = toArray(list.lanes) || toArray(list.sections)
+    groups = groups ? groups.filter(function (g) { return !g.complete }) : [list]
+    groups.forEach(function (group) {
+      ;(toArray(group.items) || []).forEach(function (item) {
+        var value = text(item && (item.text || item.title))
+        if (value !== '') texts.push(value)
+      })
+    })
+  })
+  return texts
 }
 
 // The item keys of one list, without its id.
@@ -379,6 +406,7 @@ if (typeof module !== 'undefined') {
     addTargets: addTargets,
     listItemCount: listItemCount,
     badgeCount: badgeCount,
+    chipItemTexts: chipItemTexts,
     itemKeys: itemKeys,
     freshKeys: freshKeys,
     freshInBadgeLists: freshInBadgeLists,

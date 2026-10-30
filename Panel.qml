@@ -82,11 +82,15 @@ Panel {
     anchors.fill: parent
     bar: root.bar
     count: shelf.badge
+    items: shelf.chipItems
+    itemsWidth: shelf.config.chipItemsWidth
+    itemInterval: shelf.config.chipItemsIntervalSec * 1000
     pinging: shelf.freshBadge > 0
     marked: shelf.unseenBadge > 0 && !root.opened
     late: shelf.lateCount > 0
     urgent: syncGuide.active ? syncGuide.syncState === "stopped" : !shelf.syncHealthy
-    tooltipText: shelf.tooltip
+    // The item in the chip may be cut short: the tooltip gives it in full.
+    tooltipText: chip.currentItem !== "" ? chip.currentItem + "\n" + shelf.tooltip : shelf.tooltip
     onPressed: function (buttonCode) {
       if (buttonCode === Qt.RightButton || buttonCode === Qt.MiddleButton)
         shelf.refresh()

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "tmn73.obsidian",
   "name": "Obsidian Shelf",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "tmn73",
   "license": "MIT",
   "description": "Lists from your Obsidian vault in the bar: links to read later, checklists, boards with dates and reminders, and notes by section, captured on your phone and handled from the desktop.",
@@ -41,6 +41,9 @@
       "obsidianSync": true,
       "tweetPreviews": false,
       "linkPreviews": true,
+      "chipItems": false,
+      "chipItemsWidth": 160,
+      "chipItemsIntervalSec": 6,
       "reminderTime": "09:00",
       "reminderSound": true,
       "reminderSoundFile": ""
@@ -89,6 +92,31 @@
         "label": "Link previews",
         "defaultValue": true,
         "description": "For a saved link without a picture or a title, read the page once and use its preview image and title. Only the site itself sees the request."
+      },
+      {
+        "key": "chipItems",
+        "type": "boolean",
+        "label": "Items in the chip",
+        "defaultValue": false,
+        "description": "The chip shows what waits in the lists that notify, one item at a time, beside the count. Anyone who sees your screen, a screen share included, reads them."
+      },
+      {
+        "key": "chipItemsWidth",
+        "type": "integer",
+        "label": "Item width in the chip",
+        "min": 100,
+        "max": 260,
+        "defaultValue": 160,
+        "description": "100 (small), 160 (medium) or 260 (large). A longer item ends with an ellipsis. Pick a smaller width when the chip runs over the middle of the bar."
+      },
+      {
+        "key": "chipItemsIntervalSec",
+        "type": "integer",
+        "label": "Next item in the chip (seconds)",
+        "min": 6,
+        "max": 20,
+        "defaultValue": 6,
+        "description": "6, 10 or 20 seconds."
       },
       {
         "key": "reminderTime",
