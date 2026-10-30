@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "Motion.js" as Motion
 
 // The edit and remove buttons a row shows on hover or under the keyboard
 // highlight.
@@ -16,7 +17,7 @@ Row {
   opacity: shown ? 1 : 0
   enabled: shown
 
-  Behavior on opacity { NumberAnimation { duration: Style.duration(150) } }
+  Behavior on opacity { NumberAnimation { duration: Motion.ms(Style, 150) } }
 
   RowButton {
     glyph: ""

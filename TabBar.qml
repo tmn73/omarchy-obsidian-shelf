@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // Tabs, one per list, each with its count. When the names fit, the tabs fill
 // the bar. When they do not, each tab keeps the width of its name and the bar
@@ -79,7 +80,7 @@ Item {
 
       target: flick
       property: "contentX"
-      duration: Style.duration(260)
+      duration: Motion.ms(Style, 260)
       easing.type: Easing.OutCubic
     }
 
@@ -101,10 +102,10 @@ Item {
       visible: root.activeTab !== null
 
       Behavior on x {
-        NumberAnimation { duration: Style.duration(380); easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+        NumberAnimation { duration: Motion.ms(Style, 380); easing.type: Easing.OutBack; easing.overshoot: 1.4 }
       }
       Behavior on width {
-        NumberAnimation { duration: Style.duration(380); easing.type: Easing.OutCubic }
+        NumberAnimation { duration: Motion.ms(Style, 380); easing.type: Easing.OutCubic }
       }
     }
 
@@ -149,7 +150,7 @@ Item {
               font.pixelSize: Style.font.body
               font.bold: tab.active
 
-              Behavior on color { ColorAnimation { duration: Style.duration(250) } }
+              Behavior on color { ColorAnimation { duration: Motion.ms(Style, 250) } }
             }
 
             Rectangle {

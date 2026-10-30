@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // A big choice card: a glyph, a title and one line on what it holds.
 MouseArea {
@@ -25,7 +26,7 @@ MouseArea {
     border.color: root.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.1)
     transform: Translate { y: root.containsMouse ? -Style.space(2) : 0 }
 
-    Behavior on border.color { ColorAnimation { duration: Style.duration(200) } }
+    Behavior on border.color { ColorAnimation { duration: Motion.ms(Style, 200) } }
   }
 
   Rectangle {

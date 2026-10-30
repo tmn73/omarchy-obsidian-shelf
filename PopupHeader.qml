@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // Title, sync line and the settings button.
 Item {
@@ -71,7 +72,7 @@ Item {
       radius: Style.space(8)
       color: gear.containsMouse || root.settingsOpen ? Util.alpha(Commons.Color.popups.text, 0.1) : "transparent"
 
-      Behavior on color { ColorAnimation { duration: Style.duration(150) } }
+      Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
     }
 
     Text {

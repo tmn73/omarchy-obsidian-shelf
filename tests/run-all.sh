@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT"
 PYTHONPATH=helper python3 -m unittest discover -s tests
-node --test tests/model.test.js tests/board.test.js
+node --test tests/model.test.js tests/board.test.js tests/motion.test.js
 bash tests/qml-source-test.sh
 bash tests/setup-scripts-test.sh
 omarchy plugin validate "$ROOT"

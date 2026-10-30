@@ -85,8 +85,8 @@ has "ShelfChip.qml" "Commons\.Color\.urgent" "ShelfChip.qml does not use Commons
 # ---- Popup frame and tabs (direction A)
 has "PopupHeader.qml" '"SHELF"' "PopupHeader.qml does not show the SHELF title"
 has "ShelfPopup.qml" "Style\.space\(440\)" "the popup width is not Style.space(440)"
-has "ShelfPopup.qml" "Style\.duration\(450\)" "the popup drop-in is not 450 ms"
-has "TabBar.qml" "Style\.duration\(380\)" "the tab indicator does not slide in 380 ms"
+has "ShelfPopup.qml" "Motion\.ms\(Style, 450\)" "the popup drop-in is not 450 ms"
+has "TabBar.qml" "Motion\.ms\(Style, 380\)" "the tab indicator does not slide in 380 ms"
 has "TabBar.qml" "Easing\.OutBack" "the tab indicator has no spring"
 has "TabBar.qml" "Flickable \\{" "long tab names overflow instead of scrolling"
 has "TabBar.qml" "function ensureVisible\\(" "the active tab can stay out of view"
@@ -120,15 +120,15 @@ done
 has "ShelfListView.qml" "add: *Transition" "ShelfListView.qml has no add transition"
 has "ShelfListView.qml" "remove: *Transition" "ShelfListView.qml has no remove transition"
 has "ShelfListView.qml" "displaced: *Transition" "ShelfListView.qml has no displaced transition"
-has "ShelfListView.qml" "Style\.duration\(700\)" "rows do not arrive in 700 ms"
+has "ShelfListView.qml" "Motion\.ms\(Style, 700\)" "rows do not arrive in 700 ms"
 has "FolderRow.qml" '"NEW"' "FolderRow.qml has no NEW tag"
-has "FolderRow.qml" "Style\.duration\(2600\)" "the arrival flash does not fade over 2.6 s"
+has "FolderRow.qml" "Motion\.ms\(Style, 2600\)" "the arrival flash does not fade over 2.6 s"
 has "FolderList.qml" "Share a link to Obsidian from your phone\. It lands here\." "FolderList.qml lost the empty-state copy"
 has "FolderList.qml" "All caught up" "FolderList.qml lost the empty-state title"
 has "FolderList.qml" "removeKey" "FolderList.qml does not remove the row before the helper answers"
 
 # ---- Checklist rows and the add bar (spec 8.3)
-has "ChecklistRow.qml" "Style\.duration\(350\)" "the check does not draw in 350 ms"
+has "ChecklistRow.qml" "Motion\.ms\(Style, 350\)" "the check does not draw in 350 ms"
 has "ChecklistRow.qml" "signal tickRequested" "ChecklistRow.qml does not ask the list to tick"
 has "ChecklistList.qml" "Nothing left\." "ChecklistList.qml lost the empty-state copy"
 has "ChecklistList.qml" "removeKey" "ChecklistList.qml does not remove the row before the helper answers"
@@ -141,7 +141,7 @@ has "ShelfPopup.qml" "AddBar" "ShelfPopup.qml does not host the add bar"
 # ---- Sections columns and the clear button (spec 8.3, 8.4)
 has "ClearButton.qml" "Clear after %1" "ClearButton.qml lost the clear label"
 has "ClearButton.qml" "Click again to clear %1 items" "ClearButton.qml lost the armed label"
-has "ClearButton.qml" "Style\.duration\(3000\)" "the clear button does not drain over 3 s"
+has "ClearButton.qml" "Motion\.ms\(Style, 3000\)" "the clear button does not drain over 3 s"
 has "ClearButton.qml" "signal confirmed" "ClearButton.qml does not report the confirmation"
 has "SectionsList.qml" "Nothing yet" "SectionsList.qml lost the empty-section copy"
 has "SectionsList.qml" "ClearButton" "SectionsList.qml has no clear button"
@@ -270,7 +270,7 @@ has "ShelfPopup.qml" "createRequested" "ShelfPopup.qml ignores a request to crea
 for file in "${qml_files[@]}"; do
   name=$(basename "$file")
   if grep -qE "duration: *[0-9]" "$file"; then
-    fail "$name has a raw animation duration; use Style.duration(ms)"
+    fail "$name has a raw animation duration; use Motion.ms(Style, ms)"
   fi
 done
 
@@ -314,6 +314,11 @@ if command -v qmllint >/dev/null 2>&1; then
     qmllint "$file" >/dev/null 2>&1 || fail "$(basename "$file") does not parse (qmllint)"
   done
 fi
+
+# ---- Motion works on a shell without Style.duration (Omarchy 4.0.6)
+for file in "${qml_files[@]}"; do
+  hasnt "$(basename "$file")" "Style\\.duration\\(" "$(basename "$file") calls Style.duration, which Omarchy 4.0.6 lacks: use Motion.ms(Style, ms)"
+done
 
 if (( failures > 0 )); then
   echo "$failures check(s) failed" >&2

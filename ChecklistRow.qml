@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // One todo. A tick fills the box, draws the check and strikes the text; the
 // row then asks the list to remove it, so the leave motion follows the tick.
@@ -40,7 +41,7 @@ Item {
     // rows read apart without lines.
     color: hover.hovered || root.current ? Util.alpha(Commons.Color.popups.text, 0.07) : Util.alpha(Commons.Color.popups.text, 0.03)
 
-    Behavior on color { ColorAnimation { duration: Style.duration(150) } }
+    Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
   }
 
   HoverHandler {
@@ -69,8 +70,8 @@ Item {
       border.width: Math.max(1, Style.space(1.5))
       border.color: root.ticking || box.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.4)
 
-      Behavior on color { ColorAnimation { duration: Style.duration(200) } }
-      Behavior on border.color { ColorAnimation { duration: Style.duration(200) } }
+      Behavior on color { ColorAnimation { duration: Motion.ms(Style, 200) } }
+      Behavior on border.color { ColorAnimation { duration: Motion.ms(Style, 200) } }
     }
 
     Item {
@@ -138,7 +139,7 @@ Item {
     font.family: root.fontFamily
     font.pixelSize: Style.font.body
 
-    Behavior on color { ColorAnimation { duration: Style.duration(300) } }
+    Behavior on color { ColorAnimation { duration: Motion.ms(Style, 300) } }
 
     Rectangle {
       id: strike
@@ -154,10 +155,10 @@ Item {
     id: tickMotion
 
     ParallelAnimation {
-      NumberAnimation { target: checkClip; property: "width"; to: box.width; duration: Style.duration(350); easing.type: Easing.OutCubic }
+      NumberAnimation { target: checkClip; property: "width"; to: box.width; duration: Motion.ms(Style, 350); easing.type: Easing.OutCubic }
       SequentialAnimation {
-        PauseAnimation { duration: Style.duration(150) }
-        NumberAnimation { target: strike; property: "width"; to: Math.min(label.implicitWidth, label.width); duration: Style.duration(350); easing.type: Easing.OutCubic }
+        PauseAnimation { duration: Motion.ms(Style, 150) }
+        NumberAnimation { target: strike; property: "width"; to: Math.min(label.implicitWidth, label.width); duration: Motion.ms(Style, 350); easing.type: Easing.OutCubic }
       }
     }
     ScriptAction { script: root.tickRequested() }

@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "Motion.js" as Motion
 
 // What every list component shares: the contract ShelfPopup binds to, the
 // pane fade on a tab change, and the states shown instead of rows (empty,
@@ -45,8 +46,8 @@ Item {
   ParallelAnimation {
     id: paneIn
 
-    NumberAnimation { target: root; property: "opacity"; from: 0; to: 1; duration: Style.duration(320); easing.type: Easing.OutCubic }
-    NumberAnimation { target: paneShift; property: "y"; from: Style.space(6); to: 0; duration: Style.duration(320); easing.type: Easing.OutCubic }
+    NumberAnimation { target: root; property: "opacity"; from: 0; to: 1; duration: Motion.ms(Style, 320); easing.type: Easing.OutCubic }
+    NumberAnimation { target: paneShift; property: "y"; from: Style.space(6); to: 0; duration: Motion.ms(Style, 320); easing.type: Easing.OutCubic }
   }
 
   Column {
