@@ -82,6 +82,7 @@ Panel {
     anchors.fill: parent
     bar: root.bar
     count: shelf.badge
+    items: shelf.chipItems
     pinging: shelf.freshBadge > 0
     marked: shelf.unseenBadge > 0 && !root.opened
     late: shelf.lateCount > 0

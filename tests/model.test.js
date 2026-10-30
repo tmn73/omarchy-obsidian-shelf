@@ -345,3 +345,35 @@ test('previewsPending asks for images to download even with previews off', () =>
   const p = { lists: [{ id: 'read-later', state: 'ok', items: [{ key: 'a', previewKind: '', imagePending: true }] }] }
   assert.equal(Model.previewsPending(p, { tweetPreviews: false, linkPreviews: false }), true)
 })
+
+// ---- Items in the chip
+
+test('normalizeSettings keeps the items out of the chip unless asked', () => {
+  assert.equal(Model.normalizeSettings({}).chipItems, false)
+  assert.equal(Model.normalizeSettings({ chipItems: true }).chipItems, true)
+  assert.equal(Model.normalizeSettings({ chipItems: 'true' }).chipItems, true)
+})
+
+test('chipItemTexts gives the items of the lists that notify, in tab order', () => {
+  const p = payload(['https://a.example'], ['Shipped'], ['Buy milk', 'Call Ana'])
+  p.lists[0].items[0].title = 'An article'
+  p.lists[1].sections[0].items[0].text = 'Shipped'
+  p.lists[2].items.forEach((item, i) => { item.text = ['Buy milk', 'Call Ana'][i] })
+  // The retro is a notes list, which does not notify by default.
+  assert.deepEqual(Model.chipItemTexts(p, withThree()), ['An article', 'Buy milk', 'Call Ana'])
+})
+
+test('chipItemTexts skips the Complete lane of a board and lists that failed', () => {
+  const lists = Model.normalizeSettings({ lists: [{ id: 'b', name: 'Board', type: 'board', path: 'B.md' }, TODO] }).lists
+  const p = {
+    lists: [
+      { id: 'b', state: 'ok', lanes: [
+        { title: 'Doing', items: [{ key: '- [ ] Write', text: 'Write' }] },
+        { title: 'Done', complete: true, items: [{ key: '- [x] Old', text: 'Old' }] }
+      ] },
+      { id: 'todo', state: 'missing', items: [{ key: '- [ ] Gone', text: 'Gone' }] }
+    ]
+  }
+  assert.deepEqual(Model.chipItemTexts(p, lists), ['Write'])
+  assert.deepEqual(Model.chipItemTexts(null, lists), [])
+})

@@ -165,6 +165,15 @@ FocusScope {
 
     Toggle {
       width: parent.width
+      label: qsTr("Items in the chip")
+      description: qsTr("The chip shows what waits in the lists that notify, one item at a time. A screen share shows them too.")
+      checked: root.config.chipItems === true
+      fontFamily: root.fontFamily
+      onClicked: root.settingChanged("chipItems", !checked)
+    }
+
+    Toggle {
+      width: parent.width
       label: qsTr("Link previews")
       description: qsTr("A saved link without a picture or title: the page is read once for them. Only the site sees it.")
       checked: root.config.linkPreviews !== false

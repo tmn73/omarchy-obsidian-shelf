@@ -41,6 +41,7 @@
       "obsidianSync": true,
       "tweetPreviews": false,
       "linkPreviews": true,
+      "chipItems": false,
       "reminderTime": "09:00",
       "reminderSound": true,
       "reminderSoundFile": ""
@@ -89,6 +90,13 @@
         "label": "Link previews",
         "defaultValue": true,
         "description": "For a saved link without a picture or a title, read the page once and use its preview image and title. Only the site itself sees the request."
+      },
+      {
+        "key": "chipItems",
+        "type": "boolean",
+        "label": "Items in the chip",
+        "defaultValue": false,
+        "description": "The chip shows what waits in the lists that notify, one item at a time, beside the count. Anyone who sees your screen, a screen share included, reads them."
       },
       {
         "key": "reminderTime",
