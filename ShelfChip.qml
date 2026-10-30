@@ -24,8 +24,10 @@ WidgetButton {
   property bool late: false
   property var items: []
   property int itemIndex: 0
-
-  readonly property int itemInterval: 6000
+  // The widest an item gets before it elides. The center of the bar does not
+  // move aside, so a wide pill runs over the widget there.
+  property real itemsWidth: 160
+  property int itemInterval: 6000
   readonly property string currentItem: items.length > 0 ? String(items[itemIndex % items.length]) : ""
   readonly property bool showItems: currentItem !== "" && !vertical
   readonly property color tint: late ? Commons.Color.urgent : Commons.Color.accent
@@ -201,7 +203,7 @@ WidgetButton {
 
       visible: root.showItems
       clip: true
-      width: Math.min(Style.space(260), Math.ceil(longestItem.advanceWidth) + 1)
+      width: Math.min(Style.space(root.itemsWidth), Math.ceil(longestItem.advanceWidth) + 1)
       height: itemText.implicitHeight
 
       Text {

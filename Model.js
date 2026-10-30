@@ -51,6 +51,11 @@ function normalizeList (entry, position, seen, errors) {
   return out
 }
 
+// The value when it is one of the choices the settings offer, else the default.
+function oneOf (value, choices, fallback) {
+  return choices.indexOf(value) !== -1 ? value : fallback
+}
+
 function normalizeSettings (raw) {
   raw = raw || {}
   var errors = []
@@ -82,6 +87,8 @@ function normalizeSettings (raw) {
     tweetPreviews: raw.tweetPreviews === true || raw.tweetPreviews === 'true',
     linkPreviews: raw.linkPreviews !== false && raw.linkPreviews !== 'false',
     chipItems: raw.chipItems === true || raw.chipItems === 'true',
+    chipItemsWidth: oneOf(Number(raw.chipItemsWidth), [100, 160, 260], 160),
+    chipItemsIntervalSec: oneOf(Number(raw.chipItemsIntervalSec), [6, 10, 20], 6),
     reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(text(raw.reminderTime)) ? text(raw.reminderTime) : '09:00',
     reminderSound: raw.reminderSound !== false && raw.reminderSound !== 'false',
     reminderSoundFile: text(raw.reminderSoundFile),

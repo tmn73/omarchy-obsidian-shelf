@@ -172,6 +172,36 @@ FocusScope {
       onClicked: root.settingChanged("chipItems", !checked)
     }
 
+    Row {
+      visible: root.config.chipItems === true
+      width: parent.width
+      spacing: Style.space(10)
+
+      SettingsCaption { anchors.verticalCenter: parent.verticalCenter; text: qsTr("Item width"); fontFamily: root.fontFamily }
+
+      ButtonGroup {
+        options: [{ value: "100", label: qsTr("Small") }, { value: "160", label: qsTr("Medium") }, { value: "260", label: qsTr("Large") }]
+        value: String(root.config.chipItemsWidth)
+        fontFamily: root.fontFamily
+        onChanged: function (value) { root.settingChanged("chipItemsWidth", Number(value)) }
+      }
+    }
+
+    Row {
+      visible: root.config.chipItems === true
+      width: parent.width
+      spacing: Style.space(10)
+
+      SettingsCaption { anchors.verticalCenter: parent.verticalCenter; text: qsTr("Next item every"); fontFamily: root.fontFamily }
+
+      ButtonGroup {
+        options: [{ value: "6", label: "6 s" }, { value: "10", label: "10 s" }, { value: "20", label: "20 s" }]
+        value: String(root.config.chipItemsIntervalSec)
+        fontFamily: root.fontFamily
+        onChanged: function (value) { root.settingChanged("chipItemsIntervalSec", Number(value)) }
+      }
+    }
+
     Toggle {
       width: parent.width
       label: qsTr("Link previews")

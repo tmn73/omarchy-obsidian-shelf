@@ -191,7 +191,10 @@ Open them with the gear in the popup:
   shows the dot),
 - add a list, from the suggestions found in the vault or from a kind,
 - items in the chip: the chip turns into a pill that shows the items of the
-  lists that notify, one every 6 s, beside the count,
+  lists that notify, one at a time, beside the count. Choose the width of an
+  item (small, medium or large: the middle of the bar does not move aside, so
+  a wide pill can cover the widget there) and how long each item stays (6 s,
+  10 s or 20 s),
 - link and tweet previews, and how often the plugin reads the vault (10 s,
   30 s or 1 min).
 

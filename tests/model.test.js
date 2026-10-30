@@ -354,6 +354,16 @@ test('normalizeSettings keeps the items out of the chip unless asked', () => {
   assert.equal(Model.normalizeSettings({ chipItems: 'true' }).chipItems, true)
 })
 
+test('normalizeSettings keeps the chip item width and pace to the offered choices', () => {
+  assert.equal(Model.normalizeSettings({}).chipItemsWidth, 160)
+  assert.equal(Model.normalizeSettings({ chipItemsWidth: 100 }).chipItemsWidth, 100)
+  assert.equal(Model.normalizeSettings({ chipItemsWidth: '260' }).chipItemsWidth, 260)
+  assert.equal(Model.normalizeSettings({ chipItemsWidth: 900 }).chipItemsWidth, 160)
+  assert.equal(Model.normalizeSettings({}).chipItemsIntervalSec, 6)
+  assert.equal(Model.normalizeSettings({ chipItemsIntervalSec: 20 }).chipItemsIntervalSec, 20)
+  assert.equal(Model.normalizeSettings({ chipItemsIntervalSec: 1 }).chipItemsIntervalSec, 6)
+})
+
 test('chipItemTexts gives the items of the lists that notify, in tab order', () => {
   const p = payload(['https://a.example'], ['Shipped'], ['Buy milk', 'Call Ana'])
   p.lists[0].items[0].title = 'An article'

@@ -83,6 +83,8 @@ Panel {
     bar: root.bar
     count: shelf.badge
     items: shelf.chipItems
+    itemsWidth: shelf.config.chipItemsWidth
+    itemInterval: shelf.config.chipItemsIntervalSec * 1000
     pinging: shelf.freshBadge > 0
     marked: shelf.unseenBadge > 0 && !root.opened
     late: shelf.lateCount > 0
