@@ -21,6 +21,8 @@ without opening Obsidian.
 - **A chip so you do not forget**: it shows how many items wait in the lists
   you choose. A dot marks a new arrival until you open the popup, on every
   screen.
+  It can also show those items, one at a time, so the bar reminds you what
+  they are (off by default: a screen share shows them too).
 - **Obsidian Sync without the app**: a guide in the popup sets up Obsidian
   Headless, so captures reach the desktop while Obsidian does not run.
 - **Your theme**: every color comes from the active Omarchy theme, and the
@@ -188,6 +190,11 @@ Open them with the gear in the popup:
   **notifies** (its items count on the chip, and a new item pings it and
   shows the dot),
 - add a list, from the suggestions found in the vault or from a kind,
+- items in the chip: the chip turns into a pill that shows the items of the
+  lists that notify, one at a time, beside the count. Choose the width of an
+  item (small, medium or large: the middle of the bar does not move aside, so
+  a wide pill can cover the widget there) and how long each item stays (6 s,
+  10 s or 20 s),
 - link and tweet previews, and how often the plugin reads the vault (10 s,
   30 s or 1 min).
 

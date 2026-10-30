@@ -165,6 +165,45 @@ FocusScope {
 
     Toggle {
       width: parent.width
+      label: qsTr("Items in the chip")
+      description: qsTr("The chip shows what waits in the lists that notify, one item at a time. A screen share shows them too.")
+      checked: root.config.chipItems === true
+      fontFamily: root.fontFamily
+      onClicked: root.settingChanged("chipItems", !checked)
+    }
+
+    Row {
+      visible: root.config.chipItems === true
+      width: parent.width
+      spacing: Style.space(10)
+
+      SettingsCaption { anchors.verticalCenter: parent.verticalCenter; text: qsTr("Item width"); fontFamily: root.fontFamily }
+
+      ButtonGroup {
+        options: [{ value: "100", label: qsTr("Small") }, { value: "160", label: qsTr("Medium") }, { value: "260", label: qsTr("Large") }]
+        value: String(root.config.chipItemsWidth)
+        fontFamily: root.fontFamily
+        onChanged: function (value) { root.settingChanged("chipItemsWidth", Number(value)) }
+      }
+    }
+
+    Row {
+      visible: root.config.chipItems === true
+      width: parent.width
+      spacing: Style.space(10)
+
+      SettingsCaption { anchors.verticalCenter: parent.verticalCenter; text: qsTr("Next item every"); fontFamily: root.fontFamily }
+
+      ButtonGroup {
+        options: [{ value: "6", label: "6 s" }, { value: "10", label: "10 s" }, { value: "20", label: "20 s" }]
+        value: String(root.config.chipItemsIntervalSec)
+        fontFamily: root.fontFamily
+        onChanged: function (value) { root.settingChanged("chipItemsIntervalSec", Number(value)) }
+      }
+    }
+
+    Toggle {
+      width: parent.width
       label: qsTr("Link previews")
       description: qsTr("A saved link without a picture or title: the page is read once for them. Only the site sees it.")
       checked: root.config.linkPreviews !== false

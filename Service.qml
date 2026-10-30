@@ -31,6 +31,7 @@ Item {
   property string notice: ""
 
   readonly property int badge: Model.badgeCount(payload, config.lists)
+  readonly property var chipItems: config.chipItems ? Model.chipItemTexts(payload, config.lists) : []
   readonly property int freshBadge: Model.freshInBadgeLists(fresh, config.lists)
   readonly property int unseenBadge: Model.freshInBadgeLists(unseen, config.lists)
   readonly property int lateCount: Board.lateCount(payload, config.lists, reminders.today)
