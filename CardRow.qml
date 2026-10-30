@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import "Board.js" as Board
+import "Motion.js" as Motion
 
 // One card of a board: its box, its text, its date, and on hover or under the
 // keyboard highlight the move, date, edit and remove buttons. The date panel
@@ -42,7 +43,7 @@ Column {
       radius: Style.space(9)
       color: hover.hovered || root.current || root.dating || root.choosing ? Util.alpha(Commons.Color.popups.text, 0.07) : root.accent ? Util.alpha(Commons.Color.accent, 0.06) : Util.alpha(Commons.Color.popups.text, 0.03)
 
-      Behavior on color { ColorAnimation { duration: Style.duration(150) } }
+      Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
     }
 
     HoverHandler { id: hover }
@@ -151,7 +152,7 @@ Column {
       opacity: (hover.hovered || root.current || root.dating || root.choosing) && !root.editing ? 1 : 0
       enabled: opacity > 0
 
-      Behavior on opacity { NumberAnimation { duration: Style.duration(150) } }
+      Behavior on opacity { NumberAnimation { duration: Motion.ms(Style, 150) } }
 
       MouseArea {
         id: statusButton

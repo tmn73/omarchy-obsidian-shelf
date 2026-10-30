@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import "Model.js" as Model
+import "Motion.js" as Motion
 
 // Popup layout: header, tabs, the active list, then the key hints.
 //
@@ -282,8 +283,8 @@ Item {
   ParallelAnimation {
     id: dropIn
 
-    NumberAnimation { target: content; property: "opacity"; from: 0; to: 1; duration: Style.duration(450); easing.type: Easing.OutCubic }
-    NumberAnimation { target: dropShift; property: "y"; from: -Style.space(10); to: 0; duration: Style.duration(450); easing.type: Easing.OutCubic }
-    NumberAnimation { target: content; property: "scale"; from: 0.98; to: 1; duration: Style.duration(450); easing.type: Easing.OutCubic }
+    NumberAnimation { target: content; property: "opacity"; from: 0; to: 1; duration: Motion.ms(Style, 450); easing.type: Easing.OutCubic }
+    NumberAnimation { target: dropShift; property: "y"; from: -Style.space(10); to: 0; duration: Motion.ms(Style, 450); easing.type: Easing.OutCubic }
+    NumberAnimation { target: content; property: "scale"; from: 0.98; to: 1; duration: Motion.ms(Style, 450); easing.type: Easing.OutCubic }
   }
 }

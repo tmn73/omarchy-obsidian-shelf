@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // One topic in a section column, with edit and remove on hover.
 Rectangle {
@@ -23,7 +24,7 @@ Rectangle {
   radius: Style.space(8)
   color: hover.hovered ? Util.alpha(Commons.Color.popups.text, 0.08) : Util.alpha(Commons.Color.popups.text, 0.05)
 
-  Behavior on color { ColorAnimation { duration: Style.duration(150) } }
+  Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
 
   HoverHandler {
     id: hover

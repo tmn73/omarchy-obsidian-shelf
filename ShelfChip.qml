@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "Motion.js" as Motion
 
 // The bar chip: the shelf glyph, and what waits in the lists that notify.
 //
@@ -75,15 +76,15 @@ WidgetButton {
     property: "progress"
     from: 0
     to: 1
-    duration: Style.duration(root.itemInterval)
+    duration: Motion.ms(Style, root.itemInterval)
   }
 
   SequentialAnimation {
     id: swap
 
     ParallelAnimation {
-      NumberAnimation { target: itemShift; property: "y"; to: -itemClip.height * 0.6; duration: Style.duration(220); easing.type: Easing.InCubic }
-      NumberAnimation { target: itemText; property: "opacity"; to: 0; duration: Style.duration(220) }
+      NumberAnimation { target: itemShift; property: "y"; to: -itemClip.height * 0.6; duration: Motion.ms(Style, 220); easing.type: Easing.InCubic }
+      NumberAnimation { target: itemText; property: "opacity"; to: 0; duration: Motion.ms(Style, 220) }
     }
     ScriptAction {
       script: {
@@ -93,9 +94,9 @@ WidgetButton {
       }
     }
     ParallelAnimation {
-      NumberAnimation { target: itemShift; property: "y"; to: 0; duration: Style.duration(320); easing.type: Easing.OutBack }
-      NumberAnimation { target: itemText; property: "opacity"; to: 1; duration: Style.duration(260) }
-      NumberAnimation { target: root; property: "glow"; from: 1; to: 0; duration: Style.duration(900); easing.type: Easing.OutCubic }
+      NumberAnimation { target: itemShift; property: "y"; to: 0; duration: Motion.ms(Style, 320); easing.type: Easing.OutBack }
+      NumberAnimation { target: itemText; property: "opacity"; to: 1; duration: Motion.ms(Style, 260) }
+      NumberAnimation { target: root; property: "glow"; from: 1; to: 0; duration: Motion.ms(Style, 900); easing.type: Easing.OutCubic }
     }
   }
 
@@ -171,8 +172,8 @@ WidgetButton {
           running: root.pinging
           loops: 3
           ParallelAnimation {
-            NumberAnimation { target: halo; property: "scale"; from: 1; to: 2.6; duration: Style.duration(1100); easing.type: Easing.OutCubic }
-            NumberAnimation { target: halo; property: "opacity"; from: 1; to: 0; duration: Style.duration(1100); easing.type: Easing.OutCubic }
+            NumberAnimation { target: halo; property: "scale"; from: 1; to: 2.6; duration: Motion.ms(Style, 1100); easing.type: Easing.OutCubic }
+            NumberAnimation { target: halo; property: "opacity"; from: 1; to: 0; duration: Motion.ms(Style, 1100); easing.type: Easing.OutCubic }
           }
         }
       }
@@ -239,7 +240,7 @@ WidgetButton {
   ParallelAnimation {
     id: bump
 
-    NumberAnimation { target: countShift; property: "y"; from: -Style.space(8); to: 0; duration: Style.duration(500); easing.type: Easing.OutBack }
-    NumberAnimation { target: countText; property: "opacity"; from: 0; to: 1; duration: Style.duration(300); easing.type: Easing.OutCubic }
+    NumberAnimation { target: countShift; property: "y"; from: -Style.space(8); to: 0; duration: Motion.ms(Style, 500); easing.type: Easing.OutBack }
+    NumberAnimation { target: countText; property: "opacity"; from: 0; to: 1; duration: Motion.ms(Style, 300); easing.type: Easing.OutCubic }
   }
 }

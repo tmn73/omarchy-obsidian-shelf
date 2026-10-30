@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "Motion.js" as Motion
 
 // The add field. With sections, a picker chooses where the new line goes;
 // the first section is picked by default.
@@ -53,7 +54,7 @@ Column {
           radius: Style.space(6)
           color: parent.picked ? Util.alpha(Commons.Color.popups.text, 0.14) : "transparent"
 
-          Behavior on color { ColorAnimation { duration: Style.duration(200) } }
+          Behavior on color { ColorAnimation { duration: Motion.ms(Style, 200) } }
         }
 
         Text {
@@ -101,7 +102,7 @@ Column {
         radius: Style.space(8)
         color: addButton.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.1)
 
-        Behavior on color { ColorAnimation { duration: Style.duration(150) } }
+        Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
       }
 
       Text {

@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import "Model.js" as Model
+import "Motion.js" as Motion
 
 // One saved link: platform glyph, title, domain and age, a two-line excerpt,
 // then open, plus edit and remove on hover. A fresh row flashes in the accent
@@ -58,7 +59,7 @@ Item {
     // rows read apart without lines.
     color: hover.hovered || root.current ? Util.alpha(Commons.Color.popups.text, 0.07) : Util.alpha(Commons.Color.popups.text, 0.03)
 
-    Behavior on color { ColorAnimation { duration: Style.duration(150) } }
+    Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
   }
 
   Rectangle {
@@ -71,9 +72,9 @@ Item {
     SequentialAnimation {
       id: flash
 
-      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Commons.Color.accent, 0.18); duration: Style.duration(1) }
-      PauseAnimation { duration: Style.duration(650) }
-      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Commons.Color.accent, 0); duration: Style.duration(2600); easing.type: Easing.OutCubic }
+      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Commons.Color.accent, 0.18); duration: Motion.ms(Style, 1) }
+      PauseAnimation { duration: Motion.ms(Style, 650) }
+      ColorAnimation { target: flashLayer; property: "color"; to: Util.alpha(Commons.Color.accent, 0); duration: Motion.ms(Style, 2600); easing.type: Easing.OutCubic }
     }
   }
 

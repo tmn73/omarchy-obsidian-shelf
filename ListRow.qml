@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
+import "Motion.js" as Motion
 
 // One list in the settings: move it, choose whether it notifies, and open it
 // to rename it, point it at another path, or see how to fill it from a phone.
@@ -35,7 +36,7 @@ Rectangle {
 
   onExpandedChanged: if (!expanded) { picking = false; showHow = false }
 
-  Behavior on border.color { ColorAnimation { duration: Style.duration(250) } }
+  Behavior on border.color { ColorAnimation { duration: Motion.ms(Style, 250) } }
 
   Column {
     id: column

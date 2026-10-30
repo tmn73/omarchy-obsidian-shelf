@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // A square icon button for row actions. `primary` fills with the accent on
 // hover, for the action that finishes the item; `danger` turns the urgent
@@ -27,8 +28,8 @@ MouseArea {
     scale: root.containsMouse && root.primary ? 1.06 : 1
     color: !root.containsMouse ? "transparent" : root.danger ? Util.alpha(Commons.Color.urgent, 0.18) : root.primary ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.12)
 
-    Behavior on color { ColorAnimation { duration: Style.duration(150) } }
-    Behavior on scale { NumberAnimation { duration: Style.duration(150); easing.type: Easing.OutCubic } }
+    Behavior on color { ColorAnimation { duration: Motion.ms(Style, 150) } }
+    Behavior on scale { NumberAnimation { duration: Motion.ms(Style, 150); easing.type: Easing.OutCubic } }
   }
 
   Text {

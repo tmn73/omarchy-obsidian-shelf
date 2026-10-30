@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Widgets
 import qs.Commons
 import qs.Commons as Commons
+import "Motion.js" as Motion
 
 // The picture of a saved link, rounded, or the platform glyph while it loads,
 // when it fails, or when the note has none. Videos get a small play mark.
@@ -41,7 +42,7 @@ ClippingRectangle {
     sourceSize.height: height * 2
     opacity: root.hasPicture ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: Style.duration(250) } }
+    Behavior on opacity { NumberAnimation { duration: Motion.ms(Style, 250) } }
   }
 
   Rectangle {
