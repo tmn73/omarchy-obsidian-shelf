@@ -200,6 +200,8 @@ has "Service.qml" "config\.chipItems \?" "the chip shows items without the setti
 has "SettingsView.qml" '"chipItems"' "the settings cannot turn the items in the chip on"
 has "Panel.qml" "itemsWidth: shelf.config.chipItemsWidth" "the chip ignores the item width setting"
 has "Panel.qml" "itemInterval: shelf.config.chipItemsIntervalSec \\* 1000" "the chip ignores the item pace setting"
+has "Panel.qml" "tooltipText: chip.currentItem" "the tooltip does not give the item in the chip in full"
+has "ShelfChip.qml" "!root.tooltipHovered" "the chip changes item under the pointer"
 has "SettingsView.qml" '"chipItemsWidth"' "the settings cannot change the item width"
 has "SettingsView.qml" '"chipItemsIntervalSec"' "the settings cannot change the item pace"
 has "Panel.qml" "clearUnseen" "Panel.qml never clears unseen items"

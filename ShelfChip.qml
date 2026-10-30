@@ -61,7 +61,9 @@ WidgetButton {
   Timer {
     interval: root.itemInterval
     repeat: true
-    running: root.showItems && root.items.length > 1
+    // Held while the pointer rests on the chip, so the tooltip and the pill
+    // keep showing the same item.
+    running: root.showItems && root.items.length > 1 && !root.tooltipHovered
     onRunningChanged: if (running) fill.restart()
     onTriggered: swap.restart()
   }
