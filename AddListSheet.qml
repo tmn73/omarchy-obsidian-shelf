@@ -42,6 +42,8 @@ Column {
     step = "kind"
     error = ""
     pendingPath = ""
+    vaultSearch.clear()
+    vaultSearch.load()
     helper.run(["scan", "--vault", config.vaultPath], function (data) {
       root.suggestions = (data.suggestions || []).filter(function (s) {
         return !root.config.lists.some(function (l) { return l.path.replace(/\/+$/, "") === s.path })
@@ -143,6 +145,7 @@ Column {
       width: parent.width
       vaultPath: root.config.vaultPath
       suggestions: root.suggestions
+      lists: root.config.lists
       pendingPath: root.pendingPath
       fontFamily: root.fontFamily
       onPicked: root.pickSearchResult(path)
@@ -163,15 +166,16 @@ Column {
     }
 
     Repeater {
-      visible: !vaultSearch.searching
       model: root.suggestions.slice(0, 4)
 
+      // A Repeater puts its rows in the Column, so each row hides itself.
       delegate: PickerOption {
         required property var modelData
 
+        visible: !vaultSearch.searching
         width: parent.width
         label: "+ " + modelData.path
-        detail: (modelData.type === "folder" ? qsTr("links") : modelData.type === "checklist" ? qsTr("checklist") : modelData.type === "board" ? qsTr("board") : qsTr("sections")) + " · " + modelData.count
+        detail: vaultSearch.kindLabel(modelData.type) + " · " + modelData.count
         fontFamily: root.fontFamily
         onClicked: root.addSuggestion(modelData)
       }
@@ -189,6 +193,9 @@ Column {
         glyph: root.kinds[modelData].glyph
         title: root.kinds[modelData].title
         description: root.kinds[modelData].description
+        // A searched file waiting for a kind can never be a folder.
+        enabled: modelData !== "folder" || root.pendingPath === ""
+        opacity: enabled ? 1 : 0.45
         fontFamily: root.fontFamily
         onClicked: root.pickKind(modelData)
       }

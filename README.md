@@ -189,7 +189,8 @@ Open them with the gear in the popup:
   folder or file, choose what a tick does, and choose whether a list
   **notifies** (its items count on the chip, and a new item pings it and
   shows the dot),
-- add a list, from the suggestions found in the vault or from a kind,
+- add a list: search the vault, pick a suggestion found in the vault, or
+  start from a kind,
 - items in the chip: the chip turns into a pill that shows the items of the
   lists that notify, one at a time, beside the count. Choose the width of an
   item (small, medium or large: the middle of the bar does not move aside, so

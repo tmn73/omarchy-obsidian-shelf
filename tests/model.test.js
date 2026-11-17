@@ -434,3 +434,16 @@ test('suggestionTypeForPath gives the kind the scan worked out, or nothing', () 
   assert.equal(Model.suggestionTypeForPath([], 'TODO.md'), '')
   assert.equal(Model.suggestionTypeForPath(null, 'TODO.md'), '')
 })
+
+test('pathOnShelf finds a path a list already reads, with or without a trailing slash', () => {
+  const lists = [
+    { id: 'tasks', type: 'board', path: 'Tasks.md' },
+    { id: 'read', type: 'folder', path: 'Read Later/' }
+  ]
+  assert.equal(Model.pathOnShelf(lists, 'Tasks.md'), true)
+  assert.equal(Model.pathOnShelf(lists, 'Read Later'), true)
+  assert.equal(Model.pathOnShelf(lists, 'TODO.md'), false)
+  assert.equal(Model.pathOnShelf(lists, ''), false)
+  assert.equal(Model.pathOnShelf(null, 'Tasks.md'), false)
+  assert.equal(Model.pathOnShelf([null, { path: null }], 'Tasks.md'), false)
+})

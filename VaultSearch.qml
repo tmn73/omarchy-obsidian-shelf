@@ -1,7 +1,8 @@
 // Search the vault's files, for step 1 of Add a list. Typing filters the
 // paths the helper lists; picking one reports it, and the sheet decides the
 // kind. A picked file whose kind the scan did not work out waits for a kind
-// on step 1, named by pendingPath.
+// on step 1, named by pendingPath. A file a list already reads shows as "on
+// the shelf" and cannot be picked.
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
@@ -13,6 +14,7 @@ Column {
 
   property string vaultPath: ""
   property var suggestions: []
+  property var lists: []
   property string pendingPath: ""
   property string fontFamily: Style.font.family
   property string query: ""
@@ -30,9 +32,15 @@ Column {
 
   function clear() { root.query = "" }
 
+  // The words the sheet shows for a list type, here and on the found lists.
+  function kindLabel(type) {
+    return type === "folder" ? qsTr("links") : type === "checklist" ? qsTr("checklist") : type === "board" ? qsTr("board") : type === "sections" ? qsTr("sections") : qsTr("file")
+  }
+
   function detail(path) {
-    var type = Model.suggestionTypeForPath(root.suggestions, path)
-    return type !== "" ? type : qsTr("file")
+    if (Model.pathOnShelf(root.lists, path))
+      return qsTr("on the shelf")
+    return kindLabel(Model.suggestionTypeForPath(root.suggestions, path))
   }
 
   Component.onCompleted: load()
@@ -62,13 +70,14 @@ Column {
   }
 
   Repeater {
-    visible: root.searching
     model: root.results
 
     delegate: PickerOption {
       required property string modelData
 
       width: parent.width
+      enabled: !Model.pathOnShelf(root.lists, modelData)
+      opacity: enabled ? 1 : 0.45
       label: modelData
       detail: root.detail(modelData)
       fontFamily: root.fontFamily
@@ -79,7 +88,7 @@ Column {
   Text {
     visible: root.pendingPath !== ""
     width: parent.width
-    text: qsTr("Adding %1 — pick a kind").arg(root.pendingPath)
+    text: qsTr("Adding %1: pick a checklist, a board or notes by section").arg(root.pendingPath)
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     color: Commons.Color.accent

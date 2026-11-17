@@ -398,7 +398,7 @@ function phoneHowTo (cfg) {
 
 // ---- Add a list, step 1: search the vault.
 //
-// The same substring rule the step-2 picker uses, so a search reads the same
+// The step-2 picker uses this rule too, so a search reads the same
 // everywhere. The cap keeps a common word from flooding the sheet; the list
 // stays alphabetical because vault_paths returns it sorted. An empty query
 // matches nothing: step 1 keeps showing the found lists until the user types.
@@ -413,13 +413,23 @@ function searchVaultPaths (paths, query, limit) {
 }
 
 // The kind the vault scan already worked out for a path, or '' when the scan
-// did not see it — then the user picks a kind on step 1.
+// did not see it: then the user picks a kind on step 1.
 function suggestionTypeForPath (suggestions, path) {
   var list = toArray(suggestions) || []
   for (var i = 0; i < list.length; i++) {
     if (list[i] && list[i].path === path) return list[i].type || ''
   }
   return ''
+}
+
+// True when a list on the shelf already reads this path. Step-1 search shows
+// such a file as "on the shelf" and does not add it a second time.
+function pathOnShelf (lists, path) {
+  var target = text(path).replace(/\/+$/, '')
+  if (target === '') return false
+  return (toArray(lists) || []).some(function (l) {
+    return !!l && text(l.path).replace(/\/+$/, '') === target
+  })
 }
 
 if (typeof module !== 'undefined') {
@@ -454,6 +464,7 @@ if (typeof module !== 'undefined') {
     trashLabel: trashLabel,
     phoneHowTo: phoneHowTo,
     searchVaultPaths: searchVaultPaths,
-    suggestionTypeForPath: suggestionTypeForPath
+    suggestionTypeForPath: suggestionTypeForPath,
+    pathOnShelf: pathOnShelf
   }
 }
