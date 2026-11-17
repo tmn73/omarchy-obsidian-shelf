@@ -387,3 +387,50 @@ test('chipItemTexts skips the Complete lane of a board and lists that failed', (
   assert.deepEqual(Model.chipItemTexts(p, lists), ['Write'])
   assert.deepEqual(Model.chipItemTexts(null, lists), [])
 })
+
+// ---- Add a list, step 1: search the vault
+
+const VAULT_PATHS = [
+  '10_Projects/Active/Knapsack/Tasks.md',
+  '20_Practices/Music/Guitar/Tasks.md',
+  '20_Practices/Music/Guitar/Exercises in Tab (G major).md',
+  '30_Life/Admin/Household/Shopping List.md',
+  'TODO.md',
+  '99_System/Agents/Tasks.md'
+]
+
+test('searchVaultPaths matches a substring anywhere in the path, case-insensitive', () => {
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, 'tasks'), [
+    '10_Projects/Active/Knapsack/Tasks.md',
+    '20_Practices/Music/Guitar/Tasks.md',
+    '99_System/Agents/Tasks.md'
+  ])
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, 'GUITAR'), [
+    '20_Practices/Music/Guitar/Tasks.md',
+    '20_Practices/Music/Guitar/Exercises in Tab (G major).md'
+  ])
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, '  todo  '), ['TODO.md'])
+})
+
+test('searchVaultPaths matches nothing on an empty query or no match, and caps at 8', () => {
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, ''), [])
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, '   '), [])
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, 'zzz'), [])
+  assert.deepEqual(Model.searchVaultPaths(VAULT_PATHS, null), [])
+  const many = []
+  for (let i = 0; i < 12; i++) many.push('Notes/note-' + i + '.md')
+  assert.equal(Model.searchVaultPaths(many, 'note').length, 8)
+  assert.equal(Model.searchVaultPaths(many, 'note', 3).length, 3)
+})
+
+test('suggestionTypeForPath gives the kind the scan worked out, or nothing', () => {
+  const suggestions = [
+    { type: 'checklist', path: 'TODO.md', count: 5 },
+    { type: 'board', path: 'Kanban.md', count: 2 }
+  ]
+  assert.equal(Model.suggestionTypeForPath(suggestions, 'TODO.md'), 'checklist')
+  assert.equal(Model.suggestionTypeForPath(suggestions, 'Kanban.md'), 'board')
+  assert.equal(Model.suggestionTypeForPath(suggestions, 'Other.md'), '')
+  assert.equal(Model.suggestionTypeForPath([], 'TODO.md'), '')
+  assert.equal(Model.suggestionTypeForPath(null, 'TODO.md'), '')
+})
