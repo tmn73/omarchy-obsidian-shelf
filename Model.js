@@ -396,6 +396,42 @@ function phoneHowTo (cfg) {
     '. Then pick "QuickAdd: Run" in Settings > Interface > Configure mobile Quick Action, and pull down in Obsidian to add a line.'
 }
 
+// ---- Add a list, step 1: search the vault.
+//
+// The step-2 picker uses this rule too, so a search reads the same
+// everywhere. The cap keeps a common word from flooding the sheet; the list
+// stays alphabetical because vault_paths returns it sorted. An empty query
+// matches nothing: step 1 keeps showing the found lists until the user types.
+var SEARCH_LIMIT = 8
+
+function searchVaultPaths (paths, query, limit) {
+  var q = text(query).toLowerCase()
+  var all = toArray(paths) || []
+  if (q === '') return []
+  var found = all.filter(function (p) { return String(p).toLowerCase().indexOf(q) >= 0 })
+  return found.slice(0, limit === undefined ? SEARCH_LIMIT : limit)
+}
+
+// The kind the vault scan already worked out for a path, or '' when the scan
+// did not see it: then the user picks a kind on step 1.
+function suggestionTypeForPath (suggestions, path) {
+  var list = toArray(suggestions) || []
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] && list[i].path === path) return list[i].type || ''
+  }
+  return ''
+}
+
+// True when a list on the shelf already reads this path. Step-1 search shows
+// such a file as "on the shelf" and does not add it a second time.
+function pathOnShelf (lists, path) {
+  var target = text(path).replace(/\/+$/, '')
+  if (target === '') return false
+  return (toArray(lists) || []).some(function (l) {
+    return !!l && text(l.path).replace(/\/+$/, '') === target
+  })
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     KEY_SEPARATOR: KEY_SEPARATOR,
@@ -426,6 +462,9 @@ if (typeof module !== 'undefined') {
     newListId: newListId,
     listDetail: listDetail,
     trashLabel: trashLabel,
-    phoneHowTo: phoneHowTo
+    phoneHowTo: phoneHowTo,
+    searchVaultPaths: searchVaultPaths,
+    suggestionTypeForPath: suggestionTypeForPath,
+    pathOnShelf: pathOnShelf
   }
 }

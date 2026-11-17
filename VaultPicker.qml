@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "Model.js" as Model
 
 // Choose a folder or a file of the vault, or a new one. Typing filters the
 // existing paths and proposes the typed name as a new path.
@@ -24,9 +25,9 @@ Column {
       return ""
     return kind === "file" && !/\.md$/i.test(name) ? name + ".md" : name.replace(/\/+$/, "")
   }
-  readonly property var matches: paths.filter(function (p) {
-    return query === "" || p.toLowerCase().indexOf(query.toLowerCase()) >= 0
-  }).slice(0, 8)
+  // An empty query lists the first paths; a typed one uses the same rule as
+  // the search on step 1.
+  readonly property var matches: query === "" ? paths.slice(0, Model.SEARCH_LIMIT) : Model.searchVaultPaths(paths, query)
   readonly property bool offerNew: newPath !== "" && paths.indexOf(newPath) < 0
 
   spacing: Style.space(6)

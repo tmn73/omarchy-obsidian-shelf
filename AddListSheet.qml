@@ -19,6 +19,7 @@ Column {
   property var sections: []
   property bool notify: true
   property var suggestions: []
+  property string pendingPath: ""
   property var lastAdded: null
   property string doneText: ""
   property string error: ""
@@ -40,6 +41,9 @@ Column {
   function start() {
     step = "kind"
     error = ""
+    pendingPath = ""
+    vaultSearch.clear()
+    vaultSearch.load()
     helper.run(["scan", "--vault", config.vaultPath], function (data) {
       root.suggestions = (data.suggestions || []).filter(function (s) {
         return !root.config.lists.some(function (l) { return l.path.replace(/\/+$/, "") === s.path })
@@ -52,10 +56,27 @@ Column {
     name = kinds[k].name
     path = ""
     pathIsNew = false
+    // A searched file waits here until its kind is picked: a file can be a
+    // checklist, a board or notes by section, but never a folder.
+    if (root.pendingPath !== "" && k !== "folder") {
+      path = root.pendingPath
+      name = root.pendingPath.split("/").pop().replace(/\.md$/i, "")
+    }
+    root.pendingPath = ""
     sections = k === "sections" ? [qsTr("To discuss"), qsTr("Decided")] : k === "board" ? [qsTr("To do"), qsTr("In progress"), qsTr("Done")] : []
     notify = k !== "sections"
     error = ""
     step = "details"
+  }
+
+  // A search result whose kind the scan already knows goes straight to
+  // step 2; one it did not see waits for the user to pick a kind below.
+  function pickSearchResult(path) {
+    var type = Model.suggestionTypeForPath(root.suggestions, path)
+    root.pendingPath = path
+    vaultSearch.clear()
+    if (type !== "")
+      pickKind(type)
   }
 
   function addSuggestion(s) {
@@ -112,16 +133,29 @@ Column {
     Text { anchors.verticalCenter: parent.verticalCenter; text: qsTr("ADD A LIST"); textFormat: Text.PlainText; color: Commons.Color.popups.text; font.family: root.fontFamily; font.pixelSize: Style.font.subtitle; font.bold: true; font.letterSpacing: Style.space(2) }
   }
 
-  // ---- Step 1: found in the vault, or a kind
+  // ---- Step 1: search the vault, or a found list, or a kind
   Column {
     visible: root.step === "kind"
     width: parent.width
     spacing: Style.space(10)
 
-    SettingsCaption { text: qsTr("FOUND IN YOUR VAULT · ONE CLICK"); fontFamily: root.fontFamily }
+    VaultSearch {
+      id: vaultSearch
+
+      width: parent.width
+      vaultPath: root.config.vaultPath
+      suggestions: root.suggestions
+      lists: root.config.lists
+      pendingPath: root.pendingPath
+      fontFamily: root.fontFamily
+      onPicked: root.pickSearchResult(path)
+    }
+
+    // While searching, the results replace the found lists.
+    SettingsCaption { visible: !vaultSearch.searching; text: qsTr("FOUND IN YOUR VAULT · ONE CLICK"); fontFamily: root.fontFamily }
 
     Text {
-      visible: root.suggestions.length === 0
+      visible: !vaultSearch.searching && root.suggestions.length === 0
       width: parent.width
       text: qsTr("Nothing new: every list found in the vault is already on the shelf.")
       textFormat: Text.PlainText
@@ -134,12 +168,14 @@ Column {
     Repeater {
       model: root.suggestions.slice(0, 4)
 
+      // A Repeater puts its rows in the Column, so each row hides itself.
       delegate: PickerOption {
         required property var modelData
 
+        visible: !vaultSearch.searching
         width: parent.width
         label: "+ " + modelData.path
-        detail: (modelData.type === "folder" ? qsTr("links") : modelData.type === "checklist" ? qsTr("checklist") : modelData.type === "board" ? qsTr("board") : qsTr("sections")) + " · " + modelData.count
+        detail: vaultSearch.kindLabel(modelData.type) + " · " + modelData.count
         fontFamily: root.fontFamily
         onClicked: root.addSuggestion(modelData)
       }
@@ -157,6 +193,9 @@ Column {
         glyph: root.kinds[modelData].glyph
         title: root.kinds[modelData].title
         description: root.kinds[modelData].description
+        // A searched file waiting for a kind can never be a folder.
+        enabled: modelData !== "folder" || root.pendingPath === ""
+        opacity: enabled ? 1 : 0.45
         fontFamily: root.fontFamily
         onClicked: root.pickKind(modelData)
       }
